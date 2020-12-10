@@ -1,0 +1,12 @@
+hydra:
+  baseUrl: http://localhost:4445
+
+logging:
+  level:
+    com.faforever: debug
+
+spring:
+  r2dbc:
+    url: r2dbc:pool:mysql://localhost:3306/faf?ssl=false
+    username: faf-java-api
+    password: banana
