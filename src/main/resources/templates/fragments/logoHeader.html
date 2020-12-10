@@ -1,0 +1,7 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<div id="form-header" th:fragment="logoHeader ( title )" th:assert="${!#strings.isEmpty(title)}">
+    <div id="form-header-left"><img src="https://faforever.com/images/faf-logo.png" alt="FAForever Logo"></div>
+    <h2 id="form-header-right" th:text="${title}">Title</h2>
+</div>
+</html>

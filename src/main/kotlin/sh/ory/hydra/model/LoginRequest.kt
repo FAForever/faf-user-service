@@ -12,7 +12,6 @@
 package sh.ory.hydra.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import io.quarkus.runtime.annotations.RegisterForReflection
 
 /**
  *
@@ -27,7 +26,6 @@ import io.quarkus.runtime.annotations.RegisterForReflection
  * @param sessionId SessionID is the login session ID. If the user-agent reuses a login session (via cookie / remember flag) this ID will remain the same. If the user-agent did not have an existing authentication session (e.g. remember is false) this will be a new random value. This value is used as the \"sid\" parameter in the ID Token and in OIDC Front-/Back- channel logout. It's value can generally be used to associate consecutive login requests by a certain user.
  */
 
-@RegisterForReflection
 data class LoginRequest(
     /* ID is the identifier (\"login challenge\") of the login request. It is used to identify the session. */
     @field:JsonProperty("challenge")
@@ -51,5 +49,5 @@ data class LoginRequest(
     val oidcContext: OpenIDConnectContext? = null,
     /* SessionID is the login session ID. If the user-agent reuses a login session (via cookie / remember flag) this ID will remain the same. If the user-agent did not have an existing authentication session (e.g. remember is false) this will be a new random value. This value is used as the \"sid\" parameter in the ID Token and in OIDC Front-/Back- channel logout. It's value can generally be used to associate consecutive login requests by a certain user. */
     @field:JsonProperty("session_id")
-    val sessionId: kotlin.String? = null,
+    val sessionId: kotlin.String? = null
 )

@@ -1,67 +1,159 @@
+import com.google.cloud.tools.jib.gradle.JibExtension
+import com.google.cloud.tools.jib.gradle.JibPlugin
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+val dockerTag: String? by project
+
 plugins {
-    kotlin("jvm") version "1.8.21"
-    kotlin("plugin.allopen") version "1.8.21"
-    id("io.quarkus")
-}
+    val kotlinVersion = "1.5.30"
 
-repositories {
-    mavenCentral()
-    mavenLocal()
-}
+    kotlin("jvm") version kotlinVersion
+    kotlin("kapt") version kotlinVersion
+    kotlin("plugin.spring") version kotlinVersion
+    id("org.springframework.boot") version "2.5.4"
+    id("io.spring.dependency-management") version "1.0.11.RELEASE"
+    id("com.google.cloud.tools.jib") version "3.1.4"
 
-val quarkusPlatformGroupId: String by project
-val quarkusPlatformArtifactId: String by project
-val quarkusPlatformVersion: String by project
-
-dependencies {
-    implementation("io.quarkus:quarkus-rest-client-reactive-jackson")
-    implementation("io.quarkus:quarkus-config-yaml")
-    implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
-    implementation("io.quarkus:quarkus-hibernate-validator")
-    implementation("io.quarkus:quarkus-resteasy-reactive-qute")
-    implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
-    implementation("io.quarkus:quarkus-hibernate-orm-panache-kotlin")
-    implementation("io.quarkus:quarkus-qute")
-    implementation("io.quarkus:quarkus-csrf-reactive")
-    implementation("io.quarkus:quarkus-jdbc-mariadb")
-    implementation("io.quarkus:quarkus-kotlin")
-    implementation("io.quarkus:quarkus-container-image-jib")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("io.quarkus:quarkus-arc")
-    implementation("io.quarkus:quarkus-hibernate-orm")
-    implementation("io.quarkus:quarkus-resteasy-reactive")
-    testImplementation("io.quarkus:quarkus-junit5")
-    testImplementation("io.rest-assured:rest-assured")
+    // /****** Additional tooling *****/
+    // // OpenAPI code generation
+    // id("org.openapi.generator") version "4.3.1"
+    // Code formatting
+    id("com.diffplug.spotless") version "5.12.5"
 }
 
 group = "com.faforever"
-version = "1.0.0-SNAPSHOT"
+version = "snapshot"
+java.sourceCompatibility = JavaVersion.VERSION_11
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+repositories {
+    mavenCentral()
+    maven("https://jitpack.io")
+}
+
+dependencies {
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
+    implementation("org.springframework.boot:spring-boot-configuration-processor")
+    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.security:spring-security-oauth2-resource-server")
+    implementation("org.springframework.security:spring-security-oauth2-jose")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity5")
+    implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+    implementation("io.swagger.core.v3:swagger-annotations:2.1.6")
+    runtimeOnly("dev.miku:r2dbc-mysql")
+    runtimeOnly("mysql:mysql-connector-java")
+    testImplementation("org.springframework.security:spring-security-oauth2-client")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:3.1.0")
+    testImplementation("io.projectreactor:reactor-test")
+    testImplementation("org.mock-server:mockserver-netty:5.11.2")
+    testImplementation("org.mock-server:mockserver-client-java:5.11.2")
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs = listOf("-Xjsr305=strict")
+        jvmTarget = "11"
+    }
+}
+
+spotless {
+    val ktlintVersion = "0.41.0"
+    kotlin {
+        ktlint(ktlintVersion)
+    }
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint(ktlintVersion)
+    }
+}
+
+plugins.withType<JibPlugin> {
+    configure<JibExtension> {
+
+        from.image = "adoptopenjdk:16-jre-hotspot"
+
+        to {
+            image = "faforever/faf-user-service"
+        }
+    }
 }
 
 tasks.withType<Test> {
-    systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
-}
+    useJUnitPlatform()
 
-/**
- * Open Kotlin (data) classes and provide no-args constructor for Java compatibility
- */
-allOpen {
-    // Quarkus
-    annotation("jakarta.ws.rs.Path")
-    annotation("jakarta.enterprise.context.ApplicationScoped")
-    annotation("io.quarkus.test.junit.QuarkusTest")
+    // Summarize test results
+    addTestListener(object : TestListener {
+        val ANSI_BOLD_WHITE = "\u001B[0;1m"
+        val ANSI_RESET = "\u001B[0m"
+        val ANSI_BLACK = "\u001B[30m"
+        val ANSI_RED = "\u001B[31m"
+        val ANSI_GREEN = "\u001B[32m"
+        val ANSI_YELLOW = "\u001B[33m"
+        val ANSI_BLUE = "\u001B[34m"
+        val ANSI_PURPLE = "\u001B[35m"
+        val ANSI_CYAN = "\u001B[36m"
+        val ANSI_WHITE = "\u001B[37m"
+        val BALLOT_CHECKED = "\uD83D\uDDF9"
+        val BALLOT_UNCHECKED = "\u2610"
+        val BALLOT_CROSS = "\uD83D\uDDF7"
 
-    // Hibernate
-    annotation("javax.persistence.Entity")
-    annotation("javax.persistence.MappedSuperclass")
-    annotation("javax.persistence.Embeddable")
-}
+        override fun beforeSuite(suite: TestDescriptor) {
+            if (suite.name.startsWith("Test Run") || suite.name.startsWith("Gradle Worker")) {
+                return
+            }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_17.toString()
-    kotlinOptions.javaParameters = true
+            if (suite.parent != null && suite.className != null) {
+                println(ANSI_BOLD_WHITE + suite.name + ANSI_RESET)
+            }
+        }
+
+        override fun beforeTest(testDescriptor: TestDescriptor?) {
+        }
+
+        override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {
+            val indicator = when {
+                result.failedTestCount > 0 -> ANSI_RED + BALLOT_CROSS
+                result.skippedTestCount > 0 -> ANSI_YELLOW + BALLOT_UNCHECKED
+                else -> ANSI_GREEN + BALLOT_CHECKED
+            }
+
+            println("    $indicator$ANSI_RESET ${testDescriptor.name}")
+        }
+
+        override fun afterSuite(suite: TestDescriptor, result: TestResult) {
+            if (suite.parent != null && suite.className != null) {
+                println("")
+            }
+
+            if (suite.parent == null) { // will match the outermost suite
+                val successStyle = ANSI_GREEN
+                val skipStyle = ANSI_YELLOW
+                val failStyle = ANSI_RED
+                val summaryStyle = when (result.resultType) {
+                    TestResult.ResultType.SUCCESS -> successStyle
+                    TestResult.ResultType.SKIPPED -> skipStyle
+                    TestResult.ResultType.FAILURE -> failStyle
+                }
+
+                println(
+                    """
+                        --------------------------------------------------------------------------
+                        Results: $summaryStyle${result.resultType}$ANSI_RESET (${result.testCount} tests, $successStyle${result.successfulTestCount} passed$ANSI_RESET, $failStyle${result.failedTestCount} failed$ANSI_RESET, $skipStyle${result.skippedTestCount} skipped$ANSI_RESET)
+                        --------------------------------------------------------------------------
+                    """.trimIndent()
+                )
+            }
+        }
+    })
 }

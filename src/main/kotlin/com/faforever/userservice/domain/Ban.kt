@@ -1,9 +1,10 @@
 package com.faforever.userservice.domain
 
-import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepository
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
+import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Table
+import org.springframework.data.repository.reactive.ReactiveCrudRepository
+import org.springframework.stereotype.Repository
+import reactor.core.publisher.Flux
 import java.time.OffsetDateTime
 
 enum class BanLevel {
@@ -12,27 +13,26 @@ enum class BanLevel {
     VAULT,
 }
 
-@Entity(name = "ban")
+@Table("ban")
 data class Ban(
-        @field:Id
-        val id: Long,
-        val playerId: Long,
-        val authorId: Long,
-        val level: BanLevel,
-        val reason: String,
-        val expiresAt: OffsetDateTime?,
-        val revokeTime: OffsetDateTime?,
-        val reportId: Long?,
-        val revokeReason: String?,
-        val revokeAuthorId: Long?,
+    @Id
+    val id: Long,
+    val playerId: Long,
+    val authorId: Long,
+    val level: BanLevel,
+    val reason: String,
+    val expiresAt: OffsetDateTime?,
+    val revokeTime: OffsetDateTime?,
+    val reportId: Long?,
+    val revokeReason: String?,
+    val revokeAuthorId: Long?,
 ) {
 
     val isActive: Boolean
         get() = revokeTime == null && (expiresAt == null || expiresAt.isAfter(OffsetDateTime.now()))
 }
 
-@ApplicationScoped
-class BanRepository : PanacheRepository<Ban> {
-    fun findGlobalBansByPlayerId(playerId: Long) =
-            find("playerId = ?1 and level = BanLevel.GLOBAL").list()
+@Repository
+interface BanRepository : ReactiveCrudRepository<Ban, Long> {
+    fun findAllByPlayerIdAndLevel(playerId: Long, level: BanLevel): Flux<Ban>
 }

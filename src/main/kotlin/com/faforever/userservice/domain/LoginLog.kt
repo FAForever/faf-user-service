@@ -1,52 +1,46 @@
 package com.faforever.userservice.domain
 
-import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepository
-import io.quarkus.runtime.annotations.RegisterForReflection
-import jakarta.inject.Singleton
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import org.hibernate.annotations.CreationTimestamp
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.Id
+import org.springframework.data.r2dbc.repository.Query
+import org.springframework.data.relational.core.mapping.Column
+import org.springframework.data.relational.core.mapping.Table
+import org.springframework.data.repository.reactive.ReactiveCrudRepository
+import org.springframework.stereotype.Repository
+import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
-@Entity(name = "login_log")
+@Table("login_log")
 data class LoginLog(
-        @field:Id
-        val id: Long,
-        @field:Column(name = "login_id")
-        val userId: Long?,
-        @field:Column(name = "login_string")
-        val loginString: String?,
-        val ip: String,
-        val success: Boolean,
-        @field:CreationTimestamp
-        val createTime: LocalDateTime = LocalDateTime.now(),
+    @Id
+    val id: Long,
+    @Column("login_id")
+    val userId: Long?,
+    @Column("login_string")
+    val loginString: String?,
+    val ip: String,
+    val success: Boolean,
+    @CreatedDate
+    val createTime: LocalDateTime = LocalDateTime.now(),
 )
 
-@RegisterForReflection
 data class FailedAttemptsSummary(
-        val totalAttempts: Long,
-        val accountsAffected: Long,
-        val firstAttemptAt: LocalDateTime?,
-        val lastAttemptAt: LocalDateTime?,
+    val totalAttempts: Long?,
+    val accountsAffected: Long?,
+    val firstAttemptAt: LocalDateTime?,
+    val lastAttemptAt: LocalDateTime?,
 )
 
-@Singleton
-class LoginLogRepository : PanacheRepository<LoginLog> {
-
-    fun findFailedAttemptsByIpAfterDate(ip: String, date: LocalDateTime): FailedAttemptsSummary? =
-            getEntityManager().createNativeQuery(
-                    """
-                        SELECT
-                            count(*) as totalAttempts,
-                            count(DISTINCT login_id) as accountsAffected,
-                            min(create_time) as firstAttemptAt,
-                            max(create_time) as lastAttemptAt
-                        FROM login_log WHERE ip = :ip AND success = 0 AND create_time >= :date
-                    """,
-                    FailedAttemptsSummary::class.java
-            )
-                    .resultStream
-                    .findFirst()
-                    .orElse(null) as? FailedAttemptsSummary
+@Repository
+interface LoginLogRepository : ReactiveCrudRepository<LoginLog, Long> {
+    @Query(
+        """SELECT
+            count(*) as total_attempts,
+            count(DISTINCT login_id) as accounts_affected,
+            min(create_time) as first_attempt_at,
+            max(create_time) as last_attempt_at
+        FROM login_log WHERE ip = :ip AND success = 0 AND create_time >= :date
+    """
+    )
+    fun findFailedAttemptsByIpAfterDate(ip: String, date: LocalDateTime): Mono<FailedAttemptsSummary>
 }

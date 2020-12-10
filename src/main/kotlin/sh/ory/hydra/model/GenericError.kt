@@ -12,7 +12,6 @@
 package sh.ory.hydra.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import io.quarkus.runtime.annotations.RegisterForReflection
 
 /**
  * Error responses are sent when an error (e.g. unauthorized, bad request, ...) occurred.
@@ -22,7 +21,6 @@ import io.quarkus.runtime.annotations.RegisterForReflection
  * @param statusCode Code represents the error status code (404, 403, 401, ...).
  */
 
-@RegisterForReflection
 data class GenericError(
     /* Name is the error name. */
     @field:JsonProperty("error")
