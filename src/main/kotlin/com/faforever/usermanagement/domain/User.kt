@@ -23,7 +23,6 @@ data class User(
     override fun toString(): String =
         // Do NOT expose personal information here!!
         "User(id=$id, username='$username')"
-
 }
 
 @Repository

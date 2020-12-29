@@ -3,7 +3,7 @@ hydra:
 
 logging:
   level:
-    com.faforever: debug
+    ROOT: debug
 
 spring:
   r2dbc:

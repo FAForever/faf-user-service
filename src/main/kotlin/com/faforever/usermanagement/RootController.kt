@@ -1,12 +1,11 @@
 package com.faforever.usermanagement
 
+import com.faforever.usermanagement.domain.LoginResult.LoginThrottlingActive
 import com.faforever.usermanagement.domain.LoginResult.SuccessfulLogin
 import com.faforever.usermanagement.domain.LoginResult.UserBanned
 import com.faforever.usermanagement.domain.LoginResult.UserOrCredentialsMismatch
 import com.faforever.usermanagement.domain.UserService
 import com.faforever.usermanagement.hydra.HydraService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.http.server.reactive.ServerHttpResponse
@@ -55,12 +54,15 @@ class RootController(
             val challenge = checkNotNull(form["login_challenge"]?.first())
             val username = checkNotNull(form["username"]?.first())
             val password = checkNotNull(form["password"]?.first())
+            // TODO: This does not work behind a proxy. Use forwarded IP address header instead
+            val ip = request.remoteAddress?.address?.hostAddress.toString()
 
-            userService.login(challenge, username, password)
+            userService.login(challenge, username, password, ip)
                 .flatMap {
                     when (it) {
                         is SuccessfulLogin -> redirect(response, it.redirectTo)
                         is UserBanned -> redirect(response, it.redirectTo)
+                        is LoginThrottlingActive -> redirect(response, it.redirectTo)
                         is UserOrCredentialsMismatch -> redirect(
                             response,
                             UriComponentsBuilder.fromUri(request.uri)
