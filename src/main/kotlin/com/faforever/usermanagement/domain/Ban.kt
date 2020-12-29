@@ -15,7 +15,7 @@ enum class BanLevel {
 }
 
 @Table("ban")
-class Ban(
+data class Ban(
     @Id
     val id: Int,
     @Column("player_id")
@@ -27,11 +27,13 @@ class Ban(
     @Column("revoke_time")
     val revokeTime: LocalDateTime?,
 ) {
+
     val isActive: Boolean
         get() = revokeTime == null && (expiresAt == null || expiresAt.isAfter(LocalDateTime.now()))
+
 }
 
 @Repository
-interface BanRepository: ReactiveCrudRepository<Ban, Int> {
+interface BanRepository : ReactiveCrudRepository<Ban, Int> {
     fun findByPlayerIdAndLevel(playerId: Int, level: BanLevel): Flux<Ban>
 }

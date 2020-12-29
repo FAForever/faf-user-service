@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository
 import reactor.core.publisher.Mono
 
 @Table("login")
-class User(
+data class User(
     @Id
     val id: Int,
     @Column("login")
@@ -18,7 +18,13 @@ class User(
     val ip: String,
     @Column("steamid")
     val steamId: Int?,
-)
+) {
+
+    override fun toString(): String =
+        // Do NOT expose personal information here!!
+        "User(id=$id, username='$username')"
+
+}
 
 @Repository
 interface UserRepository : ReactiveCrudRepository<User, Int> {
