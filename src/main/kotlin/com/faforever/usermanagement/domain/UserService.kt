@@ -3,15 +3,26 @@ package com.faforever.usermanagement.domain
 import com.faforever.usermanagement.hydra.HydraService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
+import org.springframework.validation.annotation.Validated
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import sh.ory.hydra.model.AcceptLoginRequest
 import sh.ory.hydra.model.GenericError
 import sh.ory.hydra.model.LoginRequest
-import java.time.Duration
 import java.time.LocalDateTime
+
+@ConfigurationProperties(prefix = "security")
+@Validated
+@ConstructorBinding
+data class SecurityProperties(
+    val failedLoginAccountThreshold: Int,
+    val failedLoginAttemptThreshold: Int,
+    val failedLoginThrottlingMinutes: Long,
+)
 
 sealed class LoginResult {
     data class LoginThrottlingActive(val redirectTo: String) : LoginResult()
@@ -22,6 +33,7 @@ sealed class LoginResult {
 
 @Component
 class UserService(
+    val securityProperties: SecurityProperties,
     val userRepository: UserRepository,
     val loginLogRepository: LoginLogRepository,
     val banRepository: BanRepository,
@@ -30,10 +42,6 @@ class UserService(
 ) {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(UserService::class.java)
-        private const val FAILED_LOGINS_ACCOUNT_THRESHOLD = 5
-        private const val FAILED_LOGINS_ATTEMPTS_THRESHOLD = 10
-        private val THROTTLING_TIME = Duration.ofMinutes(5)
-
         private const val HYDRA_ERROR_USER_BANNED = "user_banned"
         private const val HYDRA_ERROR_LOGIN_THROTTLED = "login_throttled"
     }
@@ -45,11 +53,11 @@ class UserService(
 
             log.debug("Failed login attempts for IP address '$ip': $it")
 
-            if (accountsAffected > FAILED_LOGINS_ACCOUNT_THRESHOLD ||
-                totalFailedAttempts > FAILED_LOGINS_ATTEMPTS_THRESHOLD
+            if (accountsAffected > securityProperties.failedLoginAccountThreshold ||
+                totalFailedAttempts > securityProperties.failedLoginAttemptThreshold
             ) {
                 val lastAttempt = it.lastAttemptAt!!
-                if (LocalDateTime.now().minus(THROTTLING_TIME).isBefore(lastAttempt)) {
+                if (LocalDateTime.now().minusMinutes(securityProperties.failedLoginThrottlingMinutes).isBefore(lastAttempt)) {
                     log.debug("IP '$ip' is trying again to early -> throttle it")
                     true
                 } else {

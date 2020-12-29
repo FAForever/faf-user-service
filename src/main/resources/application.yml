@@ -1,9 +1,14 @@
+security:
+  failedLoginAccountThreshold: ${FAILED_LOGIN_ACCOUNT_THRESHOLD:5}
+  failedLoginAttemptThreshold: ${FAILED_LOGIN_ATTEMPT_THRESHOLD:10}
+  failedLoginThrottlingMinutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
+
 hydra:
   baseUrl: http://localhost:4445
 
 logging:
   level:
-    ROOT: debug
+    com.faforever: debug
 
 spring:
   r2dbc:
