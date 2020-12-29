@@ -1,8 +1,8 @@
 package com.faforever.usermanagement
 
-import com.faforever.usermanagement.domain.LoginResult.FailedLogin
 import com.faforever.usermanagement.domain.LoginResult.SuccessfulLogin
-import com.faforever.usermanagement.domain.UserRepository
+import com.faforever.usermanagement.domain.LoginResult.UserBanned
+import com.faforever.usermanagement.domain.LoginResult.UserOrCredentialsMismatch
 import com.faforever.usermanagement.domain.UserService
 import com.faforever.usermanagement.hydra.HydraService
 import org.slf4j.Logger
@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.http.server.reactive.ServerHttpResponse
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
@@ -29,10 +28,6 @@ class RootController(
     private val userService: UserService,
     private val hydraService: HydraService,
 ) {
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(RootController::class.java)
-    }
-
     @GetMapping("login")
     fun showLogin(
         request: ServerHttpRequest,
@@ -45,6 +40,11 @@ class RootController(
         return Mono.just(Rendering.view("login").build())
     }
 
+    private fun redirect(response: ServerHttpResponse, uriString: String) = response.apply {
+        statusCode = HttpStatus.FOUND
+        headers.location = URI.create(uriString)
+    }.setComplete()
+
     @PostMapping("login")
     fun performLogin(
         serverWebExchange: ServerWebExchange,
@@ -52,30 +52,23 @@ class RootController(
         response: ServerHttpResponse,
     ): Mono<Void> =
         serverWebExchange.formData.flatMap { form ->
-            val challenge = form["login_challenge"]?.first()
-            val username = form["username"]?.first()
-            val password = form["password"]?.first()
-
-            checkNotNull(challenge)
-            checkNotNull(username)
-            checkNotNull(password)
+            val challenge = checkNotNull(form["login_challenge"]?.first())
+            val username = checkNotNull(form["username"]?.first())
+            val password = checkNotNull(form["password"]?.first())
 
             userService.login(challenge, username, password)
                 .flatMap {
                     when (it) {
-                        is SuccessfulLogin -> response.apply {
-                            statusCode = HttpStatus.FOUND
-                            headers.location = URI.create(it.redirectTo)
-                        }.setComplete()
-
-                        is FailedLogin -> response.apply {
-                            statusCode = HttpStatus.FOUND
-                            headers.location = UriComponentsBuilder.fromUri(request.uri)
+                        is SuccessfulLogin -> redirect(response, it.redirectTo)
+                        is UserBanned -> redirect(response, it.redirectTo)
+                        is UserOrCredentialsMismatch -> redirect(
+                            response,
+                            UriComponentsBuilder.fromUri(request.uri)
                                 .queryParam("login_challenge", challenge)
                                 .queryParam("login_failed")
                                 .build()
-                                .toUri()
-                        }.setComplete()
+                                .toUriString()
+                        )
                     }
                 }
         }
@@ -99,9 +92,8 @@ class RootController(
         response: ServerHttpResponse,
     ): Mono<Void> =
         serverWebExchange.formData.flatMap { form ->
-            val challenge = form["consent_challenge"]?.first()
+            val challenge = checkNotNull(form["consent_challenge"]?.first())
             val permitted = form["action"]?.first()?.toLowerCase() == "permit"
-            checkNotNull(challenge)
 
             if (permitted) {
                 hydraService.acceptConsentRequest(challenge, AcceptConsentRequest())
@@ -109,10 +101,7 @@ class RootController(
                 hydraService.rejectConsentRequest(challenge, GenericError("scope_denied"))
             }
                 .flatMap {
-                    response.apply {
-                        statusCode = HttpStatus.FOUND
-                        headers.location = URI.create(it.redirectTo)
-                    }.setComplete()
+                    redirect(response, it.redirectTo)
                 }
         }
 }

@@ -8,15 +8,18 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import sh.ory.hydra.model.AcceptLoginRequest
+import sh.ory.hydra.model.GenericError
 
 sealed class LoginResult {
-    object FailedLogin : LoginResult()
+    object UserOrCredentialsMismatch : LoginResult()
     data class SuccessfulLogin(val redirectTo: String) : LoginResult()
+    data class UserBanned(val redirectTo: String, val ban: Ban): LoginResult()
 }
 
 @Component
 class UserService(
     val userRepository: UserRepository,
+    val banRepository: BanRepository,
     val hydraService: HydraService,
     val passwordEncoder: PasswordEncoder,
 ) {
@@ -33,22 +36,34 @@ class UserService(
             // TODO: Reject login after x failed attempts
             userRepository.findByUsername(username)
                 .flatMap { user ->
-                    // TODO: Check for bans
                     if (loginRequest.skip || passwordEncoder.matches(password, user.password)) {
-                        log.debug("User '$username' logged in successfully")
+                        findGlobalBan(user)
+                            .flatMap<LoginResult> { ban ->
+                                log.debug("User '$username' is banned by $ban")
+                                hydraService.rejectLoginRequest(challenge, GenericError("user_banned"))
+                                    .map { LoginResult.UserBanned(it.redirectTo, ban) }
+                            }
+                            .switchIfEmpty {
+                                log.debug("User '$username' logged in successfully")
 
-                        hydraService.acceptLoginRequest(
-                            challenge,
-                            AcceptLoginRequest(user.id.toString())
-                        ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
+                                hydraService.acceptLoginRequest(
+                                    challenge,
+                                    AcceptLoginRequest(user.id.toString())
+                                ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
+                            }
+
                     } else {
                         log.debug("Password for user '$username' doesn't match.")
-                        Mono.just(LoginResult.FailedLogin)
+                        Mono.just(LoginResult.UserOrCredentialsMismatch)
                     }
                 }
                 .switchIfEmpty {
                     log.debug("User '$username' not found")
-                    Mono.just(LoginResult.FailedLogin)
+                    Mono.just(LoginResult.UserOrCredentialsMismatch)
                 }
         }
+
+    fun findGlobalBan(user: User): Mono<Ban> = banRepository.findByPlayerIdAndLevel(user.id, BanLevel.GLOBAL)
+        .filter { it.isActive }
+        .next()
 }

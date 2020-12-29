@@ -74,7 +74,7 @@ class HydraService(
             .retrieve()
             .bodyToMono(RedirectResponse::class.java)
 
-    fun rejectLoginRequest(challenge: String, error: GenericError): Mono<Unit> =
+    fun rejectLoginRequest(challenge: String, error: GenericError): Mono<RedirectResponse> =
         webClient
             .put()
             .uri(
@@ -83,7 +83,7 @@ class HydraService(
             )
             .bodyValue(error)
             .retrieve()
-            .bodyToMono(Unit::class.java)
+            .bodyToMono(RedirectResponse::class.java)
 
     fun acceptConsentRequest(challenge: String, acceptConsentRequest: AcceptConsentRequest): Mono<RedirectResponse> =
         webClient
