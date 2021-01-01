@@ -1,19 +1,23 @@
+faf:
+  passwordResetUrl:  ${PASSWORD_RESET_URL:https://faforever.com/account/password/reset}
+  registerAccountUrl: ${REGISTER_ACCOUNT_URL:https://faforever.com/account/register}
+
 security:
   failedLoginAccountThreshold: ${FAILED_LOGIN_ACCOUNT_THRESHOLD:5}
   failedLoginAttemptThreshold: ${FAILED_LOGIN_ATTEMPT_THRESHOLD:10}
   failedLoginThrottlingMinutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
 
 hydra:
-  baseUrl: http://localhost:4445
+  baseUrl: ${HYDRA_BASE_URL:http://localhost:4445}
 
 logging:
   level:
-    com.faforever: debug
+    com.faforever: INFO
 
 spring:
   r2dbc:
-    url: r2dbc:pool:mysql://localhost:3306/faf?ssl=false
-    username: faf-java-api
-    password: banana
+    url: ${DB_R2DBC_URL:r2dbc:pool:mysql://localhost:3306/faf?ssl=false}
+    username: ${DB_USERNAME:faf-java-api}
+    password: ${DB_PASSWORD:banana}
   messages:
     basename: i18n/messages

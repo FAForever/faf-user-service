@@ -21,7 +21,8 @@
     </form>
 
     <div class="footer-links">
-        <a href="https://www.faforever.com/account/password/reset" th:text="#{login.forgotPassword}">Forgot Password</a>
+        <a th:href="${passwordResetUrl}" th:text="#{login.forgotPassword}">Forgot Password</a>
+        <a th:href="${registerAccountUrl}" th:text="#{login.registerAccount}">Register Account</a>
     </div>
 </div>
 </body>

@@ -1,5 +1,6 @@
 package com.faforever.usermanagement
 
+import com.faforever.usermanagement.config.FafProperties
 import com.faforever.usermanagement.domain.LoginResult.LoginThrottlingActive
 import com.faforever.usermanagement.domain.LoginResult.SuccessfulLogin
 import com.faforever.usermanagement.domain.LoginResult.UserBanned
@@ -26,6 +27,7 @@ import java.net.URI
 class RootController(
     private val userService: UserService,
     private val hydraService: HydraService,
+    private val fafProperties: FafProperties,
 ) {
     @GetMapping("login")
     fun showLogin(
@@ -36,6 +38,8 @@ class RootController(
         val loginFailed = request.queryParams.containsKey("login_failed")
         model.addAttribute("loginFailed", loginFailed)
         model.addAttribute("challenge", challenge)
+        model.addAttribute("passwordResetUrl", fafProperties.passwordResetUrl)
+        model.addAttribute("registerAccountUrl", fafProperties.registerAccountUrl)
         return Mono.just(Rendering.view("login").build())
     }
 
