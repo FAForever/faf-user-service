@@ -1,3 +1,5 @@
+import com.google.cloud.tools.jib.gradle.JibExtension
+import com.google.cloud.tools.jib.gradle.JibPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -6,6 +8,7 @@ plugins {
     kotlin("plugin.spring") version "1.4.21"
     id("org.springframework.boot") version "2.4.1"
     id("io.spring.dependency-management") version "1.0.10.RELEASE"
+    id("com.google.cloud.tools.jib") version "2.7.0"
 
     // /****** Additional tooling *****/
     // // OpenAPI code generation
@@ -65,5 +68,17 @@ spotless {
     kotlinGradle {
         target("*.gradle.kts")
         ktlint(ktlintVersion)
+    }
+}
+
+plugins.withType<JibPlugin> {
+    configure<JibExtension> {
+        // When changing this, also consider changing the build image in .gitlab-ci.yml
+        from.image = "adoptopenjdk:15-jre-hotspot"
+
+        to {
+            image = "faforever/faf-user-service"
+            tags = setOf("master")
+        }
     }
 }
