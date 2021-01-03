@@ -1,6 +1,6 @@
-package com.faforever.usermanagement.domain
+package com.faforever.userservice.domain
 
-import com.faforever.usermanagement.hydra.HydraService
+import com.faforever.userservice.hydra.HydraService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.ConfigurationProperties

@@ -1,4 +1,4 @@
-package com.faforever.usermanagement.config
+package com.faforever.userservice.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding

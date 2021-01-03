@@ -1,4 +1,4 @@
-package com.faforever.usermanagement.domain
+package com.faforever.userservice.domain
 
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id

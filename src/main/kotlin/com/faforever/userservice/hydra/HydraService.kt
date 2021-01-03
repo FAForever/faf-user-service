@@ -1,4 +1,4 @@
-package com.faforever.usermanagement.hydra
+package com.faforever.userservice.hydra
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.slf4j.Logger

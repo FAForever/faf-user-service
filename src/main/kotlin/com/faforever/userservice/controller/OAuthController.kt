@@ -1,12 +1,12 @@
-package com.faforever.usermanagement
+package com.faforever.userservice.controller
 
-import com.faforever.usermanagement.config.FafProperties
-import com.faforever.usermanagement.domain.LoginResult.LoginThrottlingActive
-import com.faforever.usermanagement.domain.LoginResult.SuccessfulLogin
-import com.faforever.usermanagement.domain.LoginResult.UserBanned
-import com.faforever.usermanagement.domain.LoginResult.UserOrCredentialsMismatch
-import com.faforever.usermanagement.domain.UserService
-import com.faforever.usermanagement.hydra.HydraService
+import com.faforever.userservice.config.FafProperties
+import com.faforever.userservice.domain.LoginResult.LoginThrottlingActive
+import com.faforever.userservice.domain.LoginResult.SuccessfulLogin
+import com.faforever.userservice.domain.LoginResult.UserBanned
+import com.faforever.userservice.domain.LoginResult.UserOrCredentialsMismatch
+import com.faforever.userservice.domain.UserService
+import com.faforever.userservice.hydra.HydraService
 import org.springframework.http.HttpStatus
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.http.server.reactive.ServerHttpResponse
@@ -24,7 +24,7 @@ import sh.ory.hydra.model.GenericError
 import java.net.URI
 
 @Controller
-class RootController(
+class OAuthController(
     private val userService: UserService,
     private val hydraService: HydraService,
     private val fafProperties: FafProperties,

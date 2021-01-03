@@ -1,1 +1,1 @@
-rootProject.name = "usermanagement"
+rootProject.name = "faf-user-service"

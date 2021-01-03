@@ -1,4 +1,4 @@
-package com.faforever.usermanagement
+package com.faforever.userservice
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest

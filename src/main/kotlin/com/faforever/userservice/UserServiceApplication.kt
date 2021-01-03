@@ -1,16 +1,16 @@
-package com.faforever.usermanagement
+package com.faforever.userservice
 
-import com.faforever.usermanagement.config.FafProperties
-import com.faforever.usermanagement.domain.SecurityProperties
-import com.faforever.usermanagement.hydra.HydraProperties
+import com.faforever.userservice.config.FafProperties
+import com.faforever.userservice.domain.SecurityProperties
+import com.faforever.userservice.hydra.HydraProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
 @EnableConfigurationProperties(HydraProperties::class, SecurityProperties::class, FafProperties::class)
-class UserManagementApplication
+class UserServiceApplication
 
 fun main() {
-    runApplication<UserManagementApplication>()
+    runApplication<UserServiceApplication>()
 }
