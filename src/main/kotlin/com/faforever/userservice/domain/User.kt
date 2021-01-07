@@ -10,14 +10,14 @@ import reactor.core.publisher.Mono
 @Table("login")
 data class User(
     @Id
-    val id: Int,
+    val id: Long,
     @Column("login")
     val username: String,
     val password: String,
     val email: String,
     val ip: String,
     @Column("steamid")
-    val steamId: Int?,
+    val steamId: Long?,
 ) {
 
     override fun toString(): String =
@@ -26,6 +26,6 @@ data class User(
 }
 
 @Repository
-interface UserRepository : ReactiveCrudRepository<User, Int> {
+interface UserRepository : ReactiveCrudRepository<User, Long> {
     fun findByUsername(username: String?): Mono<User>
 }

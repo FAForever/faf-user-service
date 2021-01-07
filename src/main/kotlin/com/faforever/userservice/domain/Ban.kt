@@ -16,8 +16,8 @@ enum class BanLevel {
 @Table("ban")
 data class Ban(
     @Id
-    val id: Int,
-    val playerId: Int,
+    val id: Long,
+    val playerId: Long,
     val level: BanLevel,
     val reason: String,
     val expiresAt: LocalDateTime?,
@@ -29,6 +29,6 @@ data class Ban(
 }
 
 @Repository
-interface BanRepository : ReactiveCrudRepository<Ban, Int> {
-    fun findAllByPlayerIdAndLevel(playerId: Int, level: BanLevel): Flux<Ban>
+interface BanRepository : ReactiveCrudRepository<Ban, Long> {
+    fun findAllByPlayerIdAndLevel(playerId: Long, level: BanLevel): Flux<Ban>
 }
