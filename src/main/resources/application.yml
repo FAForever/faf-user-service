@@ -9,7 +9,7 @@ security:
 
 hydra:
   baseUrl: ${HYDRA_BASE_URL:http://localhost:4445}
-
+  fakeTlsForwarding: ${HYDRA_FAKE_TLS_FORWARDING:true}
 logging:
   level:
     com.faforever: INFO

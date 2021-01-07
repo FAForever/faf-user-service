@@ -21,7 +21,17 @@ import javax.validation.constraints.NotBlank
 @ConstructorBinding
 data class HydraProperties(
     @NotBlank
-    val baseUrl: String
+    val baseUrl: String,
+
+    /**
+     * If you run Ory Hydra behind a reverse proxy, you most probably have it configured to allow
+     * TLS termination in the reverse proxy and unencrypted traffic from inside the private ip range.
+     *
+     * However, Ory Hydra only accepts these connections if there is a X-Forwarded-Proto: https header.
+     *
+     * Setting this flag to true causes all http calls to Ory Hydra to do the same.
+     */
+    val fakeTlsForwarding: Boolean,
 )
 
 data class RedirectResponse(
@@ -41,6 +51,12 @@ class HydraService(
 
     private val webClient = webClientBuilder
         .baseUrl(hydraProperties.baseUrl)
+        .apply {
+            if (hydraProperties.fakeTlsForwarding) {
+                log.info("Configure Hydra WebClient to use fake TLS forwarding")
+                it.defaultHeader("X-Forwarded-Proto", "https")
+            }
+        }
         .build()
 
     fun getLoginRequest(challenge: String): Mono<LoginRequest> =
