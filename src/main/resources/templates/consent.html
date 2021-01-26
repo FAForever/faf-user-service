@@ -1,43 +1,96 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title th:text="#{login.title}">FAForever Login</title>
-
-    <link href="https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz" rel="stylesheet" type="text/css">
-    <link href="https://faforever.com/styles/css/site.min.css" rel="stylesheet" type="text/css"/>
-    <link rel="stylesheet" th:href="@{/css/style.css}" type="text/css"/>
+    <title>FAForever Login</title>
+    <link rel="stylesheet" href="../META-INF/resources/css/style.css" th:href="@{/css/style.css}" type="text/css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"
+          integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w=="
+          crossorigin="anonymous"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet">
 </head>
 <body>
-<div class="background hero"></div>
-<div class="card login-card">
-    <h1 th:text="#{login.title}">FAForever Login</h1>
-    <h2 th:text="#{consent.title}">Authorize application</h2>
+<div class="background"></div>
+<header>
+    <div id="leftheader">
+        <a href="https://www.faforever.com"><img src="https://faforever.com/images/faf-logo.png"
+                                                 alt="FAForever Logo"></a>
+        <h1 th:text="#{login.title}">FAForever Login</h1>
+    </div>
+    <div id="rightheader">
+        <p th:text="#{header.loggedInAs(${user.username})}">You are logged in as [User]</p>
+    </div>
+</header>
+<div class="main-card">
+    <div class="main-card-inner">
 
-    <h2 th:text="${consentRequest.getClient().clientName}">Client name</h2>
-    <p th:text="#{consent.appRequest}">This app would like to:</p>
-    <ul>
-        <li th:each="scope : ${consentRequest.requestedScope}"
-            th:text="${#messages.msgOrNull('oauth2.scope.'+scope) == null ?
-                     #messages.msg('oauth2.scope.textMissing', scope) : #messages.msg('oauth2.scope.'+scope)}">
-            Scope
-        </li>
-    </ul>
-    <input name='user_oauth_approval' value='false' type='hidden'/>
-    <div class="form-group button-bar">
-        <form id='denialForm' name='denialForm' th:action="@{/consent}" method='post'>
-            <input type="hidden" th:name="consent_challenge" th:value="${challenge}" th:if="${challenge != null }"/>
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf != null }"/>
-            <input name='action' value='deny' type='hidden'/>
-            <input name="deny" th:value="#{consent.deny}" type="submit" class="btn"/>
-        </form>
-        <form id='confirmationForm' name='confirmationForm' th:action="@{/consent}" method='post'>
-            <input type="hidden" th:name="consent_challenge" th:value="${challenge}" th:if="${challenge != null }"/>
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf != null }"/>
-            <input name='action' value='permit' type='hidden'/>
-            <input name="authorize" th:value="#{consent.authorize}" type="submit" class="btn btn-danger"/>
-        </form>
+        <h2 id="client-header" th:text="${client.clientName}">OAuth Client Name</h2>
+        <div id="client-details">
+            <div id="client-logo" th:if="${!#strings.isEmpty(client.logoUri)}">
+                <img th:src="${client.logoUri}" th:alt="#{consent.clientLogo}">
+            </div>
+            <div id="client-urls">
+                <div id="client-url"><a target="_blank" th:href="${client.clientUri}" th:text="${client.clientUri}"
+                                        href="#">www.faforever.com</a></div>
+                <ul id="legal" class="pipe-separated">
+                    <!-- no closing li to avoid whitespace -->
+                    <li th:if="${!#strings.isEmpty(client.tosUri)}"><a th:href="${client.tosUri}" href="#"
+                                                                       th:text="#{consent.termsOfService}"
+                                                                       target="_blank">Terms of Service</a>
+                    <li th:if="${!#strings.isEmpty(client.policyUri)}"><a th:href="${client.policyUri}" href="#"
+                                                                          th:text="#{consent.privacyStatement}"
+                                                                          target="_blank">Privacy statement</a>
+                </ul>
+            </div>
+        </div>
+
+        <p id="scope-header" th:text="#{consent.appRequest}">This app would like to:</p>
+        <ul class="oauth-scopes">
+            <li th:each="scope : ${consentRequest.requestedScope}"
+                th:text="${#messages.msgOrNull('oauth2.scope.'+scope) == null ?
+                       #messages.msg('oauth2.scope.textMissing', scope) : #messages.msg('oauth2.scope.'+scope)}">
+                <i class="tooltip fas fa-info-circle"><span class="tooltiptext">Tool tip text</span></i> OpenID Connect
+            </li>
+        </ul>
+
+        <div class="flex-container">
+            <form id='denial-form' name='denialForm' th:action="@{/consent}" method='post'>
+                <input type="hidden" th:name="consent_challenge" th:value="${challenge}" th:if="${challenge != null }"/>
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"
+                       th:if="${_csrf != null }"/>
+                <input name='action' value='deny' type='hidden'/>
+                <input name="deny" th:value="#{consent.deny}" value="Deny" type="submit" class="btn"/>
+            </form>
+            <form id='confirmation-form' name='confirmationForm' th:action="@{/consent}" method='post'>
+                <input type="hidden" th:name="consent_challenge" th:value="${challenge}" th:if="${challenge != null }"/>
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"
+                       th:if="${_csrf != null }"/>
+                <input name='action' value='permit' type='hidden'/>
+                <input name="authorize" th:value="#{consent.authorize}" value="Authorize" type="submit"
+                       class="btn btn-danger"/>
+            </form>
+        </div>
+
+        <footer>
+            <ul>
+                <li><a target="_blank" href="https://discord.com/invite/hgvj6Af"><i class="fab fa-discord"
+                                                                                    aria-label="FAF Discord"></i></a>
+                </li>
+                <li><a target="_blank" href="https://twitter.com/falliancef"><i class="fab fa-twitter"
+                                                                                aria-label="FAF Twitter"></i></a></li>
+                <li><a target="_blank" href="https://www.youtube.com/c/ForgedAllianceForever"><i class="fab fa-youtube"
+                                                                                                 aria-label="FAF Youtube"></i></a>
+                </li>
+                <li><a target="_blank" href="https://www.facebook.com/ForgedAllianceForever"><i class="fab fa-facebook"
+                                                                                                aria-label="FAF Facebook"></i></a>
+                </li>
+                <li><a target="_blank" href="https://github.com/FAForever/"><i class="fab fa-github"
+                                                                               aria-label="FAF Github"></i></a></li>
+                <li><a target="_blank" href="https://www.patreon.com/faf"><i class="fab fa-patreon"
+                                                                             aria-label="FAF Patreon"></i></a></li>
+            </ul>
+        </footer>
     </div>
 </div>
 </body>
-
 </html>

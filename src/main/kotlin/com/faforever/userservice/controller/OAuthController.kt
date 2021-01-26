@@ -86,9 +86,20 @@ class OAuthController(
         model: Model,
     ): Mono<Rendering> =
         hydraService.getConsentRequest(challenge)
-            .map {
+            .flatMap { consentRequest ->
+                if (consentRequest.subject == null) {
+                    Mono.error(IllegalStateException("Subject missing"))
+                } else {
+                    userService.findUserBySubject(consentRequest.subject)
+                        .map { consentRequest to it }
+                        .switchIfEmpty(Mono.error(IllegalStateException("Subject missing")))
+                }
+            }
+            .map { (consentRequest, user) ->
                 model.addAttribute("challenge", challenge)
-                model.addAttribute("consentRequest", it)
+                model.addAttribute("consentRequest", consentRequest)
+                model.addAttribute("client", consentRequest.client)
+                model.addAttribute("user", user)
                 Rendering.view("consent").build()
             }
 

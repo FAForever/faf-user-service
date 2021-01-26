@@ -15,7 +15,7 @@ data class User(
     val username: String,
     val password: String,
     val email: String,
-    val ip: String,
+    val ip: String?,
     @Column("steamid")
     val steamId: Long?,
 ) {

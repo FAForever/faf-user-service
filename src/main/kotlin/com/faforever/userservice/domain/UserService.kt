@@ -33,18 +33,21 @@ sealed class LoginResult {
 
 @Component
 class UserService(
-    val securityProperties: SecurityProperties,
-    val userRepository: UserRepository,
-    val loginLogRepository: LoginLogRepository,
-    val banRepository: BanRepository,
-    val hydraService: HydraService,
-    val passwordEncoder: PasswordEncoder,
+    private val securityProperties: SecurityProperties,
+    private val userRepository: UserRepository,
+    private val loginLogRepository: LoginLogRepository,
+    private val banRepository: BanRepository,
+    private val hydraService: HydraService,
+    private val passwordEncoder: PasswordEncoder,
 ) {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(UserService::class.java)
         private const val HYDRA_ERROR_USER_BANNED = "user_banned"
         private const val HYDRA_ERROR_LOGIN_THROTTLED = "login_throttled"
     }
+
+    fun findUserBySubject(subject: String) =
+        userRepository.findById(subject.toLong())
 
     private fun checkLoginThrottlingRequired(ip: String) = loginLogRepository.findFailedAttemptsByIp(ip)
         .map {
