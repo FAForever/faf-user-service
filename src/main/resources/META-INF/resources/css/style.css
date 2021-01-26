@@ -1,3 +1,7 @@
+:root {
+  --background-image-url: url("https://content.faforever.com/images/background/background-aeon-uef.jpg");
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -6,7 +10,7 @@ body {
 }
 
 .background {
-  background-image: url("https://content.faforever.com/images/background/background-aeon-uef.jpg");
+  background-image: var(--background-image-url);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -17,7 +21,7 @@ body {
   bottom: 0;
   top: 0;
   height: auto !important;
-  filter: grayscale(50%) blur(1px);
+  filter: grayscale(60%) blur(1px) saturate(50%);
 }
 
 header {

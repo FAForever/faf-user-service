@@ -22,6 +22,7 @@ class SecurityConfiguration {
                 authorize("/login", permitAll)
                 authorize("/consent", permitAll)
                 authorize("/css/**", permitAll)
+                authorize("/js/**", permitAll)
                 authorize("/**", authenticated)
             }
             csrf { }
