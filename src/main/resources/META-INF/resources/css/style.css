@@ -9,6 +9,10 @@ body {
   font-family: 'Source Sans Pro', sans-serif;
 }
 
+input {
+  outline: none;
+}
+
 .background {
   background-image: var(--background-image-url);
   background-size: cover;
@@ -24,8 +28,18 @@ body {
   filter: grayscale(60%) blur(1px) saturate(50%);
 }
 
+.error {
+  text-align: center;
+  background-color: white;
+  border: 1px solid #ea2f10;
+  font-weight: bold;
+  color: #ea2f10;
+  padding: 0.5rem;
+  margin: 1rem 0;
+}
+
 header {
-  background-color: black;
+  background-color: #111111;
   color: white;
   padding: 0;
   margin: 0 0 1rem 0;

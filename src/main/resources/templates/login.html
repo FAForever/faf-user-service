@@ -29,7 +29,7 @@
         <h2 id="form-header-right" th:text="#{login.welcomeBack}">Welcome back, commander!</h2>
       </div>
 
-      <div th:if="${loginFailed}">
+      <div class="error" th:if="${loginFailed}">
         <i class="fas fa-exclamation-triangle"></i>
         <span th:text="#{login.badCredentials}">Username or password was wrong.</span>
       </div>
