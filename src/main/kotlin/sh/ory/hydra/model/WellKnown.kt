@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @param frontchannelLogoutSupported Boolean value specifying whether the OP supports HTTP-based logout, with true indicating support.
  * @param grantTypesSupported JSON array containing a list of the OAuth 2.0 Grant Type values that this OP supports.
  * @param registrationEndpoint URL of the OP's Dynamic Client Registration Endpoint.
+ * @param requestObjectSigningAlgValuesSupported JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for Request Objects, which are described in Section 6.1 of OpenID Connect Core 1.0 [OpenID.Core]. These algorithms are used both when the Request Object is passed by value (using the request parameter) and when it is passed by reference (using the request_uri parameter).
  * @param requestParameterSupported Boolean value specifying whether the OP supports use of the request parameter, with true indicating support.
  * @param requestUriParameterSupported Boolean value specifying whether the OP supports use of the request_uri parameter, with true indicating support.
  * @param requireRequestUriRegistration Boolean value specifying whether the OP requires any request_uri values used to be pre-registered using the request_uris registration parameter.
@@ -91,6 +92,9 @@ data class WellKnown(
     /* URL of the OP's Dynamic Client Registration Endpoint. */
     @field:JsonProperty("registration_endpoint")
     val registrationEndpoint: kotlin.String? = null,
+    /* JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for Request Objects, which are described in Section 6.1 of OpenID Connect Core 1.0 [OpenID.Core]. These algorithms are used both when the Request Object is passed by value (using the request parameter) and when it is passed by reference (using the request_uri parameter). */
+    @field:JsonProperty("request_object_signing_alg_values_supported")
+    val requestObjectSigningAlgValuesSupported: kotlin.collections.List<kotlin.String>? = null,
     /* Boolean value specifying whether the OP supports use of the request parameter, with true indicating support. */
     @field:JsonProperty("request_parameter_supported")
     val requestParameterSupported: kotlin.Boolean? = null,

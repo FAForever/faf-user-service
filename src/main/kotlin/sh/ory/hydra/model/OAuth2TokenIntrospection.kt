@@ -26,7 +26,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @param obfuscatedSubject ObfuscatedSubject is set when the subject identifier algorithm was set to \"pairwise\" during authorization. It is the `sub` value of the ID Token that was issued.
  * @param scope Scope is a JSON string containing a space-separated list of scopes associated with this token.
  * @param sub Subject of the token, as defined in JWT [RFC7519]. Usually a machine-readable identifier of the resource owner who authorized this token.
- * @param tokenType TokenType is the introspected token's type, for example `access_token` or `refresh_token`.
+ * @param tokenType TokenType is the introspected token's type, typically `Bearer`.
+ * @param tokenUse TokenUse is the introspected token's use, for example `access_token` or `refresh_token`.
  * @param username Username is a human-readable identifier for the resource owner who authorized this token.
  */
 
@@ -64,9 +65,12 @@ data class OAuth2TokenIntrospection(
     /* Subject of the token, as defined in JWT [RFC7519]. Usually a machine-readable identifier of the resource owner who authorized this token. */
     @field:JsonProperty("sub")
     val sub: kotlin.String? = null,
-    /* TokenType is the introspected token's type, for example `access_token` or `refresh_token`. */
+    /* TokenType is the introspected token's type, typically `Bearer`. */
     @field:JsonProperty("token_type")
     val tokenType: kotlin.String? = null,
+    /* TokenUse is the introspected token's use, for example `access_token` or `refresh_token`. */
+    @field:JsonProperty("token_use")
+    val tokenUse: kotlin.String? = null,
     /* Username is a human-readable identifier for the resource owner who authorized this token. */
     @field:JsonProperty("username")
     val username: kotlin.String? = null

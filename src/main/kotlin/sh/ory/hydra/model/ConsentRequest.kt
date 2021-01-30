@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
  *
- * @param challenge Challenge is the identifier (\"authorization challenge\") of the consent authorization request. It is used to identify the session.
+ * @param challenge ID is the identifier (\"authorization challenge\") of the consent authorization request. It is used to identify the session.
  * @param acr ACR represents the Authentication AuthorizationContext Class Reference value for this authentication session. You can use it to express that, for example, a user authenticated using two factor authentication.
  * @param client
  * @param context
@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 
 data class ConsentRequest(
-    /* Challenge is the identifier (\"authorization challenge\") of the consent authorization request. It is used to identify the session. */
+    /* ID is the identifier (\"authorization challenge\") of the consent authorization request. It is used to identify the session. */
     @field:JsonProperty("challenge")
     val challenge: kotlin.String,
     /* ACR represents the Authentication AuthorizationContext Class Reference value for this authentication session. You can use it to express that, for example, a user authenticated using two factor authentication. */
