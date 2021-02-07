@@ -1,11 +1,16 @@
 package com.faforever.userservice.domain
 
+import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import org.springframework.stereotype.Repository
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 
 @Table("login")
 data class User(
@@ -25,7 +30,28 @@ data class User(
         "User(id=$id, username='$username')"
 }
 
+@Table("group_permission")
+data class Permission(
+    @Id
+    val id: Long,
+    val technicalName: String,
+    @CreatedDate
+    val createTime: LocalDateTime = LocalDateTime.now(),
+    @LastModifiedDate
+    val updateTime: LocalDateTime = LocalDateTime.now(),
+)
+
 @Repository
 interface UserRepository : ReactiveCrudRepository<User, Long> {
     fun findByUsername(username: String?): Mono<User>
+
+    @Query(
+        """
+        SELECT DISTINCT group_permission.* FROM user_group_assignment uga
+        INNER JOIN group_permission_assignment gpa ON uga.group_id = gpa.group_id
+        INNER JOIN group_permission ON gpa.permission_id = group_permission.id
+        WHERE uga.user_id = :userId;
+    """
+    )
+    fun findUserPermissions(userId: Int): Flux<Permission>
 }

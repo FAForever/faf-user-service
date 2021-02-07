@@ -10,7 +10,9 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import sh.ory.hydra.model.AcceptConsentRequest
 import sh.ory.hydra.model.AcceptLoginRequest
+import sh.ory.hydra.model.ConsentRequestSession
 import sh.ory.hydra.model.GenericError
 import sh.ory.hydra.model.LoginRequest
 import java.time.LocalDateTime
@@ -44,6 +46,11 @@ class UserService(
         private val log: Logger = LoggerFactory.getLogger(UserService::class.java)
         private const val HYDRA_ERROR_USER_BANNED = "user_banned"
         private const val HYDRA_ERROR_LOGIN_THROTTLED = "login_throttled"
+
+        /**
+         * The user role is used to distinguish users from technical accounts.
+         */
+        private const val ROLE_USER = "USER"
     }
 
     fun findUserBySubject(subject: String) =
@@ -60,7 +67,9 @@ class UserService(
                 totalFailedAttempts > securityProperties.failedLoginAttemptThreshold
             ) {
                 val lastAttempt = it.lastAttemptAt!!
-                if (LocalDateTime.now().minusMinutes(securityProperties.failedLoginThrottlingMinutes).isBefore(lastAttempt)) {
+                if (LocalDateTime.now().minusMinutes(securityProperties.failedLoginThrottlingMinutes)
+                    .isBefore(lastAttempt)
+                ) {
                     log.debug("IP '$ip' is trying again to early -> throttle it")
                     true
                 } else {
@@ -147,5 +156,46 @@ class UserService(
             .switchIfEmpty {
                 log.trace("IP address ${if (success) "successful" else "failed"} login on this user for the first time")
                 loginLogRepository.save(LoginLog(0, user.id, ip, 1, success))
+            }
+
+    /**
+     * Responds to the consent request based on the user response.
+     * Returns a redirect url to Ory Hydra in all cases
+     */
+    fun decideConsent(challenge: String, permitted: Boolean): Mono<String> =
+        hydraService.getConsentRequest(challenge)
+            .flatMap { consentRequest ->
+                if (permitted) {
+                    userRepository.findUserPermissions(consentRequest.subject?.toInt() ?: -1)
+                        .collectList()
+                        .flatMap { permissions ->
+                            val roles = listOf(ROLE_USER) + permissions.map { it.technicalName }
+
+                            /**
+                             * *** Why do we put the FAF roles into the access token? ***
+                             *
+                             * FAF uses OAuth 2.0 / OpenID Connect as a SSO solution. To avoid looking up the
+                             * permissions in each service, we put them into the access token right away.
+                             *
+                             * If you are an external developer and need to utilize some sort of permission system then
+                             * you should NOT rely on FAF roles! You have no guarantee that a role still exists tomorrow
+                             * and you also have no influence on which user has which role.
+                             */
+                            hydraService.acceptConsentRequest(
+                                challenge,
+                                AcceptConsentRequest(
+                                    session = ConsentRequestSession(
+                                        accessToken = mapOf("roles" to roles),
+                                        idToken = mapOf("roles" to roles)
+                                    ),
+                                    grantScope = consentRequest.requestedScope
+                                )
+                            )
+                        }
+                } else {
+                    hydraService.rejectConsentRequest(challenge, GenericError("scope_denied"))
+                }
+            }.map {
+                it.redirectTo
             }
 }

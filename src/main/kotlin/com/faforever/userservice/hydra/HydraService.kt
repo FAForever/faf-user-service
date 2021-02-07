@@ -1,14 +1,18 @@
 package com.faforever.userservice.hydra
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.netty.handler.ssl.SslContextBuilder
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
+import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
+import reactor.netty.http.client.HttpClient
 import sh.ory.hydra.model.AcceptConsentRequest
 import sh.ory.hydra.model.AcceptLoginRequest
 import sh.ory.hydra.model.ConsentRequest
@@ -32,6 +36,15 @@ data class HydraProperties(
      * Setting this flag to true causes all http calls to Ory Hydra to do the same.
      */
     val fakeTlsForwarding: Boolean,
+
+    /**
+     * If you run Ory Hydra with its self signed certificate behind a safe network and don't want to
+     * add the certificates (usually because you consider the network to be safe anyway) you can
+     * disable the TLS certificate trust check.
+     *
+     * Setting this flag to true causes all http calls to Ory Hydra to accept untrusted certificates.
+     */
+    val acceptUntrustedTlsCertificates: Boolean,
 )
 
 data class RedirectResponse(
@@ -55,6 +68,26 @@ class HydraService(
             if (hydraProperties.fakeTlsForwarding) {
                 log.info("Configure Hydra WebClient to use fake TLS forwarding")
                 it.defaultHeader("X-Forwarded-Proto", "https")
+            }
+
+            if (hydraProperties.acceptUntrustedTlsCertificates) {
+                log.info("Configure Hydra WebClient to accept untrusted certificates")
+                val sslContext = SslContextBuilder
+                    .forClient()
+                    .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                    .build()
+
+                val httpClient = HttpClient.create()
+                    .secure { sslProviderBuilder -> sslProviderBuilder.sslContext(sslContext) }
+
+                it.clientConnector(ReactorClientHttpConnector(httpClient))
+            }
+
+            if (hydraProperties.fakeTlsForwarding && hydraProperties.acceptUntrustedTlsCertificates) {
+                log.warn(
+                    "You enabled fake TLS forwarding together with accepting untrusted certificates." +
+                        "Enabling both flags together does not make sense (but will not cause any errors)."
+                )
             }
         }
         .build()

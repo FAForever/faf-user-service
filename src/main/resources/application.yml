@@ -8,8 +8,9 @@ security:
   failedLoginThrottlingMinutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
 
 hydra:
-  baseUrl: ${HYDRA_BASE_URL:http://localhost:4445}
-  fakeTlsForwarding: ${HYDRA_FAKE_TLS_FORWARDING:true}
+  baseUrl: ${HYDRA_BASE_URL:https://localhost:4445}
+  fakeTlsForwarding: ${HYDRA_FAKE_TLS_FORWARDING:false}
+  acceptUntrustedTlsCertificates: ${HYDRA_ACCEPT_UNTRUSTED_TLS_CERTIFICATES:true}
 logging:
   level:
     com.faforever: INFO

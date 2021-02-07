@@ -19,8 +19,6 @@ import org.springframework.web.reactive.result.view.Rendering
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
-import sh.ory.hydra.model.AcceptConsentRequest
-import sh.ory.hydra.model.GenericError
 import java.net.URI
 
 @Controller
@@ -112,13 +110,8 @@ class OAuthController(
             val challenge = checkNotNull(form["consent_challenge"]?.first())
             val permitted = form["action"]?.first()?.toLowerCase() == "permit"
 
-            if (permitted) {
-                hydraService.acceptConsentRequest(challenge, AcceptConsentRequest())
-            } else {
-                hydraService.rejectConsentRequest(challenge, GenericError("scope_denied"))
-            }
-                .flatMap {
-                    redirect(response, it.redirectTo)
-                }
+            userService.decideConsent(challenge, permitted)
+        }.flatMap { redirectUrl ->
+            redirect(response, redirectUrl)
         }
 }
