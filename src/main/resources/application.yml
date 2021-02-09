@@ -27,4 +27,4 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${HYDRA_BASE_URL:http://localhost:4444}
+          issuer-uri: ${HYDRA_BASE_URL:http://localhost:4444/}
