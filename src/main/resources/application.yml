@@ -8,11 +8,12 @@ security:
   failedLoginThrottlingMinutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
 
 hydra:
-  baseUrl: ${HYDRA_BASE_URL:https://localhost:4445}
+  baseUrl: ${HYDRA_BASE_URL:http://localhost:4445}
   fakeTlsForwarding: ${HYDRA_FAKE_TLS_FORWARDING:false}
   acceptUntrustedTlsCertificates: ${HYDRA_ACCEPT_UNTRUSTED_TLS_CERTIFICATES:true}
 logging:
   level:
+    org.springframework.security: INFO
     com.faforever: INFO
 
 spring:
@@ -22,3 +23,8 @@ spring:
     password: ${DB_PASSWORD:banana}
   messages:
     basename: i18n/messages
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:4444/
