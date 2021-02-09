@@ -8,7 +8,7 @@ security:
   failedLoginThrottlingMinutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
 
 hydra:
-  baseUrl: ${HYDRA_BASE_URL:http://localhost:4445}
+  baseUrl: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
   fakeTlsForwarding: ${HYDRA_FAKE_TLS_FORWARDING:false}
   acceptUntrustedTlsCertificates: ${HYDRA_ACCEPT_UNTRUSTED_TLS_CERTIFICATES:true}
 logging:
@@ -27,4 +27,4 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:4444/
+          issuer-uri: ${HYDRA_BASE_URL:http://localhost:4444}
