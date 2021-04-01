@@ -3,18 +3,18 @@ import com.google.cloud.tools.jib.gradle.JibPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.4.21"
-    kotlin("kapt") version "1.4.21"
-    kotlin("plugin.spring") version "1.4.21"
+    kotlin("jvm") version "1.4.32"
+    kotlin("kapt") version "1.4.32"
+    kotlin("plugin.spring") version "1.4.32"
     id("org.springframework.boot") version "2.4.2"
-    id("io.spring.dependency-management") version "1.0.10.RELEASE"
-    id("com.google.cloud.tools.jib") version "2.7.0"
+    id("io.spring.dependency-management") version "1.0.11.RELEASE"
+    id("com.google.cloud.tools.jib") version "2.8.0"
 
     // /****** Additional tooling *****/
     // // OpenAPI code generation
     // id("org.openapi.generator") version "4.3.1"
     // Code formatting
-    id("com.diffplug.spotless") version "5.8.2"
+    id("com.diffplug.spotless") version "5.11.1"
 }
 
 group = "com.faforever"
