@@ -48,7 +48,10 @@ dependencies {
     runtimeOnly("dev.miku:r2dbc-mysql")
     runtimeOnly("mysql:mysql-connector-java")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
     testImplementation("io.projectreactor:reactor-test")
+    testImplementation("org.mock-server:mockserver-netty:5.11.2")
+    testImplementation("org.mock-server:mockserver-client-java:5.11.2")
 }
 
 tasks.withType<KotlinCompile> {
