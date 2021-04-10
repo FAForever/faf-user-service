@@ -9,7 +9,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Gradle build
         env:
-          GRADLE_CLI_OPTS: "--console=plain --stacktrace --quiet"
+          GRADLE_CLI_OPTS: ""
         run: "chmod +x ./gradlew && ./gradlew ${GRADLE_CLI_OPTS} build"
       - name: Build and push Docker images
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')
