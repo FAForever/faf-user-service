@@ -1,13 +1,24 @@
 package com.faforever.userservice
 
+import com.faforever.userservice.domain.Ban
+import com.faforever.userservice.domain.BanLevel
+import com.faforever.userservice.domain.BanRepository
+import com.faforever.userservice.domain.FailedAttemptsSummary
+import com.faforever.userservice.domain.LoginLogRepository
 import com.faforever.userservice.domain.User
 import com.faforever.userservice.domain.UserRepository
-import com.faforever.userservice.hydra.HydraProperties
 import com.faforever.userservice.security.FafPasswordEncoder
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyBoolean
+import org.mockito.Mockito.anyLong
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockserver.integration.ClientAndServer
 import org.mockserver.model.HttpRequest
 import org.mockserver.model.HttpResponse
@@ -25,6 +36,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 import kotlin.random.Random
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -35,8 +47,13 @@ class UserServiceApplicationTests {
 
         private val mockServerPort = Random.nextInt(10_000, 65_500)
         private val baseUrl = "http://localhost:$mockServerPort"
-        private val challenge = "someChallenge"
+        private const val challenge = "someChallenge"
+        private const val username = "someUsername"
+        private const val email = "some@email.com"
+        private const val password = "somePassword"
+        private const val hydraRedirectUrl = "someHydraRedirectUrl"
 
+        private val user = User(1, username, password, email, null, null)
         private val mockServer = ClientAndServer(mockServerPort)
 
         @JvmStatic
@@ -49,11 +66,14 @@ class UserServiceApplicationTests {
     @Autowired
     private lateinit var context: ApplicationContext
 
-    @Autowired
-    private lateinit var hydraProperties: HydraProperties
-
     @MockBean
     private lateinit var userRepository: UserRepository
+
+    @MockBean
+    private lateinit var loginLogRepository: LoginLogRepository
+
+    @MockBean
+    private lateinit var banRepository: BanRepository
 
     @MockBean
     private lateinit var passwordEncoder: FafPasswordEncoder
@@ -73,6 +93,7 @@ class UserServiceApplicationTests {
 
     @AfterEach
     fun afterEach() {
+        verifyNoMoreInteractions(userRepository, loginLogRepository, banRepository, passwordEncoder)
         mockServer.reset()
     }
 
@@ -93,31 +114,11 @@ class UserServiceApplicationTests {
 
     @Test
     fun postLoginWithUnknownUser() {
-        `when`(userRepository.findByUsername("foo")).thenReturn(Mono.empty())
+        `when`(userRepository.findByUsername(username)).thenReturn(Mono.empty())
+        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+            .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
 
-        mockServer.`when`(
-            HttpRequest.request()
-                .withMethod("GET")
-                .withPath("/oauth2/auth/requests/login")
-                .withQueryStringParameter("login_challenge", challenge)
-        ).respond(
-            HttpResponse.response()
-                .withStatusCode(200)
-                .withHeader("Content-Type", "application/json; charset=utf-8")
-                .withBody(
-                    """
-                    {
-                        "challenge": "someChallenge",
-                        "client": {},
-                        "request_url": "someRequestUrl",
-                        "requested_access_token_audience": [],
-                        "requested_scope": [],
-                        "skip": true,
-                        "subject": "1"
-                    }
-                    """.trimIndent()
-                )
-        )
+        mockLoginRequest()
 
         webTestClient
             .mutateWith(csrf())
@@ -126,45 +127,58 @@ class UserServiceApplicationTests {
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
-                    .with("username", "foo")
-                    .with("password", "bar")
+                    .with("username", username)
+                    .with("password", password)
             )
             .exchange()
             .expectStatus().is3xxRedirection()
             .expectHeader()
             .location("/login?login_challenge=someChallenge&login_challenge=someChallenge&login_failed")
             .expectBody(String::class.java)
+
+        verify(userRepository).findByUsername(username)
+        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+    }
+
+    @Test
+    fun postLoginWithThrottling() {
+        `when`(loginLogRepository.findFailedAttemptsByIp(any()))
+            .thenReturn(Mono.just(FailedAttemptsSummary(100, 1, LocalDateTime.now().minusMinutes(1), LocalDateTime.now().minusSeconds(10))))
+
+        mockLoginRequest()
+        mockLoginReject()
+
+        webTestClient
+            .mutateWith(csrf())
+            .post()
+            .uri("/login?login_challenge=$challenge")
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .body(
+                BodyInserters.fromFormData("login_challenge", challenge)
+                    .with("username", username)
+                    .with("password", password)
+            )
+            .exchange()
+            .expectStatus().is3xxRedirection()
+            .expectHeader()
+            .location(hydraRedirectUrl)
+            .expectBody(String::class.java)
+
+        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
     }
 
     @Test
     fun postLoginWithInvalidPassword() {
-        val user = User(1L, "foo", "invalidPassword", "some@email.com", null, null)
-        `when`(userRepository.findByUsername("foo")).thenReturn(Mono.just(user))
-        `when`(passwordEncoder.matches("bar", "invalidPassword")).thenReturn(false)
+        `when`(userRepository.findByUsername(username)).thenReturn(Mono.just(user))
+        `when`(passwordEncoder.matches(password, password)).thenReturn(false)
+        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+            .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
+        `when`(loginLogRepository.findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean()))
+            .thenReturn(Mono.empty())
+        `when`(loginLogRepository.save(anyOrNull()))
+            .thenAnswer { Mono.just(it.arguments[0]) }
 
-        mockServer.`when`(
-            HttpRequest.request()
-                .withMethod("GET")
-                .withPath("/oauth2/auth/requests/login")
-                .withQueryStringParameter("login_challenge", challenge)
-        ).respond(
-            HttpResponse.response()
-                .withStatusCode(200)
-                .withHeader("Content-Type", "application/json; charset=utf-8")
-                .withBody(
-                    """
-                    {
-                        "challenge": "$challenge",
-                        "client": {},
-                        "request_url": "someRequestUrl",
-                        "requested_access_token_audience": [],
-                        "requested_scope": [],
-                        "skip": false,
-                        "subject": "1"
-                    }
-                    """.trimIndent()
-                )
-        )
+        mockLoginRequest()
 
         webTestClient
             .mutateWith(csrf())
@@ -173,63 +187,41 @@ class UserServiceApplicationTests {
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
-                    .with("username", "foo")
-                    .with("password", "bar")
+                    .with("username", username)
+                    .with("password", password)
             )
             .exchange()
             .expectStatus().is3xxRedirection()
             .expectHeader()
             .location("/login?login_challenge=someChallenge&login_challenge=someChallenge&login_failed")
             .expectBody(String::class.java)
+
+        verify(userRepository).findByUsername(username)
+        verify(passwordEncoder).matches(password, password)
+        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean())
+        verify(loginLogRepository).save(anyOrNull())
     }
 
     @Test
-    fun postLoginWithKnownUser() {
-        val user = User(1L, "foo", "ignoredPassword", "some@email.com", null, null)
-        `when`(userRepository.findByUsername("foo")).thenReturn(Mono.just(user))
-        `when`(passwordEncoder.matches("bar", "ignoredPassword")).thenReturn(true)
-
-        mockServer.`when`(
-            HttpRequest.request()
-                .withMethod("GET")
-                .withPath("/oauth2/auth/requests/login")
-                .withQueryStringParameter("login_challenge", challenge)
-        ).respond(
-            HttpResponse.response()
-                .withStatusCode(200)
-                .withHeader("Content-Type", "application/json; charset=utf-8")
-                .withBody(
-                    """
-                    {
-                        "challenge": "$challenge",
-                        "client": {},
-                        "request_url": "someRequestUrl",
-                        "requested_access_token_audience": [],
-                        "requested_scope": [],
-                        "skip": false,
-                        "subject": "1"
-                    }
-                    """.trimIndent()
-                )
+    fun postLoginWithBannedUser() {
+        `when`(userRepository.findByUsername(username)).thenReturn(Mono.just(user))
+        `when`(passwordEncoder.matches(password, password)).thenReturn(true)
+        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+            .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
+        `when`(loginLogRepository.findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean()))
+            .thenReturn(Mono.empty())
+        `when`(loginLogRepository.save(anyOrNull()))
+            .thenAnswer { Mono.just(it.arguments[0]) }
+        `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
+            Flux.just(
+                Ban(1, 1, BanLevel.CHAT, "test", LocalDateTime.MIN, null),
+                Ban(1, 1, BanLevel.GLOBAL, "test", LocalDateTime.MAX, null),
+            )
         )
 
-        mockServer.`when`(
-            HttpRequest.request()
-                .withMethod("PUT")
-                .withPath("/oauth2/auth/requests/login/accept")
-                .withQueryStringParameter("login_challenge", challenge)
-        ).respond(
-            HttpResponse.response()
-                .withStatusCode(200)
-                .withHeader("Content-Type", "application/json; charset=utf-8")
-                .withBody(
-                    """
-                    {
-                        "redirect_to": "someHydraRedirectUrl"
-                    }
-                    """.trimIndent()
-                )
-        )
+        mockLoginRequest()
+        mockLoginReject()
 
         webTestClient
             .mutateWith(csrf())
@@ -238,40 +230,72 @@ class UserServiceApplicationTests {
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
-                    .with("username", "foo")
-                    .with("password", "bar")
+                    .with("username", username)
+                    .with("password", password)
             )
             .exchange()
             .expectStatus().is3xxRedirection()
             .expectHeader()
-            .location("someHydraRedirectUrl")
+            .location(hydraRedirectUrl)
             .expectBody(String::class.java)
+
+        verify(userRepository).findByUsername(username)
+        verify(passwordEncoder).matches(password, password)
+        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean())
+        verify(loginLogRepository).save(anyOrNull())
+        verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
+    }
+
+    @Test
+    fun postLoginWithUnbannedUser() {
+        `when`(userRepository.findByUsername(username)).thenReturn(Mono.just(user))
+        `when`(passwordEncoder.matches(password, password)).thenReturn(true)
+        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+            .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
+        `when`(loginLogRepository.findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean()))
+            .thenReturn(Mono.empty())
+        `when`(loginLogRepository.save(anyOrNull()))
+            .thenAnswer { Mono.just(it.arguments[0]) }
+        `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
+            Flux.just(
+                Ban(1, 1, BanLevel.CHAT, "test", LocalDateTime.MIN, null),
+                Ban(1, 1, BanLevel.GLOBAL, "test", LocalDateTime.MAX, LocalDateTime.now().minusDays(1)),
+            )
+        )
+
+        mockLoginRequest()
+        mockLoginAccept()
+
+        webTestClient
+            .mutateWith(csrf())
+            .post()
+            .uri("/login?login_challenge=$challenge")
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .body(
+                BodyInserters.fromFormData("login_challenge", challenge)
+                    .with("username", username)
+                    .with("password", password)
+            )
+            .exchange()
+            .expectStatus().is3xxRedirection()
+            .expectHeader()
+            .location(hydraRedirectUrl)
+            .expectBody(String::class.java)
+
+        verify(userRepository).findByUsername(username)
+        verify(passwordEncoder).matches(password, password)
+        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean())
+        verify(loginLogRepository).save(anyOrNull())
+        verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
     }
 
     @Test
     fun getConsent() {
-        val user = User(1L, "foo", "invalidPassword", "some@email.com", null, null)
-        `when`(userRepository.findById(1L)).thenReturn(Mono.just(user))
+        `when`(userRepository.findById(1)).thenReturn(Mono.just(user))
 
-        mockServer.`when`(
-            HttpRequest.request()
-                .withMethod("GET")
-                .withPath("/oauth2/auth/requests/consent")
-                .withQueryStringParameter("consent_challenge", challenge)
-        ).respond(
-            HttpResponse.response()
-                .withStatusCode(200)
-                .withHeader("Content-Type", "application/json; charset=utf-8")
-                .withBody(
-                    """
-                    {
-                        "challenge": "$challenge",
-                        "subject": "1",
-                        "client": {}
-                    }
-                    """.trimIndent()
-                )
-        )
+        mockConsentRequest()
 
         webTestClient
             .get()
@@ -280,55 +304,16 @@ class UserServiceApplicationTests {
             .exchange()
             .expectStatus().isOk()
             .expectBody(String::class.java)
+
+        verify(userRepository).findById(1)
     }
 
     @Test
     fun postConsentWithPermit() {
-        val user = User(1L, "foo", "invalidPassword", "some@email.com", null, null)
-        `when`(userRepository.findByUsername("foo")).thenReturn(Mono.just(user))
         `when`(userRepository.findUserPermissions(1)).thenReturn(Flux.empty())
 
-        mockServer.`when`(
-            HttpRequest.request()
-                .withMethod("GET")
-                .withPath("/oauth2/auth/requests/consent")
-                .withQueryStringParameter("consent_challenge", challenge)
-        ).respond(
-            HttpResponse.response()
-                .withStatusCode(200)
-                .withHeader("Content-Type", "application/json; charset=utf-8")
-                .withBody(
-                    """
-                    {
-                        "challenge": "$challenge",
-                        "client": {},
-                        "request_url": "someRequestUrl",
-                        "requested_access_token_audience": [],
-                        "requested_scope": [],
-                        "skip": false,
-                        "subject": "1"
-                    }
-                    """.trimIndent()
-                )
-        )
-
-        mockServer.`when`(
-            HttpRequest.request()
-                .withMethod("PUT")
-                .withPath("/oauth2/auth/requests/consent/accept")
-                .withQueryStringParameter("consent_challenge", challenge)
-        ).respond(
-            HttpResponse.response()
-                .withStatusCode(200)
-                .withHeader("Content-Type", "application/json; charset=utf-8")
-                .withBody(
-                    """
-                    {
-                        "redirect_to": "someHydraRedirectUrl"
-                    }
-                    """.trimIndent()
-                )
-        )
+        mockConsentRequest()
+        mockConsentAccept()
 
         webTestClient
             .mutateWith(csrf())
@@ -343,16 +328,101 @@ class UserServiceApplicationTests {
             .exchange()
             .expectStatus().is3xxRedirection()
             .expectHeader()
-            .location("someHydraRedirectUrl")
+            .location(hydraRedirectUrl)
             .expectBody(String::class.java)
+
+        verify(userRepository).findUserPermissions(1)
     }
 
     @Test
     fun postConsentWithDeny() {
-        val user = User(1L, "foo", "invalidPassword", "some@email.com", null, null)
-        `when`(userRepository.findByUsername("foo")).thenReturn(Mono.just(user))
-        `when`(userRepository.findUserPermissions(1)).thenReturn(Flux.empty())
+        mockConsentRequest()
+        mockConsentReject()
 
+        webTestClient
+            .mutateWith(csrf())
+            .post()
+            .uri("/consent?consent_challenge=$challenge")
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .body(
+                BodyInserters.fromFormData("consent_challenge", challenge)
+                    .with("consent_challenge", challenge)
+                    .with("action", "deny")
+            )
+            .exchange()
+            .expectStatus().is3xxRedirection()
+            .expectHeader()
+            .location(hydraRedirectUrl)
+            .expectBody(String::class.java)
+    }
+
+    private fun mockLoginRequest() {
+        mockServer.`when`(
+            HttpRequest.request()
+                .withMethod("GET")
+                .withPath("/oauth2/auth/requests/login")
+                .withQueryStringParameter("login_challenge", challenge)
+        ).respond(
+            HttpResponse.response()
+                .withStatusCode(200)
+                .withHeader("Content-Type", "application/json; charset=utf-8")
+                .withBody(
+                    """
+                    {
+                        "challenge": "$challenge",
+                        "client": {},
+                        "request_url": "someRequestUrl",
+                        "requested_access_token_audience": [],
+                        "requested_scope": [],
+                        "skip": false,
+                        "subject": "1"
+                    }
+                    """.trimIndent()
+                )
+        )
+    }
+
+    private fun mockLoginAccept() {
+        mockServer.`when`(
+            HttpRequest.request()
+                .withMethod("PUT")
+                .withPath("/oauth2/auth/requests/login/accept")
+                .withQueryStringParameter("login_challenge", challenge)
+        ).respond(
+            HttpResponse.response()
+                .withStatusCode(200)
+                .withHeader("Content-Type", "application/json; charset=utf-8")
+                .withBody(
+                    """
+                        {
+                            "redirect_to": "$hydraRedirectUrl"
+                        }
+                    """.trimIndent()
+                )
+        )
+    }
+
+    private fun mockLoginReject() {
+        mockServer.`when`(
+            HttpRequest.request()
+                .withMethod("PUT")
+                .withPath("/oauth2/auth/requests/login/reject")
+                .withQueryStringParameter("login_challenge", challenge)
+        ).respond(
+            HttpResponse.response()
+                .withStatusCode(200)
+                .withHeader("Content-Type", "application/json; charset=utf-8")
+                .withBody(
+                    """
+                        {
+                            "redirect_to": "$hydraRedirectUrl"
+                        }
+                    """.trimIndent()
+                )
+        )
+    }
+
+    private fun mockConsentRequest() {
         mockServer.`when`(
             HttpRequest.request()
                 .withMethod("GET")
@@ -376,7 +446,29 @@ class UserServiceApplicationTests {
                     """.trimIndent()
                 )
         )
+    }
 
+    private fun mockConsentAccept() {
+        mockServer.`when`(
+            HttpRequest.request()
+                .withMethod("PUT")
+                .withPath("/oauth2/auth/requests/consent/accept")
+                .withQueryStringParameter("consent_challenge", challenge)
+        ).respond(
+            HttpResponse.response()
+                .withStatusCode(200)
+                .withHeader("Content-Type", "application/json; charset=utf-8")
+                .withBody(
+                    """
+                        {
+                            "redirect_to": "$hydraRedirectUrl"
+                        }
+                    """.trimIndent()
+                )
+        )
+    }
+
+    private fun mockConsentReject() {
         mockServer.`when`(
             HttpRequest.request()
                 .withMethod("PUT")
@@ -388,27 +480,11 @@ class UserServiceApplicationTests {
                 .withHeader("Content-Type", "application/json; charset=utf-8")
                 .withBody(
                     """
-                    {
-                        "redirect_to": "someHydraRedirectUrl"
-                    }
+                        {
+                            "redirect_to": "$hydraRedirectUrl"
+                        }
                     """.trimIndent()
                 )
         )
-
-        webTestClient
-            .mutateWith(csrf())
-            .post()
-            .uri("/consent?consent_challenge=$challenge")
-            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .body(
-                BodyInserters.fromFormData("consent_challenge", challenge)
-                    .with("consent_challenge", challenge)
-                    .with("action", "deny")
-            )
-            .exchange()
-            .expectStatus().is3xxRedirection()
-            .expectHeader()
-            .location("someHydraRedirectUrl")
-            .expectBody(String::class.java)
     }
 }
