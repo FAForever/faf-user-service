@@ -35,7 +35,7 @@
       </div>
 
       <input type="hidden" name="login_challenge" th:value="${challenge}" th:if="${challenge != null }"/>
-      <input type="text" required id="username" name="username" placeholder="Username or Email" th:placeholder="#{login.usernameOrEmail}">
+      <input type="text" required id="usernameOrEmail" name="usernameOrEmail" placeholder="Username or Email" th:placeholder="#{login.usernameOrEmail}">
       <input type="password" required id="password" name="password" placeholder="Password" th:placeholder="#{login.password}">
       <input type="submit" name="login" value="Log in" th:value="#{login.loginAction}"/>
     </form>

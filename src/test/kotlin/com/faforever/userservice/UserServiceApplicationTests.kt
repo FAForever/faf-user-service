@@ -114,7 +114,7 @@ class UserServiceApplicationTests {
 
     @Test
     fun postLoginWithUnknownUser() {
-        `when`(userRepository.findByUsername(username)).thenReturn(Mono.empty())
+        `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.empty())
         `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
 
@@ -127,7 +127,7 @@ class UserServiceApplicationTests {
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
-                    .with("username", username)
+                    .with("usernameOrEmail", username)
                     .with("password", password)
             )
             .exchange()
@@ -136,7 +136,7 @@ class UserServiceApplicationTests {
             .location("/login?login_challenge=someChallenge&login_challenge=someChallenge&login_failed")
             .expectBody(String::class.java)
 
-        verify(userRepository).findByUsername(username)
+        verify(userRepository).findByUsernameOrEmail(username, username)
         verify(loginLogRepository).findFailedAttemptsByIp(anyString())
     }
 
@@ -155,7 +155,7 @@ class UserServiceApplicationTests {
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
-                    .with("username", username)
+                    .with("usernameOrEmail", username)
                     .with("password", password)
             )
             .exchange()
@@ -169,7 +169,7 @@ class UserServiceApplicationTests {
 
     @Test
     fun postLoginWithInvalidPassword() {
-        `when`(userRepository.findByUsername(username)).thenReturn(Mono.just(user))
+        `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(user))
         `when`(passwordEncoder.matches(password, password)).thenReturn(false)
         `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
@@ -187,7 +187,7 @@ class UserServiceApplicationTests {
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
-                    .with("username", username)
+                    .with("usernameOrEmail", username)
                     .with("password", password)
             )
             .exchange()
@@ -196,7 +196,7 @@ class UserServiceApplicationTests {
             .location("/login?login_challenge=someChallenge&login_challenge=someChallenge&login_failed")
             .expectBody(String::class.java)
 
-        verify(userRepository).findByUsername(username)
+        verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
         verify(loginLogRepository).findFailedAttemptsByIp(anyString())
         verify(loginLogRepository).findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean())
@@ -205,7 +205,7 @@ class UserServiceApplicationTests {
 
     @Test
     fun postLoginWithBannedUser() {
-        `when`(userRepository.findByUsername(username)).thenReturn(Mono.just(user))
+        `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(user))
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
         `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
@@ -230,7 +230,7 @@ class UserServiceApplicationTests {
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
-                    .with("username", username)
+                    .with("usernameOrEmail", username)
                     .with("password", password)
             )
             .exchange()
@@ -239,7 +239,7 @@ class UserServiceApplicationTests {
             .location(hydraRedirectUrl)
             .expectBody(String::class.java)
 
-        verify(userRepository).findByUsername(username)
+        verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
         verify(loginLogRepository).findFailedAttemptsByIp(anyString())
         verify(loginLogRepository).findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean())
@@ -249,7 +249,7 @@ class UserServiceApplicationTests {
 
     @Test
     fun postLoginWithUnbannedUser() {
-        `when`(userRepository.findByUsername(username)).thenReturn(Mono.just(user))
+        `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(user))
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
         `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
@@ -274,7 +274,7 @@ class UserServiceApplicationTests {
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
-                    .with("username", username)
+                    .with("usernameOrEmail", username)
                     .with("password", password)
             )
             .exchange()
@@ -283,7 +283,7 @@ class UserServiceApplicationTests {
             .location(hydraRedirectUrl)
             .expectBody(String::class.java)
 
-        verify(userRepository).findByUsername(username)
+        verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
         verify(loginLogRepository).findFailedAttemptsByIp(anyString())
         verify(loginLogRepository).findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean())

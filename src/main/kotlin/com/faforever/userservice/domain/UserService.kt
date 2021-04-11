@@ -108,22 +108,22 @@ class UserService(
      */
     private fun internalLogin(
         challenge: String,
-        username: String,
+        usernameOrEmail: String,
         password: String,
         ip: String,
         loginRequest: LoginRequest,
-    ): Mono<LoginResult> = userRepository.findByUsername(username)
+    ): Mono<LoginResult> = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
         .flatMap { user ->
             if (loginRequest.skip || passwordEncoder.matches(password, user.password)) {
                 updateLoginAttempts(user, ip, true)
                     .flatMap { findActiveGlobalBan(user) }
                     .flatMap<LoginResult> { ban ->
-                        log.debug("User '$username' is banned by $ban")
+                        log.debug("User '$usernameOrEmail' is banned by $ban")
                         hydraService.rejectLoginRequest(challenge, GenericError(HYDRA_ERROR_USER_BANNED))
                             .map { LoginResult.UserBanned(it.redirectTo, ban) }
                     }
                     .switchIfEmpty {
-                        log.debug("User '$username' logged in successfully")
+                        log.debug("User '$usernameOrEmail' logged in successfully")
 
                         hydraService.acceptLoginRequest(
                             challenge,
@@ -131,13 +131,13 @@ class UserService(
                         ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
                     }
             } else {
-                log.debug("Password for user '$username' doesn't match")
+                log.debug("Password for user '$usernameOrEmail' doesn't match")
                 updateLoginAttempts(user, ip, false)
                     .map { LoginResult.UserOrCredentialsMismatch }
             }
         }
         .switchIfEmpty {
-            log.debug("User '$username' not found")
+            log.debug("User '$usernameOrEmail' not found")
             // TODO: update failed login attempts (the current database scheme requires an account id - doesn't work)
             Mono.just(LoginResult.UserOrCredentialsMismatch)
         }
