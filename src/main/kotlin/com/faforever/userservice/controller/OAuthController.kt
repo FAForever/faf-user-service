@@ -54,12 +54,12 @@ class OAuthController(
     ): Mono<Void> =
         serverWebExchange.formData.flatMap { form ->
             val challenge = checkNotNull(form["login_challenge"]?.first())
-            val username = checkNotNull(form["usernameOrEmail"]?.first())
+            val usernameOrEmail = checkNotNull(form["usernameOrEmail"]?.first())
             val password = checkNotNull(form["password"]?.first())
             // TODO: This does not work behind a proxy. Use forwarded IP address header instead
             val ip = request.remoteAddress?.address?.hostAddress.toString()
 
-            userService.login(challenge, username, password, ip)
+            userService.login(challenge, usernameOrEmail, password, ip)
                 .flatMap {
                     when (it) {
                         is SuccessfulLogin -> redirect(response, it.redirectTo)
