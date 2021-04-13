@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import sh.ory.hydra.model.AcceptConsentRequest
 import sh.ory.hydra.model.AcceptLoginRequest
 import sh.ory.hydra.model.ConsentRequestSession
