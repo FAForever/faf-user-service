@@ -1,5 +1,6 @@
 :root {
   --background-image-url: url("https://content.faforever.com/images/background/background-aeon-uef.jpg");
+  color: black;
 }
 
 body {
@@ -137,7 +138,6 @@ header {
   font-size: 1.8rem;
   text-align: left;
   margin: auto 0;
-  color: black;
 }
 
 #client-header {
