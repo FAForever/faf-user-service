@@ -47,9 +47,9 @@
 
         <p id="scope-header" th:text="#{consent.appRequest}">This app would like to:</p>
         <ul class="oauth-scopes">
-            <li th:each="scope : ${consentRequest.requestedScope}"
-                th:text="${#messages.msgOrNull('oauth2.scope.'+scope) == null ?
-                       #messages.msg('oauth2.scope.textMissing', scope) : #messages.msg('oauth2.scope.'+scope)}">
+            <li th:each="scope : ${consentRequest.requestedScope}">
+                <div th:text="${#messages.msgOrNull('oauth2.scope.'+scope) == null ?
+                       #messages.msg('oauth2.scope.textMissing', scope) : #messages.msg('oauth2.scope.'+scope)}"></div>
                 <i class="tooltip fas fa-info-circle"><span class="tooltiptext" th:text="${#messages.msg('oauth2.scope.'+scope+'.description')}">Tool tip text</span></i> OpenID Connect
             </li>
         </ul>
