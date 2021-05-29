@@ -115,7 +115,7 @@ class UserService(
     ): Mono<LoginResult> = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
         .flatMap { user ->
             if (loginRequest.skip || passwordEncoder.matches(password, user.password)) {
-                updateLoginAttempts(user, ip, true)
+                logLoginAttempt(user, ip, true)
                     .flatMap { findActiveGlobalBan(user) }
                     .flatMap<LoginResult> { ban ->
                         log.debug("User '$usernameOrEmail' is banned by $ban")
@@ -132,14 +132,15 @@ class UserService(
                     }
             } else {
                 log.debug("Password for user '$usernameOrEmail' doesn't match")
-                updateLoginAttempts(user, ip, false)
+                logLoginAttempt(user, ip, false)
                     .map { LoginResult.UserOrCredentialsMismatch }
             }
         }
         .switchIfEmpty {
             log.debug("User '$usernameOrEmail' not found")
-            // TODO: update failed login attempts (the current database scheme requires an account id - doesn't work)
-            Mono.just(LoginResult.UserOrCredentialsMismatch)
+            logFailedLoginAttempt(usernameOrEmail, ip).map {
+                LoginResult.UserOrCredentialsMismatch
+            }
         }
 
     private fun findActiveGlobalBan(user: User): Mono<Ban> =
@@ -147,16 +148,11 @@ class UserService(
             .filter { it.isActive }
             .next()
 
-    private fun updateLoginAttempts(user: User, ip: String, success: Boolean) =
-        loginLogRepository.findByUserIdAndIpAndSuccess(user.id, ip, success)
-            .flatMap {
-                log.trace("IP address already had ${if (success) "successful" else "failed"} login attempts on this user, increment attempts")
-                loginLogRepository.save(it.copy(attempts = it.attempts + 1, updateTime = LocalDateTime.now()))
-            }
-            .switchIfEmpty {
-                log.trace("IP address ${if (success) "successful" else "failed"} login on this user for the first time")
-                loginLogRepository.save(LoginLog(0, user.id, ip, 1, success))
-            }
+    private fun logLoginAttempt(user: User, ip: String, success: Boolean) =
+        loginLogRepository.save(LoginLog(0, user.id, null, ip, success))
+
+    private fun logFailedLoginAttempt(unknownLogin: String, ip: String) =
+        loginLogRepository.save(LoginLog(0, null, unknownLogin.take(100), ip, false))
 
     /**
      * Responds to the consent request based on the user response.

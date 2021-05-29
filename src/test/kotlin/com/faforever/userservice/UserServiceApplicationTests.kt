@@ -12,7 +12,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.anyBoolean
 import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.verify
@@ -115,6 +114,7 @@ class UserServiceApplicationTests {
     @Test
     fun postLoginWithUnknownUser() {
         `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.empty())
+        `when`(loginLogRepository.save(anyOrNull())).thenAnswer { Mono.just(it.arguments[0]) }
         `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
 
@@ -137,6 +137,7 @@ class UserServiceApplicationTests {
             .expectBody(String::class.java)
 
         verify(userRepository).findByUsernameOrEmail(username, username)
+        verify(loginLogRepository).save(anyOrNull())
         verify(loginLogRepository).findFailedAttemptsByIp(anyString())
     }
 
@@ -173,8 +174,6 @@ class UserServiceApplicationTests {
         `when`(passwordEncoder.matches(password, password)).thenReturn(false)
         `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
-        `when`(loginLogRepository.findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean()))
-            .thenReturn(Mono.empty())
         `when`(loginLogRepository.save(anyOrNull()))
             .thenAnswer { Mono.just(it.arguments[0]) }
 
@@ -199,7 +198,6 @@ class UserServiceApplicationTests {
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
         verify(loginLogRepository).findFailedAttemptsByIp(anyString())
-        verify(loginLogRepository).findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean())
         verify(loginLogRepository).save(anyOrNull())
     }
 
@@ -209,8 +207,6 @@ class UserServiceApplicationTests {
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
         `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
-        `when`(loginLogRepository.findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean()))
-            .thenReturn(Mono.empty())
         `when`(loginLogRepository.save(anyOrNull()))
             .thenAnswer { Mono.just(it.arguments[0]) }
         `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
@@ -242,7 +238,6 @@ class UserServiceApplicationTests {
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
         verify(loginLogRepository).findFailedAttemptsByIp(anyString())
-        verify(loginLogRepository).findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean())
         verify(loginLogRepository).save(anyOrNull())
         verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
     }
@@ -253,10 +248,7 @@ class UserServiceApplicationTests {
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
         `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
-        `when`(loginLogRepository.findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean()))
-            .thenReturn(Mono.empty())
-        `when`(loginLogRepository.save(anyOrNull()))
-            .thenAnswer { Mono.just(it.arguments[0]) }
+        `when`(loginLogRepository.save(anyOrNull())).thenAnswer { Mono.just(it.arguments[0]) }
         `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.just(
                 Ban(1, 1, BanLevel.CHAT, "test", LocalDateTime.MIN, null),
@@ -286,7 +278,6 @@ class UserServiceApplicationTests {
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
         verify(loginLogRepository).findFailedAttemptsByIp(anyString())
-        verify(loginLogRepository).findByUserIdAndIpAndSuccess(anyLong(), anyString(), anyBoolean())
         verify(loginLogRepository).save(anyOrNull())
         verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
     }
