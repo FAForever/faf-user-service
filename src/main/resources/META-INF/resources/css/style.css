@@ -183,6 +183,16 @@ a:hover {
   margin: 0.5rem 0;
 }
 
+.oauth-scopes div {
+  grid-column: 1;
+}
+
+.oauth-scopes i {
+  grid-column: 2;
+  margin: 0 0 0 auto;
+}
+
+
 .flex-container {
   display: flex;
   flex-flow: row nowrap;
