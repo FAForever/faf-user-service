@@ -175,7 +175,7 @@ a:hover {
 }
 
 .oauth-scopes li {
-  display: block;
+  display: grid;
   background-color: white;
   border: 1px solid #ea2f10;
   border-left: 5px solid #ea2f10;
