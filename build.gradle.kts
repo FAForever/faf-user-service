@@ -68,7 +68,7 @@ tasks.withType<Test> {
 }
 
 spotless {
-    val ktlintVersion = "0.40.0"
+    val ktlintVersion = "0.41.0"
     kotlin {
         ktlint(ktlintVersion)
     }
