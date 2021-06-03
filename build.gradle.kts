@@ -81,7 +81,7 @@ spotless {
 plugins.withType<JibPlugin> {
     configure<JibExtension> {
         // When changing this, also consider changing the build image in .gitlab-ci.yml
-        from.image = "adoptopenjdk:15-jre-hotspot"
+        from.image = "adoptopenjdk:16-jre-hotspot"
 
         to {
             image = "faforever/faf-user-service"
