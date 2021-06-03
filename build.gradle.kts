@@ -14,7 +14,7 @@ plugins {
     // // OpenAPI code generation
     // id("org.openapi.generator") version "4.3.1"
     // Code formatting
-    id("com.diffplug.spotless") version "5.11.1"
+    id("com.diffplug.spotless") version "5.12.5"
 }
 
 group = "com.faforever"
