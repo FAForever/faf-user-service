@@ -2,6 +2,8 @@ import com.google.cloud.tools.jib.gradle.JibExtension
 import com.google.cloud.tools.jib.gradle.JibPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val dockerTag: String? by project
+
 plugins {
     val kotlinVersion = "1.5.10"
 
@@ -80,11 +82,11 @@ spotless {
 
 plugins.withType<JibPlugin> {
     configure<JibExtension> {
+
         from.image = "adoptopenjdk:16-jre-hotspot"
 
         to {
             image = "faforever/faf-user-service"
-            tags = setOf("master")
         }
     }
 }
