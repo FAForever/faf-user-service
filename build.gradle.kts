@@ -3,10 +3,12 @@ import com.google.cloud.tools.jib.gradle.JibPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.5.10"
-    kotlin("kapt") version "1.5.10"
-    kotlin("plugin.spring") version "1.5.10"
-    id("org.springframework.boot") version "2.4.2"
+    val kotlinVersion = "1.5.10"
+
+    kotlin("jvm") version kotlinVersion
+    kotlin("kapt") version kotlinVersion
+    kotlin("plugin.spring") version kotlinVersion
+    id("org.springframework.boot") version "2.5.0"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("com.google.cloud.tools.jib") version "2.8.0"
 
@@ -18,7 +20,7 @@ plugins {
 }
 
 group = "com.faforever"
-version = "0.0.1-SNAPSHOT"
+version = "snapshot"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
