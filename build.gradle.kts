@@ -13,6 +13,8 @@ plugins {
     id("org.springframework.boot") version "2.5.1"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("com.google.cloud.tools.jib") version "2.8.0"
+    id("org.springframework.experimental.aot") version "0.10.1-SNAPSHOT"
+    id("org.graalvm.buildtools.native") version "0.9.0"
 
     // /****** Additional tooling *****/
     // // OpenAPI code generation
@@ -28,6 +30,9 @@ java.sourceCompatibility = JavaVersion.VERSION_11
 repositories {
     mavenCentral()
     maven("https://jitpack.io")
+    maven("https://repo.spring.io/release")
+    maven("https://repo.spring.io/milestone")
+    maven("https://repo.spring.io/snapshot")
 }
 
 dependencies {
