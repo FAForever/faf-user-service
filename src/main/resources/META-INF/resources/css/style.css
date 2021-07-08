@@ -26,7 +26,6 @@ input {
   bottom: 0;
   top: 0;
   height: auto !important;
-  filter: grayscale(60%) blur(1px) saturate(50%);
 }
 
 .error {
