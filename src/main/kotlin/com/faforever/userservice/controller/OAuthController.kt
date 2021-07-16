@@ -108,7 +108,7 @@ class OAuthController(
     ): Mono<Void> =
         serverWebExchange.formData.flatMap { form ->
             val challenge = checkNotNull(form["consent_challenge"]?.first())
-            val permitted = form["action"]?.first()?.toLowerCase() == "permit"
+            val permitted = form["action"]?.first()?.lowercase() == "permit"
 
             userService.decideConsent(challenge, permitted)
         }.flatMap { redirectUrl ->
