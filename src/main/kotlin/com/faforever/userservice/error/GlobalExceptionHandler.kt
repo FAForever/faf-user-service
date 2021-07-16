@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.server.ServerWebInputException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -20,7 +21,15 @@ class GlobalExceptionHandler {
         private val LOG: Logger = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
     }
 
-    @ExceptionHandler(ConversionNotSupportedException::class, TypeMismatchException::class, HttpMessageNotReadableException::class, HttpMessageNotWritableException::class, MethodArgumentNotValidException::class, BindException::class)
+    @ExceptionHandler(
+        ServerWebInputException::class,
+        ConversionNotSupportedException::class,
+        TypeMismatchException::class,
+        HttpMessageNotReadableException::class,
+        HttpMessageNotWritableException::class,
+        MethodArgumentNotValidException::class,
+        BindException::class
+    )
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     fun processBadRequests(ex: Exception): ErrorResponse {
