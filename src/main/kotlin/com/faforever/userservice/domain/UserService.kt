@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import sh.ory.hydra.model.AcceptConsentRequest
@@ -91,7 +92,14 @@ class UserService(
         .flatMap { throttlingRequired ->
             if (throttlingRequired) {
                 hydraService.rejectLoginRequest(challenge, GenericError(HYDRA_ERROR_LOGIN_THROTTLED))
-                    .map { LoginResult.LoginThrottlingActive(it.redirectTo) }
+                    .map {
+                        LoginResult.LoginThrottlingActive(
+                            UriComponentsBuilder.fromUriString("/throttle")
+                                .queryParam("login_challenge", challenge)
+                                .build()
+                                .toUriString()
+                        )
+                    }
             } else {
                 hydraService.getLoginRequest(challenge)
                     .flatMap { loginRequest ->

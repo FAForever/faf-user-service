@@ -114,4 +114,13 @@ class OAuthController(
         }.flatMap { redirectUrl ->
             redirect(response, redirectUrl)
         }
+
+    @GetMapping("throttle")
+    fun showThrottle(
+        request: ServerHttpRequest,
+        @RequestParam("login_challenge") challenge: String,
+        model: Model,
+    ): Mono<Rendering> {
+        return Mono.just(Rendering.view("throttle").build())
+    }
 }
