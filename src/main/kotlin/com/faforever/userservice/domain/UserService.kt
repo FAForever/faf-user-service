@@ -8,7 +8,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
-import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import sh.ory.hydra.model.AcceptConsentRequest
@@ -69,7 +68,7 @@ class UserService(
             ) {
                 val lastAttempt = it.lastAttemptAt!!
                 if (LocalDateTime.now().minusMinutes(securityProperties.failedLoginThrottlingMinutes)
-                        .isBefore(lastAttempt)
+                    .isBefore(lastAttempt)
                 ) {
                     log.debug("IP '$ip' is trying again to early -> throttle it")
                     true
