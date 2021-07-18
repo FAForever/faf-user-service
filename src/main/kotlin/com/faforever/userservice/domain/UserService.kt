@@ -28,7 +28,7 @@ data class SecurityProperties(
 )
 
 sealed class LoginResult {
-    data class LoginThrottlingActive(val redirectTo: String) : LoginResult()
+    object LoginThrottlingActive : LoginResult()
     object UserOrCredentialsMismatch : LoginResult()
     data class SuccessfulLogin(val redirectTo: String) : LoginResult()
     data class UserBanned(val redirectTo: String, val ban: Ban) : LoginResult()
@@ -69,7 +69,7 @@ class UserService(
             ) {
                 val lastAttempt = it.lastAttemptAt!!
                 if (LocalDateTime.now().minusMinutes(securityProperties.failedLoginThrottlingMinutes)
-                    .isBefore(lastAttempt)
+                        .isBefore(lastAttempt)
                 ) {
                     log.debug("IP '$ip' is trying again to early -> throttle it")
                     true
@@ -91,15 +91,7 @@ class UserService(
     ): Mono<LoginResult> = checkLoginThrottlingRequired(ip)
         .flatMap { throttlingRequired ->
             if (throttlingRequired) {
-                hydraService.rejectLoginRequest(challenge, GenericError(HYDRA_ERROR_LOGIN_THROTTLED))
-                    .map {
-                        LoginResult.LoginThrottlingActive(
-                            UriComponentsBuilder.fromUriString("/throttle")
-                                .queryParam("login_challenge", challenge)
-                                .build()
-                                .toUriString()
-                        )
-                    }
+                Mono.just(LoginResult.LoginThrottlingActive)
             } else {
                 hydraService.getLoginRequest(challenge)
                     .flatMap { loginRequest ->
