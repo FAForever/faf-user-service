@@ -1,0 +1,57 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title th:text="#{login.title}">FAForever Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"
+        integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w=="
+        crossorigin="anonymous"/>
+  <link rel="stylesheet" href="../META-INF/resources/css/style.css" th:href="@{/css/style.css}"  type="text/css"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet">
+  <script type="application/javascript" src="../META-INF/resources/js/bg-switcher.js" th:src="@{/js/bg-switcher.js}"></script>
+</head>
+<body>
+<div class="background"></div>
+<header>
+  <div id="leftheader">
+    <a href="https://www.faforever.com"><img src="https://faforever.com/images/faf-logo.png" alt="FAForever Logo"></a>
+    <h1>FAForever Login</h1>
+  </div>
+  <div id="rightheader">
+    <!--    <p>You are logged in as [User]</p>-->
+  </div>
+</header>
+<div class="main-card">
+  <div class="main-card-inner">
+    <div id="form-header">
+      <div id="form-header-left"><img src="https://faforever.com/images/faf-logo.png" alt="FAForever Logo"></div>
+      <h2 id="form-header-right" th:text="#{ban.title}">You are Banned from FAForever</h2>
+    </div>
+
+    <div class="error" th:unless="${permanentBan}">
+      <div>
+        <span th:text="#{ban.expiration}">Ban expires at:</span>
+        <span th:text="${#temporals.format(banExpiration, 'dd-MM-yyyy HH:mm')}">01-01-1970 00:00</span>
+      </div>
+      <div>
+        <span th:text="#{ban.reason}">Reason:</span>
+        <span th:text="${banReason}">Bad Behavior</span>
+      </div>
+    </div>
+
+    <div class="error" th:if="${permanentBan}">
+      <div>
+        <span th:text="#{ban.expiration}">Permanently Bannned</span>
+      </div>
+      <div>
+        <span th:text="#{ban.reason}">Reason:</span>
+        <span th:text="${banReason}">Bad Behavior</span>
+      </div>
+    </div>
+
+    <footer th:text="#{ban.appeal}">You may appeal your ban by emailing moderation@faforever.com</footer>
+
+  </div>
+</div>
+</body>
+</html>
