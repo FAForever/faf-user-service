@@ -155,4 +155,18 @@ class HydraService(
             .bodyValue(error)
             .retrieve()
             .bodyToMono(RedirectResponse::class.java)
+
+    fun revokeAllSessions(revokeRefreshTokensRequest: RevokeRefreshTokensRequest): Mono<RedirectResponse> {
+        return webClient
+            .delete()
+            .uri {
+                it.path("/oauth2/auth/sessions/consent")
+                    .queryParam("all", revokeRefreshTokensRequest.all)
+                    .queryParam("subject", revokeRefreshTokensRequest.subject)
+                    .queryParam("client", revokeRefreshTokensRequest.client)
+                    .build()
+            }
+            .retrieve()
+            .bodyToMono(RedirectResponse::class.java)
+    }
 }

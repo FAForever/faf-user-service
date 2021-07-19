@@ -11,6 +11,7 @@ hydra:
   baseUrl: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
   fakeTlsForwarding: ${HYDRA_FAKE_TLS_FORWARDING:false}
   acceptUntrustedTlsCertificates: ${HYDRA_ACCEPT_UNTRUSTED_TLS_CERTIFICATES:true}
+
 logging:
   level:
     org.springframework.security: INFO
