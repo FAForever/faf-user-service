@@ -28,7 +28,6 @@ class SecurityConfiguration {
                 authorize("/favicon.ico", permitAll)
                 authorize("/login", permitAll)
                 authorize("/consent", permitAll)
-                authorize("/throttle", permitAll)
                 authorize("/css/**", permitAll)
                 authorize("/js/**", permitAll)
                 authorize("/**", authenticated)
