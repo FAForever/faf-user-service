@@ -27,7 +27,7 @@ data class SecurityProperties(
 )
 
 sealed class LoginResult {
-    data class LoginThrottlingActive(val redirectTo: String) : LoginResult()
+    object LoginThrottlingActive : LoginResult()
     object UserOrCredentialsMismatch : LoginResult()
     data class SuccessfulLogin(val redirectTo: String) : LoginResult()
     data class UserBanned(val redirectTo: String, val ban: Ban) : LoginResult()
@@ -90,8 +90,7 @@ class UserService(
     ): Mono<LoginResult> = checkLoginThrottlingRequired(ip)
         .flatMap { throttlingRequired ->
             if (throttlingRequired) {
-                hydraService.rejectLoginRequest(challenge, GenericError(HYDRA_ERROR_LOGIN_THROTTLED))
-                    .map { LoginResult.LoginThrottlingActive(it.redirectTo) }
+                Mono.just(LoginResult.LoginThrottlingActive)
             } else {
                 hydraService.getLoginRequest(challenge)
                     .flatMap { loginRequest ->

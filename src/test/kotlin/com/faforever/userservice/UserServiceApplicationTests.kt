@@ -162,7 +162,7 @@ class UserServiceApplicationTests {
             .exchange()
             .expectStatus().is3xxRedirection()
             .expectHeader()
-            .location(hydraRedirectUrl)
+            .location("/login?login_challenge=someChallenge&login_challenge=someChallenge&login_throttled")
             .expectBody(String::class.java)
 
         verify(loginLogRepository).findFailedAttemptsByIp(anyString())

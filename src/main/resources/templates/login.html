@@ -31,7 +31,12 @@
 
       <div class="error" th:if="${loginFailed}">
         <i class="fas fa-exclamation-triangle"></i>
-        <span th:text="#{login.badCredentials}">Username or password was wrong.</span>
+        <span th:text="#{login.badCredentials}">Username or password was wrong</span>
+      </div>
+
+      <div class="error" th:if="${loginThrottled}">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span th:text="#{login.throttled}">Too many of your login attempts have failed. Please wait some time before trying to login again.</span>
       </div>
 
       <input type="hidden" name="login_challenge" th:value="${challenge}" th:if="${challenge != null }"/>

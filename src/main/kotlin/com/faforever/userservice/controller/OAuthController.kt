@@ -34,7 +34,9 @@ class OAuthController(
         model: Model,
     ): Mono<Rendering> {
         val loginFailed = request.queryParams.containsKey("login_failed")
+        val loginThrottled = request.queryParams.containsKey("login_throttled")
         model.addAttribute("loginFailed", loginFailed)
+        model.addAttribute("loginThrottled", loginThrottled)
         model.addAttribute("challenge", challenge)
         model.addAttribute("passwordResetUrl", fafProperties.passwordResetUrl)
         model.addAttribute("registerAccountUrl", fafProperties.registerAccountUrl)
@@ -64,7 +66,14 @@ class OAuthController(
                     when (it) {
                         is SuccessfulLogin -> redirect(response, it.redirectTo)
                         is UserBanned -> redirect(response, it.redirectTo)
-                        is LoginThrottlingActive -> redirect(response, it.redirectTo)
+                        is LoginThrottlingActive -> redirect(
+                            response,
+                            UriComponentsBuilder.fromUri(request.uri)
+                                .queryParam("login_challenge", challenge)
+                                .queryParam("login_throttled")
+                                .build()
+                                .toUriString()
+                        )
                         is UserOrCredentialsMismatch -> redirect(
                             response,
                             UriComponentsBuilder.fromUri(request.uri)
