@@ -65,7 +65,7 @@ class OAuthController(
             val password = checkNotNull(form["password"]?.first())
 
             val reverseProxyIp = request.headers.getFirst("X-Real-IP")
-            val ip = if(reverseProxyIp != null) reverseProxyIp else {
+            val ip = if (reverseProxyIp != null) reverseProxyIp else {
                 LOG.warn("IP address from reverse proxy missing. Please make sure you this service runs behind reverse proxy. Falling back to remote address.")
                 request.remoteAddress?.address?.hostAddress.toString()
             }
