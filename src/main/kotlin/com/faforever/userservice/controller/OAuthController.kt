@@ -7,6 +7,7 @@ import com.faforever.userservice.domain.LoginResult.UserBanned
 import com.faforever.userservice.domain.LoginResult.UserOrCredentialsMismatch
 import com.faforever.userservice.domain.UserService
 import com.faforever.userservice.hydra.HydraService
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.http.server.reactive.ServerHttpResponse
@@ -27,6 +28,10 @@ class OAuthController(
     private val hydraService: HydraService,
     private val fafProperties: FafProperties,
 ) {
+    companion object {
+        val LOG = LoggerFactory.getLogger(OAuthController::class.java)
+    }
+
     @GetMapping("login")
     fun showLogin(
         request: ServerHttpRequest,
@@ -58,11 +63,17 @@ class OAuthController(
             val challenge = checkNotNull(form["login_challenge"]?.first())
             val usernameOrEmail = checkNotNull(form["usernameOrEmail"]?.first())
             val password = checkNotNull(form["password"]?.first())
-            // TODO: This does not work behind a proxy. Use forwarded IP address header instead
-            val ip = request.remoteAddress?.address?.hostAddress.toString()
+
+            val reverseProxyIp = request.headers.getFirst("X-Real-IP")
+            val ip = if(reverseProxyIp != null) reverseProxyIp else {
+                LOG.warn("IP address from reverse proxy missing. Please make sure you this service runs behind reverse proxy. Falling back to remote address.")
+                request.remoteAddress?.address?.hostAddress.toString()
+            }
 
             userService.login(challenge, usernameOrEmail, password, ip)
                 .flatMap {
+                    LOG.debug("Login result is: $it")
+
                     when (it) {
                         is SuccessfulLogin -> redirect(response, it.redirectTo)
                         is UserBanned -> redirect(response, it.redirectTo)
