@@ -7,7 +7,14 @@ import com.faforever.userservice.domain.FailedAttemptsSummary
 import com.faforever.userservice.domain.LoginLogRepository
 import com.faforever.userservice.domain.User
 import com.faforever.userservice.domain.UserRepository
+import com.faforever.userservice.hydra.RevokeRefreshTokensRequest
 import com.faforever.userservice.security.FafPasswordEncoder
+import com.faforever.userservice.security.FafRole
+import com.faforever.userservice.security.FafScope
+import com.faforever.userservice.security.OAuthRole
+import com.faforever.userservice.security.OAuthScope
+import com.nimbusds.jose.shaded.json.JSONArray
+import com.nimbusds.jose.shaded.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -27,7 +34,9 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.ApplicationContext
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf
+import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockJwt
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -51,6 +60,7 @@ class UserServiceApplicationTests {
         private const val email = "some@email.com"
         private const val password = "somePassword"
         private const val hydraRedirectUrl = "someHydraRedirectUrl"
+        private val revokeRequest = RevokeRefreshTokensRequest("1", null, true)
 
         private val user = User(1, username, password, email, null, null)
         private val mockServer = ClientAndServer(mockServerPort)
@@ -107,7 +117,7 @@ class UserServiceApplicationTests {
             .uri("/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .exchange()
-            .expectStatus().isOk()
+            .expectStatus().isOk
             .expectBody(String::class.java)
     }
 
@@ -131,7 +141,7 @@ class UserServiceApplicationTests {
                     .with("password", password)
             )
             .exchange()
-            .expectStatus().is3xxRedirection()
+            .expectStatus().is3xxRedirection
             .expectHeader()
             .location("/login?login_challenge=someChallenge&login_challenge=someChallenge&login_failed")
             .expectBody(String::class.java)
@@ -144,7 +154,16 @@ class UserServiceApplicationTests {
     @Test
     fun postLoginWithThrottling() {
         `when`(loginLogRepository.findFailedAttemptsByIp(any()))
-            .thenReturn(Mono.just(FailedAttemptsSummary(100, 1, LocalDateTime.now().minusMinutes(1), LocalDateTime.now().minusSeconds(10))))
+            .thenReturn(
+                Mono.just(
+                    FailedAttemptsSummary(
+                        100,
+                        1,
+                        LocalDateTime.now().minusMinutes(1),
+                        LocalDateTime.now().minusSeconds(10)
+                    )
+                )
+            )
 
         mockLoginRequest()
         mockLoginReject()
@@ -160,7 +179,7 @@ class UserServiceApplicationTests {
                     .with("password", password)
             )
             .exchange()
-            .expectStatus().is3xxRedirection()
+            .expectStatus().is3xxRedirection
             .expectHeader()
             .location("/login?login_challenge=someChallenge&login_challenge=someChallenge&login_throttled")
             .expectBody(String::class.java)
@@ -190,7 +209,7 @@ class UserServiceApplicationTests {
                     .with("password", password)
             )
             .exchange()
-            .expectStatus().is3xxRedirection()
+            .expectStatus().is3xxRedirection
             .expectHeader()
             .location("/login?login_challenge=someChallenge&login_challenge=someChallenge&login_failed")
             .expectBody(String::class.java)
@@ -211,8 +230,8 @@ class UserServiceApplicationTests {
             .thenAnswer { Mono.just(it.arguments[0]) }
         `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.just(
-                Ban(1, 1, BanLevel.CHAT, "test", LocalDateTime.MIN, null),
-                Ban(1, 1, BanLevel.GLOBAL, "test", LocalDateTime.MAX, null),
+                Ban(1, 1, 100, BanLevel.CHAT, "test", LocalDateTime.MIN, null, null, null, null),
+                Ban(1, 1, 100, BanLevel.GLOBAL, "test", LocalDateTime.MAX, null, null, null, null),
             )
         )
 
@@ -230,7 +249,7 @@ class UserServiceApplicationTests {
                     .with("password", password)
             )
             .exchange()
-            .expectStatus().is3xxRedirection()
+            .expectStatus().is3xxRedirection
             .expectHeader()
             .location(hydraRedirectUrl)
             .expectBody(String::class.java)
@@ -251,8 +270,19 @@ class UserServiceApplicationTests {
         `when`(loginLogRepository.save(anyOrNull())).thenAnswer { Mono.just(it.arguments[0]) }
         `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.just(
-                Ban(1, 1, BanLevel.CHAT, "test", LocalDateTime.MIN, null),
-                Ban(1, 1, BanLevel.GLOBAL, "test", LocalDateTime.MAX, LocalDateTime.now().minusDays(1)),
+                Ban(1, 1, 100, BanLevel.CHAT, "test", LocalDateTime.MIN, null, null, null, null),
+                Ban(
+                    1,
+                    1,
+                    100,
+                    BanLevel.GLOBAL,
+                    "test",
+                    LocalDateTime.MAX,
+                    LocalDateTime.now().minusDays(1),
+                    null,
+                    null,
+                    null
+                ),
             )
         )
 
@@ -270,7 +300,7 @@ class UserServiceApplicationTests {
                     .with("password", password)
             )
             .exchange()
-            .expectStatus().is3xxRedirection()
+            .expectStatus().is3xxRedirection
             .expectHeader()
             .location(hydraRedirectUrl)
             .expectBody(String::class.java)
@@ -293,7 +323,7 @@ class UserServiceApplicationTests {
             .uri("/consent?consent_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .exchange()
-            .expectStatus().isOk()
+            .expectStatus().isOk
             .expectBody(String::class.java)
 
         verify(userRepository).findById(1)
@@ -317,7 +347,7 @@ class UserServiceApplicationTests {
                     .with("action", "permit")
             )
             .exchange()
-            .expectStatus().is3xxRedirection()
+            .expectStatus().is3xxRedirection
             .expectHeader()
             .location(hydraRedirectUrl)
             .expectBody(String::class.java)
@@ -341,9 +371,70 @@ class UserServiceApplicationTests {
                     .with("action", "deny")
             )
             .exchange()
-            .expectStatus().is3xxRedirection()
+            .expectStatus().is3xxRedirection
             .expectHeader()
             .location(hydraRedirectUrl)
+            .expectBody(String::class.java)
+    }
+
+    @Test
+    fun revokeRefreshToken() {
+        mockConsentRevoke()
+
+        webTestClient
+            .mutateWith(
+                mockJwt().authorities(
+                    FafScope(OAuthScope._ADMINISTRATIVE_ACTION),
+                    FafRole(OAuthRole.ADMIN_ACCOUNT_BAN),
+                )
+            )
+            .mutateWith(csrf())
+            .post()
+            .uri("/revokeTokens")
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .bodyValue(revokeRequest)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(String::class.java)
+    }
+
+    @Test
+    fun cannotRevokeRefreshTokenWithoutScope() {
+        mockConsentRevoke()
+
+        webTestClient
+            .mutateWith(
+                mockJwt().authorities(
+                    FafRole(OAuthRole.ADMIN_ACCOUNT_BAN),
+                )
+            )
+            .mutateWith(csrf())
+            .post()
+            .uri("/revokeTokens")
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .bodyValue(revokeRequest)
+            .exchange()
+            .expectStatus().isForbidden
+            .expectBody(String::class.java)
+    }
+
+    @Test
+    fun cannotRevokeRefreshTokenWithoutRole() {
+        mockConsentRevoke()
+
+        webTestClient
+            .mutateWith(
+                mockJwt().authorities(
+                    FafScope(OAuthScope._ADMINISTRATIVE_ACTION),
+                )
+            )
+            .mutateWith(csrf())
+            .post()
+            .uri("/revokeTokens")
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .bodyValue(revokeRequest)
+            .exchange()
+            .expectStatus().isForbidden
             .expectBody(String::class.java)
     }
 
@@ -477,5 +568,31 @@ class UserServiceApplicationTests {
                     """.trimIndent()
                 )
         )
+    }
+
+    private fun mockConsentRevoke() {
+        mockServer.`when`(
+            HttpRequest.request()
+                .withMethod("DELETE")
+                .withPath("/oauth2/auth/sessions/consent")
+                .withQueryStringParameter("all", if (revokeRequest.all != null) revokeRequest.all.toString() else "")
+                .withQueryStringParameter("client", if (revokeRequest.client != null) revokeRequest.client.toString() else "")
+                .withQueryStringParameter("subject", revokeRequest.subject)
+        ).respond(
+            HttpResponse.response()
+                .withStatusCode(204)
+        )
+    }
+
+    private fun addFafRoles(jwtBuilder: Jwt.Builder, vararg fafRoles: String) {
+        val roles = JSONArray()
+        fafRoles.forEach { roles.appendElement(it) }
+        jwtBuilder.claim("ext", JSONObject(mapOf("roles" to roles)))
+    }
+
+    private fun addFafScopes(jwtBuilder: Jwt.Builder, vararg fafScopes: String) {
+        val scopes = JSONArray()
+        fafScopes.forEach { scopes.appendElement(it) }
+        jwtBuilder.claim("scp", scopes)
     }
 }

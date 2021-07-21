@@ -18,10 +18,14 @@ data class Ban(
     @Id
     val id: Long,
     val playerId: Long,
+    val authorId: Long,
     val level: BanLevel,
     val reason: String,
     val expiresAt: LocalDateTime?,
     val revokeTime: LocalDateTime?,
+    val reportId: Long?,
+    val revokeReason: String?,
+    val revokeAuthorId: Long?,
 ) {
 
     val isActive: Boolean

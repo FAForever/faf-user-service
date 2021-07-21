@@ -7,14 +7,19 @@ import com.faforever.userservice.domain.LoginResult.UserBanned
 import com.faforever.userservice.domain.LoginResult.UserOrCredentialsMismatch
 import com.faforever.userservice.domain.UserService
 import com.faforever.userservice.hydra.HydraService
+import com.faforever.userservice.hydra.RevokeRefreshTokensRequest
+import com.faforever.userservice.security.OAuthRole
+import com.faforever.userservice.security.OAuthScope
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.http.server.reactive.ServerHttpResponse
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.reactive.result.view.Rendering
 import org.springframework.web.server.ServerWebExchange
@@ -134,4 +139,18 @@ class OAuthController(
         }.flatMap { redirectUrl ->
             redirect(response, redirectUrl)
         }
+
+    @PostMapping("revokeTokens")
+    @PreAuthorize("hasRole('${OAuthRole.ADMIN_ACCOUNT_BAN}') and hasAuthority('${OAuthScope.ADMINISTRATIVE_ACTION}')")
+    fun revokeRefreshTokens(
+        @RequestBody revokeRefreshTokensRequest: RevokeRefreshTokensRequest,
+        request: ServerHttpRequest,
+        response: ServerHttpResponse,
+    ): Mono<Void> {
+        LOG.info(
+            "Revoking consent sessions for subject `{}` on client `{}`", revokeRefreshTokensRequest.subject,
+            if (revokeRefreshTokensRequest.all == true || revokeRefreshTokensRequest.client == null) "all" else revokeRefreshTokensRequest.client
+        )
+        return hydraService.revokeRefreshTokens(revokeRefreshTokensRequest).flatMap { redirect(response, it.redirectTo) }
+    }
 }
