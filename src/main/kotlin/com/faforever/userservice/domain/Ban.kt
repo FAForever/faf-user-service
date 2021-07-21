@@ -5,7 +5,7 @@ import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 enum class BanLevel {
     GLOBAL,
@@ -21,15 +21,15 @@ data class Ban(
     val authorId: Long,
     val level: BanLevel,
     val reason: String,
-    val expiresAt: LocalDateTime?,
-    val revokeTime: LocalDateTime?,
+    val expiresAt: OffsetDateTime?,
+    val revokeTime: OffsetDateTime?,
     val reportId: Long?,
     val revokeReason: String?,
     val revokeAuthorId: Long?,
 ) {
 
     val isActive: Boolean
-        get() = revokeTime == null && (expiresAt == null || expiresAt.isAfter(LocalDateTime.now()))
+        get() = revokeTime == null && (expiresAt == null || expiresAt.isAfter(OffsetDateTime.now()))
 }
 
 @Repository

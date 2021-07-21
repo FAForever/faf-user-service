@@ -8,6 +8,8 @@ import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.util.UriComponentsBuilder
+import org.springframework.web.util.UriUtils
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import sh.ory.hydra.model.AcceptConsentRequest
@@ -15,7 +17,9 @@ import sh.ory.hydra.model.AcceptLoginRequest
 import sh.ory.hydra.model.ConsentRequestSession
 import sh.ory.hydra.model.GenericError
 import sh.ory.hydra.model.LoginRequest
+import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
 
 @ConfigurationProperties(prefix = "security")
 @Validated
@@ -30,7 +34,7 @@ sealed class LoginResult {
     object LoginThrottlingActive : LoginResult()
     object UserOrCredentialsMismatch : LoginResult()
     data class SuccessfulLogin(val redirectTo: String) : LoginResult()
-    data class UserBanned(val redirectTo: String, val ban: Ban) : LoginResult()
+    data class UserBanned(val redirectTo: String) : LoginResult()
 }
 
 @Component
@@ -43,9 +47,8 @@ class UserService(
     private val passwordEncoder: PasswordEncoder,
 ) {
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(UserService::class.java)
+        private val LOG: Logger = LoggerFactory.getLogger(UserService::class.java)
         private const val HYDRA_ERROR_USER_BANNED = "user_banned"
-        private const val HYDRA_ERROR_LOGIN_THROTTLED = "login_throttled"
 
         /**
          * The user role is used to distinguish users from technical accounts.
@@ -61,7 +64,7 @@ class UserService(
             val accountsAffected = it.accountsAffected ?: 0
             val totalFailedAttempts = it.totalAttempts ?: 0
 
-            log.debug("Failed login attempts for IP address '$ip': $it")
+            LOG.debug("Failed login attempts for IP address '$ip': $it")
 
             if (accountsAffected > securityProperties.failedLoginAccountThreshold ||
                 totalFailedAttempts > securityProperties.failedLoginAttemptThreshold
@@ -70,14 +73,14 @@ class UserService(
                 if (LocalDateTime.now().minusMinutes(securityProperties.failedLoginThrottlingMinutes)
                     .isBefore(lastAttempt)
                 ) {
-                    log.debug("IP '$ip' is trying again to early -> throttle it")
+                    LOG.debug("IP '$ip' is trying again to early -> throttle it")
                     true
                 } else {
-                    log.debug("IP '$ip' triggered a threshold but last login does not hit throttling time")
+                    LOG.debug("IP '$ip' triggered a threshold but last login does not hit throttling time")
                     false
                 }
             } else {
-                log.trace("IP '$ip' did not hit a throttling limit")
+                LOG.trace("IP '$ip' did not hit a throttling limit")
                 false
             }
         }
@@ -117,12 +120,20 @@ class UserService(
                 logLoginAttempt(user, ip, true)
                     .flatMap { findActiveGlobalBan(user) }
                     .flatMap<LoginResult> { ban ->
-                        log.debug("User '$usernameOrEmail' is banned by $ban")
+                        LOG.debug("User '$usernameOrEmail' is banned by $ban")
                         hydraService.rejectLoginRequest(challenge, GenericError(HYDRA_ERROR_USER_BANNED))
-                            .map { LoginResult.UserBanned(it.redirectTo, ban) }
+                            .map {
+                                LoginResult.UserBanned(
+                                    UriComponentsBuilder.fromUriString("/oauth2/banned")
+                                        .queryParam("expiration", if (ban.expiresAt != null) ISO_OFFSET_DATE_TIME.format(ban.expiresAt) else null)
+                                        .queryParam("reason", UriUtils.encode(ban.reason, StandardCharsets.UTF_8))
+                                        .build()
+                                        .toUriString()
+                                )
+                            }
                     }
                     .switchIfEmpty {
-                        log.debug("User '$usernameOrEmail' logged in successfully")
+                        LOG.debug("User '$usernameOrEmail' logged in successfully")
 
                         hydraService.acceptLoginRequest(
                             challenge,
@@ -130,13 +141,13 @@ class UserService(
                         ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
                     }
             } else {
-                log.debug("Password for user '$usernameOrEmail' doesn't match")
+                LOG.debug("Password for user '$usernameOrEmail' doesn't match")
                 logLoginAttempt(user, ip, false)
                     .map { LoginResult.UserOrCredentialsMismatch }
             }
         }
         .switchIfEmpty {
-            log.debug("User '$usernameOrEmail' not found")
+            LOG.debug("User '$usernameOrEmail' not found")
             logFailedLoginAttempt(usernameOrEmail, ip).map {
                 LoginResult.UserOrCredentialsMismatch
             }

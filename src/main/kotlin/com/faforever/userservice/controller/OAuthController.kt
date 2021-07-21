@@ -11,6 +11,7 @@ import com.faforever.userservice.hydra.RevokeRefreshTokensRequest
 import com.faforever.userservice.security.OAuthRole
 import com.faforever.userservice.security.OAuthScope
 import org.slf4j.LoggerFactory
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.http.server.reactive.ServerHttpResponse
@@ -20,14 +21,17 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.reactive.result.view.Rendering
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
 import java.net.URI
+import java.time.OffsetDateTime
 
 @Controller
+@RequestMapping(path = ["/oauth2"])
 class OAuthController(
     private val userService: UserService,
     private val hydraService: HydraService,
@@ -37,7 +41,7 @@ class OAuthController(
         val LOG = LoggerFactory.getLogger(OAuthController::class.java)
     }
 
-    @GetMapping("login")
+    @GetMapping("/login")
     fun showLogin(
         request: ServerHttpRequest,
         @RequestParam("login_challenge") challenge: String,
@@ -58,7 +62,7 @@ class OAuthController(
         headers.location = URI.create(uriString)
     }.setComplete()
 
-    @PostMapping("login")
+    @PostMapping("/login")
     fun performLogin(
         serverWebExchange: ServerWebExchange,
         request: ServerHttpRequest,
@@ -102,7 +106,7 @@ class OAuthController(
                 }
         }
 
-    @GetMapping("consent")
+    @GetMapping("/consent")
     fun showConsent(
         request: ServerHttpRequest,
         @RequestParam("consent_challenge", required = true) challenge: String,
@@ -126,7 +130,7 @@ class OAuthController(
                 Rendering.view("consent").build()
             }
 
-    @PostMapping("consent")
+    @PostMapping("/consent")
     fun decideConsent(
         serverWebExchange: ServerWebExchange,
         response: ServerHttpResponse,
@@ -140,8 +144,8 @@ class OAuthController(
             redirect(response, redirectUrl)
         }
 
-    @PostMapping("revokeTokens")
-    @PreAuthorize("hasRole('${OAuthRole.ADMIN_ACCOUNT_BAN}') and hasAuthority('${OAuthScope.ADMINISTRATIVE_ACTION}')")
+    @PostMapping("/revokeTokens")
+    @PreAuthorize("hasRole('${OAuthRole.ADMIN_ACCOUNT_BAN}') and @scopeService.hasScope(authentication, '${OAuthScope.ADMINISTRATIVE_ACTION}')")
     fun revokeRefreshTokens(
         @RequestBody revokeRefreshTokensRequest: RevokeRefreshTokensRequest,
         request: ServerHttpRequest,
@@ -152,5 +156,18 @@ class OAuthController(
             if (revokeRefreshTokensRequest.all == true || revokeRefreshTokensRequest.client == null) "all" else revokeRefreshTokensRequest.client
         )
         return hydraService.revokeRefreshTokens(revokeRefreshTokensRequest).flatMap { redirect(response, it.redirectTo) }
+    }
+
+    @GetMapping("/banned")
+    fun showBan(
+        request: ServerHttpRequest,
+        @RequestParam("reason", required = true) reason: String,
+        @RequestParam("expiration") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) expiration: OffsetDateTime?,
+        model: Model,
+    ): Mono<Rendering> {
+        model.addAttribute("permanentBan", expiration == null)
+        model.addAttribute("banReason", reason)
+        model.addAttribute("banExpiration", expiration)
+        return Mono.just(Rendering.view("banned").build())
     }
 }

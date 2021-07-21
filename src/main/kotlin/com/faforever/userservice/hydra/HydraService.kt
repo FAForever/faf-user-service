@@ -58,7 +58,7 @@ class HydraService(
     webClientBuilder: WebClient.Builder,
 ) {
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(HydraService::class.java)
+        private val LOG: Logger = LoggerFactory.getLogger(HydraService::class.java)
         private const val paramChallenge = "challenge"
     }
 
@@ -66,12 +66,12 @@ class HydraService(
         .baseUrl(hydraProperties.baseUrl)
         .apply {
             if (hydraProperties.fakeTlsForwarding) {
-                log.info("Configure Hydra WebClient to use fake TLS forwarding")
+                LOG.info("Configure Hydra WebClient to use fake TLS forwarding")
                 it.defaultHeader("X-Forwarded-Proto", "https")
             }
 
             if (hydraProperties.acceptUntrustedTlsCertificates) {
-                log.info("Configure Hydra WebClient to accept untrusted certificates")
+                LOG.info("Configure Hydra WebClient to accept untrusted certificates")
                 val sslContext = SslContextBuilder
                     .forClient()
                     .trustManager(InsecureTrustManagerFactory.INSTANCE)
@@ -84,7 +84,7 @@ class HydraService(
             }
 
             if (hydraProperties.fakeTlsForwarding && hydraProperties.acceptUntrustedTlsCertificates) {
-                log.warn(
+                LOG.warn(
                     "You enabled fake TLS forwarding together with accepting untrusted certificates." +
                         "Enabling both flags together does not make sense (but will not cause any errors)."
                 )

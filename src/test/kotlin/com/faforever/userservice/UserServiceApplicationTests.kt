@@ -45,6 +45,8 @@ import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -114,7 +116,7 @@ class UserServiceApplicationTests {
     fun getLogin() {
         webTestClient
             .get()
-            .uri("/login?login_challenge=$challenge")
+            .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .exchange()
             .expectStatus().isOk
@@ -133,7 +135,7 @@ class UserServiceApplicationTests {
         webTestClient
             .mutateWith(csrf())
             .post()
-            .uri("/login?login_challenge=$challenge")
+            .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
@@ -143,7 +145,7 @@ class UserServiceApplicationTests {
             .exchange()
             .expectStatus().is3xxRedirection
             .expectHeader()
-            .location("/login?login_challenge=someChallenge&login_challenge=someChallenge&login_failed")
+            .location("/oauth2/login?login_challenge=someChallenge&login_challenge=someChallenge&login_failed")
             .expectBody(String::class.java)
 
         verify(userRepository).findByUsernameOrEmail(username, username)
@@ -171,7 +173,7 @@ class UserServiceApplicationTests {
         webTestClient
             .mutateWith(csrf())
             .post()
-            .uri("/login?login_challenge=$challenge")
+            .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
@@ -181,7 +183,7 @@ class UserServiceApplicationTests {
             .exchange()
             .expectStatus().is3xxRedirection
             .expectHeader()
-            .location("/login?login_challenge=someChallenge&login_challenge=someChallenge&login_throttled")
+            .location("/oauth2/login?login_challenge=someChallenge&login_challenge=someChallenge&login_throttled")
             .expectBody(String::class.java)
 
         verify(loginLogRepository).findFailedAttemptsByIp(anyString())
@@ -201,7 +203,7 @@ class UserServiceApplicationTests {
         webTestClient
             .mutateWith(csrf())
             .post()
-            .uri("/login?login_challenge=$challenge")
+            .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
@@ -211,7 +213,7 @@ class UserServiceApplicationTests {
             .exchange()
             .expectStatus().is3xxRedirection
             .expectHeader()
-            .location("/login?login_challenge=someChallenge&login_challenge=someChallenge&login_failed")
+            .location("/oauth2/login?login_challenge=someChallenge&login_challenge=someChallenge&login_failed")
             .expectBody(String::class.java)
 
         verify(userRepository).findByUsernameOrEmail(username, username)
@@ -230,8 +232,8 @@ class UserServiceApplicationTests {
             .thenAnswer { Mono.just(it.arguments[0]) }
         `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.just(
-                Ban(1, 1, 100, BanLevel.CHAT, "test", LocalDateTime.MIN, null, null, null, null),
-                Ban(1, 1, 100, BanLevel.GLOBAL, "test", LocalDateTime.MAX, null, null, null, null),
+                Ban(1, 1, 100, BanLevel.CHAT, "test", OffsetDateTime.MIN, null, null, null, null),
+                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, null, null, null, null),
             )
         )
 
@@ -241,7 +243,7 @@ class UserServiceApplicationTests {
         webTestClient
             .mutateWith(csrf())
             .post()
-            .uri("/login?login_challenge=$challenge")
+            .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
@@ -251,7 +253,7 @@ class UserServiceApplicationTests {
             .exchange()
             .expectStatus().is3xxRedirection
             .expectHeader()
-            .location(hydraRedirectUrl)
+            .location(String.format("/oauth2/banned?expiration=%s&reason=test", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(OffsetDateTime.MAX)))
             .expectBody(String::class.java)
 
         verify(userRepository).findByUsernameOrEmail(username, username)
@@ -270,19 +272,8 @@ class UserServiceApplicationTests {
         `when`(loginLogRepository.save(anyOrNull())).thenAnswer { Mono.just(it.arguments[0]) }
         `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.just(
-                Ban(1, 1, 100, BanLevel.CHAT, "test", LocalDateTime.MIN, null, null, null, null),
-                Ban(
-                    1,
-                    1,
-                    100,
-                    BanLevel.GLOBAL,
-                    "test",
-                    LocalDateTime.MAX,
-                    LocalDateTime.now().minusDays(1),
-                    null,
-                    null,
-                    null
-                ),
+                Ban(1, 1, 100, BanLevel.CHAT, "test", OffsetDateTime.MIN, null, null, null, null),
+                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, OffsetDateTime.now().minusDays(1), null, null, null),
             )
         )
 
@@ -292,7 +283,7 @@ class UserServiceApplicationTests {
         webTestClient
             .mutateWith(csrf())
             .post()
-            .uri("/login?login_challenge=$challenge")
+            .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("login_challenge", challenge)
@@ -320,7 +311,7 @@ class UserServiceApplicationTests {
 
         webTestClient
             .get()
-            .uri("/consent?consent_challenge=$challenge")
+            .uri("/oauth2/consent?consent_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .exchange()
             .expectStatus().isOk
@@ -339,7 +330,7 @@ class UserServiceApplicationTests {
         webTestClient
             .mutateWith(csrf())
             .post()
-            .uri("/consent?consent_challenge=$challenge")
+            .uri("/oauth2/consent?consent_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("consent_challenge", challenge)
@@ -363,7 +354,7 @@ class UserServiceApplicationTests {
         webTestClient
             .mutateWith(csrf())
             .post()
-            .uri("/consent?consent_challenge=$challenge")
+            .uri("/oauth2/consent?consent_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
                 BodyInserters.fromFormData("consent_challenge", challenge)
@@ -384,13 +375,13 @@ class UserServiceApplicationTests {
         webTestClient
             .mutateWith(
                 mockJwt().authorities(
-                    FafScope(OAuthScope._ADMINISTRATIVE_ACTION),
+                    FafScope(OAuthScope.ADMINISTRATIVE_ACTION),
                     FafRole(OAuthRole.ADMIN_ACCOUNT_BAN),
                 )
             )
             .mutateWith(csrf())
             .post()
-            .uri("/revokeTokens")
+            .uri("/oauth2/revokeTokens")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .bodyValue(revokeRequest)
             .exchange()
@@ -410,7 +401,7 @@ class UserServiceApplicationTests {
             )
             .mutateWith(csrf())
             .post()
-            .uri("/revokeTokens")
+            .uri("/oauth2/revokeTokens")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .bodyValue(revokeRequest)
             .exchange()
@@ -425,12 +416,12 @@ class UserServiceApplicationTests {
         webTestClient
             .mutateWith(
                 mockJwt().authorities(
-                    FafScope(OAuthScope._ADMINISTRATIVE_ACTION),
+                    FafScope(OAuthScope.ADMINISTRATIVE_ACTION),
                 )
             )
             .mutateWith(csrf())
             .post()
-            .uri("/revokeTokens")
+            .uri("/oauth2/revokeTokens")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .bodyValue(revokeRequest)
             .exchange()
