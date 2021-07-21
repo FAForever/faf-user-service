@@ -14,7 +14,7 @@ enum class BanLevel {
 }
 
 @Table("ban")
-data class BanInfo(
+data class Ban(
     @Id
     val id: Long,
     val playerId: Long,
@@ -33,6 +33,6 @@ data class BanInfo(
 }
 
 @Repository
-interface BanRepository : ReactiveCrudRepository<BanInfo, Long> {
-    fun findAllByPlayerIdAndLevel(playerId: Long, level: BanLevel): Flux<BanInfo>
+interface BanRepository : ReactiveCrudRepository<Ban, Long> {
+    fun findAllByPlayerIdAndLevel(playerId: Long, level: BanLevel): Flux<Ban>
 }

@@ -151,6 +151,6 @@ class OAuthController(
             "Revoking consent sessions for subject `{}` on client `{}`", revokeRefreshTokensRequest.subject,
             if (revokeRefreshTokensRequest.all == true || revokeRefreshTokensRequest.client == null) "all" else revokeRefreshTokensRequest.client
         )
-        return hydraService.revokeAllSessions(revokeRefreshTokensRequest).flatMap { redirect(response, it.redirectTo) }
+        return hydraService.revokeRefreshTokens(revokeRefreshTokensRequest).flatMap { redirect(response, it.redirectTo) }
     }
 }

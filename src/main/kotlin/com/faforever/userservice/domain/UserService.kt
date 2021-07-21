@@ -30,7 +30,7 @@ sealed class LoginResult {
     object LoginThrottlingActive : LoginResult()
     object UserOrCredentialsMismatch : LoginResult()
     data class SuccessfulLogin(val redirectTo: String) : LoginResult()
-    data class UserBanned(val redirectTo: String, val banInfo: BanInfo) : LoginResult()
+    data class UserBanned(val redirectTo: String, val ban: Ban) : LoginResult()
 }
 
 @Component
@@ -142,7 +142,7 @@ class UserService(
             }
         }
 
-    private fun findActiveGlobalBan(user: User): Mono<BanInfo> =
+    private fun findActiveGlobalBan(user: User): Mono<Ban> =
         banRepository.findAllByPlayerIdAndLevel(user.id, BanLevel.GLOBAL)
             .filter { it.isActive }
             .next()

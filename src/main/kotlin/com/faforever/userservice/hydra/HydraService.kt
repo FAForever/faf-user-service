@@ -156,7 +156,7 @@ class HydraService(
             .retrieve()
             .bodyToMono(RedirectResponse::class.java)
 
-    fun revokeAllSessions(revokeRefreshTokensRequest: RevokeRefreshTokensRequest): Mono<RedirectResponse> {
+    fun revokeRefreshTokens(revokeRefreshTokensRequest: RevokeRefreshTokensRequest): Mono<RedirectResponse> {
         return webClient
             .delete()
             .uri {

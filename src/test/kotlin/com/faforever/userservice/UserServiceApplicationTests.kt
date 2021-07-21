@@ -1,6 +1,6 @@
 package com.faforever.userservice
 
-import com.faforever.userservice.domain.BanInfo
+import com.faforever.userservice.domain.Ban
 import com.faforever.userservice.domain.BanLevel
 import com.faforever.userservice.domain.BanRepository
 import com.faforever.userservice.domain.FailedAttemptsSummary
@@ -230,8 +230,8 @@ class UserServiceApplicationTests {
             .thenAnswer { Mono.just(it.arguments[0]) }
         `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.just(
-                BanInfo(1, 1, 100, BanLevel.CHAT, "test", LocalDateTime.MIN, null, null, null, null),
-                BanInfo(1, 1, 100, BanLevel.GLOBAL, "test", LocalDateTime.MAX, null, null, null, null),
+                Ban(1, 1, 100, BanLevel.CHAT, "test", LocalDateTime.MIN, null, null, null, null),
+                Ban(1, 1, 100, BanLevel.GLOBAL, "test", LocalDateTime.MAX, null, null, null, null),
             )
         )
 
@@ -270,8 +270,8 @@ class UserServiceApplicationTests {
         `when`(loginLogRepository.save(anyOrNull())).thenAnswer { Mono.just(it.arguments[0]) }
         `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.just(
-                BanInfo(1, 1, 100, BanLevel.CHAT, "test", LocalDateTime.MIN, null, null, null, null),
-                BanInfo(
+                Ban(1, 1, 100, BanLevel.CHAT, "test", LocalDateTime.MIN, null, null, null, null),
+                Ban(
                     1,
                     1,
                     100,
