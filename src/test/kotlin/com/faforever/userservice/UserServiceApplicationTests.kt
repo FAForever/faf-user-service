@@ -64,7 +64,7 @@ class UserServiceApplicationTests {
         private const val hydraRedirectUrl = "someHydraRedirectUrl"
         private val revokeRequest = RevokeRefreshTokensRequest("1", null, true)
 
-        private val user = User(1, username, password, email, null, null)
+        private val user = User(1, username, password, email, null, 0)
         private val mockServer = ClientAndServer(mockServerPort)
 
         @JvmStatic
@@ -264,6 +264,84 @@ class UserServiceApplicationTests {
     }
 
     @Test
+    fun postLoginWithNonLinkedUserWithLobbyScope() {
+        val unlinkedUser = User(1, username, password, email, null, null)
+        `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
+        `when`(passwordEncoder.matches(password, password)).thenReturn(true)
+        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+            .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
+        `when`(loginLogRepository.save(anyOrNull()))
+            .thenAnswer { Mono.just(it.arguments[0]) }
+        `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
+            Flux.empty()
+        )
+
+        mockLoginRequest(scopes = listOf(OAuthScope.LOBBY))
+        mockLoginReject()
+
+        webTestClient
+            .mutateWith(csrf())
+            .post()
+            .uri("/oauth2/login?login_challenge=$challenge")
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .body(
+                BodyInserters.fromFormData("login_challenge", challenge)
+                    .with("usernameOrEmail", username)
+                    .with("password", password)
+            )
+            .exchange()
+            .expectStatus().is3xxRedirection
+            .expectHeader()
+            .location("/oauth2/gameVerificationFailed")
+            .expectBody(String::class.java)
+
+        verify(userRepository).findByUsernameOrEmail(username, username)
+        verify(passwordEncoder).matches(password, password)
+        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).save(anyOrNull())
+        verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
+    }
+
+    @Test
+    fun postLoginWithNonLinkedUserWithoutLobbyScope() {
+        val unlinkedUser = User(1, username, password, email, null, null)
+        `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
+        `when`(passwordEncoder.matches(password, password)).thenReturn(true)
+        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+            .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
+        `when`(loginLogRepository.save(anyOrNull()))
+            .thenAnswer { Mono.just(it.arguments[0]) }
+        `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
+            Flux.empty()
+        )
+
+        mockLoginRequest()
+        mockLoginAccept()
+
+        webTestClient
+            .mutateWith(csrf())
+            .post()
+            .uri("/oauth2/login?login_challenge=$challenge")
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .body(
+                BodyInserters.fromFormData("login_challenge", challenge)
+                    .with("usernameOrEmail", username)
+                    .with("password", password)
+            )
+            .exchange()
+            .expectStatus().is3xxRedirection
+            .expectHeader()
+            .location(hydraRedirectUrl)
+            .expectBody(String::class.java)
+
+        verify(userRepository).findByUsernameOrEmail(username, username)
+        verify(passwordEncoder).matches(password, password)
+        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).save(anyOrNull())
+        verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
+    }
+
+    @Test
     fun postLoginWithUnbannedUser() {
         `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(user))
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
@@ -429,7 +507,7 @@ class UserServiceApplicationTests {
             .expectBody(String::class.java)
     }
 
-    private fun mockLoginRequest() {
+    private fun mockLoginRequest(scopes: List<String> = listOf()) {
         mockServer.`when`(
             HttpRequest.request()
                 .withMethod("GET")
@@ -446,7 +524,7 @@ class UserServiceApplicationTests {
                         "client": {},
                         "request_url": "someRequestUrl",
                         "requested_access_token_audience": [],
-                        "requested_scope": [],
+                        "requested_scope": [${scopes.joinToString("\",\"", "\"", "\"")}],
                         "skip": false,
                         "subject": "1"
                     }

@@ -1,6 +1,7 @@
 package com.faforever.userservice.domain
 
 import com.faforever.userservice.hydra.HydraService
+import com.faforever.userservice.security.OAuthScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -35,6 +36,7 @@ sealed class LoginResult {
     object UserOrCredentialsMismatch : LoginResult()
     data class SuccessfulLogin(val redirectTo: String) : LoginResult()
     data class UserBanned(val redirectTo: String) : LoginResult()
+    data class UserNoGameOwnership(val redirectTo: String) : LoginResult()
 }
 
 @Component
@@ -49,6 +51,7 @@ class UserService(
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(UserService::class.java)
         private const val HYDRA_ERROR_USER_BANNED = "user_banned"
+        private const val HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION = "ownership_not_verified"
 
         /**
          * The user role is used to distinguish users from technical accounts.
@@ -125,12 +128,32 @@ class UserService(
                             .map {
                                 LoginResult.UserBanned(
                                     UriComponentsBuilder.fromUriString("/oauth2/banned")
-                                        .queryParam("expiration", if (ban.expiresAt != null) ISO_OFFSET_DATE_TIME.format(ban.expiresAt) else null)
+                                        .queryParam(
+                                            "expiration",
+                                            if (ban.expiresAt != null) ISO_OFFSET_DATE_TIME.format(ban.expiresAt) else null
+                                        )
                                         .queryParam("reason", UriUtils.encode(ban.reason, StandardCharsets.UTF_8))
                                         .build()
                                         .toUriString()
                                 )
                             }
+                    }
+                    .switchIfEmpty {
+                        if (user.steamId == null && loginRequest.requestedScope.contains(OAuthScope.LOBBY)) {
+                            hydraService.rejectLoginRequest(
+                                challenge,
+                                GenericError(HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION)
+                            )
+                                .map {
+                                    LoginResult.UserNoGameOwnership(
+                                        UriComponentsBuilder.fromUriString("/oauth2/gameVerificationFailed")
+                                            .build()
+                                            .toUriString()
+                                    )
+                                }
+                        } else {
+                            Mono.empty()
+                        }
                     }
                     .switchIfEmpty {
                         LOG.debug("User '$usernameOrEmail' logged in successfully")

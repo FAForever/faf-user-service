@@ -13,4 +13,6 @@ data class FafProperties(
     val passwordResetUrl: String,
     @NotBlank
     val registerAccountUrl: String,
+    @NotBlank
+    val accountLinkUrl: String,
 )

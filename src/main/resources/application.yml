@@ -1,6 +1,7 @@
 faf:
   passwordResetUrl:  ${PASSWORD_RESET_URL:https://faforever.com/account/password/reset}
   registerAccountUrl: ${REGISTER_ACCOUNT_URL:https://faforever.com/account/register}
+  accountLinkUrl: ${ACCOUNT_LINK_URL:https://www.faforever.com/account/link}
 
 security:
   failedLoginAccountThreshold: ${FAILED_LOGIN_ACCOUNT_THRESHOLD:5}

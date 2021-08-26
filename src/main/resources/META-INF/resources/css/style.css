@@ -38,6 +38,10 @@ input {
   margin: 1rem 0;
 }
 
+.error-info {
+  font-weight: normal;
+}
+
 header {
   background-color: #111111;
   color: white;
