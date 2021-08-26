@@ -12,7 +12,7 @@ plugins {
     kotlin("plugin.spring") version kotlinVersion
     id("org.springframework.boot") version "2.5.4"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
-    id("com.google.cloud.tools.jib") version "2.8.0"
+    id("com.google.cloud.tools.jib") version "3.1.4"
 
     // /****** Additional tooling *****/
     // // OpenAPI code generation
