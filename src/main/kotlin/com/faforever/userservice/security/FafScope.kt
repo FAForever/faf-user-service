@@ -18,6 +18,7 @@ object OAuthScope {
     const val WRITE_ACCOUNT_DATA = "write_account_data"
     const val EDIT_CLAN_DATA = "edit_clan_data"
     const val VOTE = "vote"
+    const val LOBBY = "lobby"
     const val READ_SENSIBLE_USERDATA = "read_sensible_userdata"
     const val ADMINISTRATIVE_ACTION = "administrative_actions"
     const val MANAGE_VAULT = "manage_vault"

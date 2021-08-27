@@ -4,6 +4,7 @@ import com.faforever.userservice.config.FafProperties
 import com.faforever.userservice.domain.LoginResult.LoginThrottlingActive
 import com.faforever.userservice.domain.LoginResult.SuccessfulLogin
 import com.faforever.userservice.domain.LoginResult.UserBanned
+import com.faforever.userservice.domain.LoginResult.UserNoGameOwnership
 import com.faforever.userservice.domain.LoginResult.UserOrCredentialsMismatch
 import com.faforever.userservice.domain.UserService
 import com.faforever.userservice.hydra.HydraService
@@ -86,6 +87,7 @@ class OAuthController(
                     when (it) {
                         is SuccessfulLogin -> redirect(response, it.redirectTo)
                         is UserBanned -> redirect(response, it.redirectTo)
+                        is UserNoGameOwnership -> redirect(response, it.redirectTo)
                         is LoginThrottlingActive -> redirect(
                             response,
                             UriComponentsBuilder.fromUri(request.uri)
@@ -169,5 +171,14 @@ class OAuthController(
         model.addAttribute("banReason", reason)
         model.addAttribute("banExpiration", expiration)
         return Mono.just(Rendering.view("banned").build())
+    }
+
+    @GetMapping("/gameVerificationFailed")
+    fun showSteamLink(
+        request: ServerHttpRequest,
+        model: Model,
+    ): Mono<Rendering> {
+        model.addAttribute("accountLink", fafProperties.accountLinkUrl)
+        return Mono.just(Rendering.view("gameVerificationFailed").build())
     }
 }
