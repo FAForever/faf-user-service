@@ -1,6 +1,5 @@
 <html layout:decorate="~{layout/oauth2}" th:with="user=${user}" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
-<body>
 <div layout:fragment="card-content">
     <h2 id="client-header" th:text="${client.clientName}">OAuth Client Name</h2>
     <div id="client-details">
@@ -68,5 +67,4 @@
         </ul>
     </footer>
 </div>
-</body>
 </html>
