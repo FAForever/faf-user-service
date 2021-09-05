@@ -1,0 +1,72 @@
+<html layout:decorate="~{layout/oauth2}" th:with="user=${user}" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<body>
+<div layout:fragment="card-content">
+    <h2 id="client-header" th:text="${client.clientName}">OAuth Client Name</h2>
+    <div id="client-details">
+        <div id="client-logo" th:if="${!#strings.isEmpty(client.logoUri)}">
+            <img th:src="${client.logoUri}" th:alt="#{consent.clientLogo}">
+        </div>
+        <div id="client-urls">
+            <div id="client-url"><a target="_blank" th:href="${client.clientUri}" th:text="${client.clientUri}"
+                                    href="#">www.faforever.com</a></div>
+            <ul id="legal" class="pipe-separated">
+                <!-- no closing li to avoid whitespace -->
+                <li th:if="${!#strings.isEmpty(client.tosUri)}"><a th:href="${client.tosUri}" href="#"
+                                                                   th:text="#{consent.termsOfService}"
+                                                                   target="_blank">Terms of Service</a>
+                <li th:if="${!#strings.isEmpty(client.policyUri)}"><a th:href="${client.policyUri}" href="#"
+                                                                      th:text="#{consent.privacyStatement}"
+                                                                      target="_blank">Privacy statement</a>
+            </ul>
+        </div>
+    </div>
+
+    <p id="scope-header" th:text="#{consent.appRequest}">This app would like to:</p>
+    <ul class="oauth-scopes">
+        <li th:each="scope : ${consentRequest.requestedScope}">
+            <div th:text="${#messages.msgOrNull('oauth2.scope.'+scope) == null ?
+                       #messages.msg('oauth2.scope.textMissing', scope) : #messages.msg('oauth2.scope.'+scope)}"></div>
+            <i class="tooltip fas fa-info-circle"><span class="tooltiptext"
+                                                        th:text="${#messages.msg('oauth2.scope.'+scope+'.description')}">Tool tip text</span></i>
+        </li>
+    </ul>
+
+    <div class="flex-container">
+        <form id='denial-form' name='denialForm' th:action="@{/oauth2/consent}" method='post'>
+            <input type="hidden" th:name="consent_challenge" th:value="${challenge}" th:if="${challenge != null }"/>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"
+                   th:if="${_csrf != null }"/>
+            <input name='action' value='deny' type='hidden'/>
+            <input name="deny" th:value="#{consent.deny}" value="Deny" type="submit" class="btn"/>
+        </form>
+        <form id='confirmation-form' name='confirmationForm' th:action="@{/oauth2/consent}" method='post'>
+            <input type="hidden" th:name="consent_challenge" th:value="${challenge}" th:if="${challenge != null }"/>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"
+                   th:if="${_csrf != null }"/>
+            <input name='action' value='permit' type='hidden'/>
+            <input name="authorize" th:value="#{consent.authorize}" value="Authorize" type="submit"
+                   class="btn btn-danger"/>
+        </form>
+    </div>
+
+    <footer layout:fragment="oauth-footer">
+        <ul>
+            <li><a target="_blank" href="https://discord.com/invite/hgvj6Af"><i class="fab fa-discord"
+                                                                                aria-label="FAF Discord"></i></a>
+            </li>
+            <li><a target="_blank" href="https://www.youtube.com/c/ForgedAllianceForever"><i class="fab fa-youtube"
+                                                                                             aria-label="FAF Youtube"></i></a>
+            </li>
+            <li><a target="_blank" href="https://www.facebook.com/ForgedAllianceForever"><i class="fab fa-facebook"
+                                                                                            aria-label="FAF Facebook"></i></a>
+            </li>
+            <li><a target="_blank" href="https://github.com/FAForever/"><i class="fab fa-github"
+                                                                           aria-label="FAF Github"></i></a></li>
+            <li><a target="_blank" href="https://www.patreon.com/faf"><i class="fab fa-patreon"
+                                                                         aria-label="FAF Patreon"></i></a></li>
+        </ul>
+    </footer>
+</div>
+</body>
+</html>

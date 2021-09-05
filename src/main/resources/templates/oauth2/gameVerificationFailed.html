@@ -1,0 +1,23 @@
+<html layout:decorate="~{layout/oauth2}" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<body>
+<div layout:fragment="card-content">
+    <div id="form-header">
+      <div id="form-header-left"><img src="https://faforever.com/images/faf-logo.png" alt="FAForever Logo"></div>
+      <h2 id="form-header-right" th:text="#{steam.title}">Game Ownership Verification Missing</h2>
+    </div>
+
+    <div class="error">
+      <div>
+        <div class="error-info" th:text="#{steam.reason}">In order to play on FAForever, we need to verify that you own a legal copy of Supreme Commander Forged Alliance. You can verify ownership on the website at</div>
+        <a href="https://www.faforever.com/account/link" th:text="${accountLink}"> https://www.faforever.com/account/link </a>
+      </div>
+    </div>
+
+  <footer>
+    <a th:text="#{steam.faq}" href="https://forum.faforever.com/topic/252/why-do-i-need-to-link-my-account-to-steam">
+      For more information on why ownership verification is required click here
+    </a>
+  </footer>
+</div>
+</body>
+</html>
