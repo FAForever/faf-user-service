@@ -1,13 +1,14 @@
 package com.faforever.userservice.controller
 
 import com.faforever.userservice.config.FafProperties
+import com.faforever.userservice.domain.LoginResult.LoginThrottlingActive
+import com.faforever.userservice.domain.LoginResult.SuccessfulLogin
+import com.faforever.userservice.domain.LoginResult.UserBanned
+import com.faforever.userservice.domain.LoginResult.UserNoGameOwnership
+import com.faforever.userservice.domain.LoginResult.UserOrCredentialsMismatch
+import com.faforever.userservice.domain.UserService
 import com.faforever.userservice.hydra.HydraService
 import com.faforever.userservice.hydra.RevokeRefreshTokensRequest
-import com.faforever.userservice.oauth.LoginResult.LoginThrottlingActive
-import com.faforever.userservice.oauth.LoginResult.SuccessfulLogin
-import com.faforever.userservice.oauth.LoginResult.UserBanned
-import com.faforever.userservice.oauth.LoginResult.UserNoGameOwnership
-import com.faforever.userservice.oauth.LoginResult.UserOrCredentialsMismatch
 import com.faforever.userservice.security.OAuthRole
 import com.faforever.userservice.security.OAuthScope
 import org.slf4j.LoggerFactory
