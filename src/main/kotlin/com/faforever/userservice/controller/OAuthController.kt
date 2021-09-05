@@ -174,7 +174,7 @@ class OAuthController(
     }
 
     @GetMapping("/gameVerificationFailed")
-    fun showSteamLink(
+    fun showOwnershipVerification(
         request: ServerHttpRequest,
         model: Model,
     ): Mono<Rendering> {
