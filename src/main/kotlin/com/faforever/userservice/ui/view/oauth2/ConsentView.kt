@@ -1,12 +1,12 @@
-package com.faforever.userservice.ui.view
+package com.faforever.userservice.ui.view.oauth2
 
 import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.hydra.NoChallengeException
 import com.faforever.userservice.ui.component.OAuthClientHeader
 import com.faforever.userservice.ui.component.ScopeWidget
 import com.faforever.userservice.ui.component.SocialIcons
+import com.faforever.userservice.ui.layout.CardLayout
 import com.faforever.userservice.ui.layout.CompactVerticalLayout
-import com.faforever.userservice.ui.layout.OAuthCardLayout
 import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
 import com.vaadin.flow.component.orderedlayout.FlexComponent
@@ -16,7 +16,7 @@ import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
 import sh.ory.hydra.model.ConsentRequest
 
-@Route("/oauth2/consent", layout = OAuthCardLayout::class)
+@Route("/oauth2/consent", layout = CardLayout::class)
 class ConsentView(
     private val oAuthClientHeader: OAuthClientHeader,
     private val scopeWidget: ScopeWidget,

@@ -15,8 +15,8 @@ import java.time.LocalDateTime
 @Entity(name = "login")
 data class User(
     @Id
-    @GeneratedValue
-    val id: Int,
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Int? = null,
     @Column(name = "login")
     val username: String,
     val password: String,
@@ -75,10 +75,14 @@ class UserRepository : PanacheRepositoryBase<User, Int> {
             Permission::class.java,
         ).setParameter("userId", userId)
             .resultList as List<Permission>
+
+    fun existsByUsername(username: String): Boolean = count("username = ?1", username) > 0
+
+    fun existsByEmail(email: String): Boolean = count("email = ?1", email) > 0
 }
 
 @ApplicationScoped
 class AccountLinkRepository : PanacheRepositoryBase<AccountLink, String> {
     fun hasOwnershipLink(userId: Int): Boolean =
-        find("userId = ?1 and ownership", userId).firstResult() != null
+        count("userId = ?1 and ownership", userId) > 0
 }
