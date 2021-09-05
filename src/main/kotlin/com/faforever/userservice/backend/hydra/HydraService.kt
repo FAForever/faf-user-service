@@ -1,9 +1,9 @@
 package com.faforever.userservice.backend.hydra
 
 import com.faforever.userservice.backend.domain.IpAddress
-import com.faforever.userservice.backend.domain.LoginResult
-import com.faforever.userservice.backend.domain.LoginService
 import com.faforever.userservice.backend.domain.UserRepository
+import com.faforever.userservice.backend.login.LoginResult
+import com.faforever.userservice.backend.login.LoginService
 import com.faforever.userservice.backend.security.OAuthScope
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.inject.Produces

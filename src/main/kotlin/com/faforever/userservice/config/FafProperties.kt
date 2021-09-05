@@ -1,6 +1,7 @@
 package com.faforever.userservice.config
 
 import io.smallrye.config.ConfigMapping
+import io.smallrye.config.WithDefault
 import jakarta.validation.constraints.NotBlank
 import java.util.*
 
@@ -15,15 +16,85 @@ interface FafProperties {
     @NotBlank
     fun realIpHeader(): String
 
-    @NotBlank
-    fun hydraBaseUrl(): String
+    fun account(): Account
 
-    @NotBlank
-    fun passwordResetUrl(): String
+    fun jwt(): Jwt
 
-    @NotBlank
-    fun registerAccountUrl(): String
+    fun recaptcha(): Recaptcha
 
-    @NotBlank
-    fun accountLinkUrl(): String
+    interface Jwt {
+        fun secret(): String
+    }
+
+    interface Recaptcha {
+        fun enabled(): Boolean
+
+        @NotBlank
+        fun secret(): String
+
+        @NotBlank
+        fun siteKey(): String
+    }
+
+    interface Account {
+        @NotBlank
+        fun passwordResetUrl(): String
+
+        @NotBlank
+        fun registerAccountUrl(): String
+
+        @NotBlank
+        fun accountLinkUrl(): String
+
+        fun registration(): Registration
+
+        fun passwordReset(): PasswordReset
+
+        fun username(): Username
+
+        interface Registration {
+            @WithDefault("3600")
+            fun linkExpirationSeconds(): Long
+
+            @NotBlank
+            fun activationUrlFormat(): String
+
+            @NotBlank
+            fun subject(): String
+
+            @NotBlank
+            fun htmlFormat(): String
+
+            @NotBlank
+            fun termsOfServiceUrl(): String
+
+            @NotBlank
+            fun privacyStatementUrl(): String
+
+            @NotBlank
+            fun rulesUrl(): String
+        }
+
+        interface PasswordReset {
+            @WithDefault("3600")
+            fun linkExpirationSeconds(): Long
+
+            @NotBlank
+            fun passwordResetUrlFormat(): String
+
+            @NotBlank
+            fun subject(): String
+
+            @NotBlank
+            fun htmlFormat(): String
+        }
+
+        interface Username {
+            @WithDefault("30")
+            fun minimumDaysBetweenUsernameChange(): Int
+
+            @WithDefault("6")
+            fun usernameReservationTimeInMonths(): Long
+        }
+    }
 }

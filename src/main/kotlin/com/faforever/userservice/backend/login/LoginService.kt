@@ -1,5 +1,14 @@
-package com.faforever.userservice.backend.domain
+package com.faforever.userservice.backend.login
 
+import com.faforever.domain.Ban
+import com.faforever.domain.BanRepository
+import com.faforever.userservice.backend.domain.AccountLinkRepository
+import com.faforever.userservice.backend.domain.FailedAttemptsSummary
+import com.faforever.userservice.backend.domain.IpAddress
+import com.faforever.userservice.backend.domain.LoginLog
+import com.faforever.userservice.backend.domain.LoginLogRepository
+import com.faforever.userservice.backend.domain.User
+import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.security.PasswordEncoder
 import io.smallrye.config.ConfigMapping
 import jakarta.enterprise.context.ApplicationScoped
@@ -85,7 +94,7 @@ class LoginServiceImpl(
             return LoginResult.UserBanned(activeGlobalBan.reason, activeGlobalBan.expiresAt)
         }
 
-        if (requiresGameOwnership && !accountLinkRepository.hasOwnershipLink(user.id)) {
+        if (requiresGameOwnership && !accountLinkRepository.hasOwnershipLink(user.id!!)) {
             LOG.debug(
                 "Lobby login blocked for user '{}' because of missing game ownership verification",
                 usernameOrEmail,
@@ -94,7 +103,7 @@ class LoginServiceImpl(
         }
 
         LOG.debug("User '{}' logged in successfully", usernameOrEmail)
-        return LoginResult.SuccessfulLogin(user.id, user.username)
+        return LoginResult.SuccessfulLogin(user.id!!, user.username)
     }
 
     private fun logLogin(user: User, ip: IpAddress) =
@@ -104,7 +113,7 @@ class LoginServiceImpl(
         loginLogRepository.persist(LoginLog(0, null, unknownLogin.take(100), ip.value, false))
 
     private fun findActiveGlobalBan(user: User): Ban? =
-        banRepository.findGlobalBansByPlayerId(user.id)
+        banRepository.findGlobalBansByPlayerId(user.id!!)
             .firstOrNull { it.isActive }
 
     private fun throttlingRequired(ip: IpAddress): Boolean {

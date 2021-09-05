@@ -1,5 +1,11 @@
 package com.faforever.userservice.backend.domain
 
+import com.faforever.domain.Ban
+import com.faforever.domain.BanLevel
+import com.faforever.domain.BanRepository
+import com.faforever.userservice.backend.login.LoginResult
+import com.faforever.userservice.backend.login.LoginServiceImpl
+import com.faforever.userservice.backend.login.SecurityProperties
 import com.faforever.userservice.backend.security.PasswordEncoder
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.mockito.InjectMock
