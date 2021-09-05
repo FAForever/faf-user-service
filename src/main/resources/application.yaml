@@ -1,10 +1,34 @@
 faf:
   environment: ${FAF_ENVIRONMENT}
   real-ip-header: ${REAL_IP_HEADER:X-Real-Ip}
-  password-reset-url: ${PASSWORD_RESET_URL:https://faforever.com/account/password/reset}
-  register-account-url: ${REGISTER_ACCOUNT_URL:https://faforever.com/account/register}
-  account-link-url: ${ACCOUNT_LINK_URL:https://www.faforever.com/account/link}
-  hydra-base-url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
+  account:
+    password-reset-url: ${PASSWORD_RESET_URL:`https://faforever.com/account/password/reset`}
+    register-account-url: ${REGISTER_ACCOUNT_URL:`https://faforever.com/account/register`}
+    account-link-url: ${ACCOUNT_LINK_URL:`https://www.faforever.com/account/link`}
+    registration:
+      activation-url-format: ${ACTIVATION_URL_FORMAT:http://localhost:8080/register/activate?token=%s}
+      subject: ${REGISTRATION_EMAIL_SUBJECT:FAF user registration}
+      html-format: ${REGISTRATION_EMAIL_BODY:"Registration email body for user %s with activation link %s"}
+      terms-of-service-url: ${FAF_TERMS_OF_SERVICE:https://faforever.com/tos}
+      privacy-statement-url: ${FAF_PRIVACY_STATEMENT:https://faforever.com/privacy}
+      rules-url: ${FAF_RULES:https://faforever.com/rules}
+    password-reset:
+      password-reset-url-format: ${PASSWORD_RESET_URL_FORMAT:http://localhost:8080/account/password/confirmReset?token=%s}
+      subject: ${PASSWORD_RESET_EMAIL_SUBJECT:FAF password reset}
+      html-format: ${PASSWORD_RESET_EMAIL_BODY:Registration email body}
+    username:
+      minimum-days-between-username-change: ${MIN_DAYS_BETWEEN_NAME_CHANGE:30}
+      username-reservation-time-in-months: ${NAME_RESERVATION_MONTHS:6}
+  recaptcha:
+    enabled: ${RECAPTCHA_ENABLED:true}
+    secret: ${RECAPTCHA_SECRET:6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe}
+    site-key: ${RECAPTCHA_SITE_KEY:6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI}
+  jwt:
+    secret: ${JWT_SECRET:banana}
+
+mailjet:
+  api-key: ${MAILJET_API_KEY}
+  api-secret: ${MAILJET_API_SECRET}
 
 security:
   failed-login-account-threshold: ${FAILED_LOGIN_ACCOUNT_THRESHOLD:5}
@@ -13,12 +37,25 @@ security:
   failed-login-days-to-check: ${FAILED_LOGIN_DAYS_TO_CHECK:1}
 
 quarkus:
-  http.cors: true
+  http:
+    cors: true
   log:
     level: INFO
   rest-client:
     faf-ory-hydra:
       url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
+    recaptch:
+      url: https://www.google.com/recaptcha/api
+  mailer:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:0}
+    username: ${MAIL_USERNAME:mailer}
+    password: ${MAIL_PASSWORD:banana}
+    start-tls: OPTIONAL
+    ssl: true
+    login: REQUIRED
+    from: ${EMAIL_FROM_ADDRESS:admin@faforever.com}
+    mock: ${MOCK_EMAIL:true}
   devservices:
     enabled: false
   datasource:
@@ -29,12 +66,18 @@ quarkus:
       url: ${DB_URL:jdbc:mariadb://localhost:3306/faf?ssl=false}
   application:
     name: faf-user-service
+  management:
+    enabled: true
 
 "%dev":
   quarkus:
+    live-reload:
+      instrumentation: true
     http:
       cors:
         origins: "/.*/"
+    mailer:
+      mock: true
     log:
       category:
         "com.faforever":
