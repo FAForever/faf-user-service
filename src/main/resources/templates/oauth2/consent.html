@@ -1,4 +1,4 @@
-<html layout:decorate="~{layout/card}" th:with="user=${user},headerText=#{login.title},title=#{login.title}" xmlns:th="http://www.thymeleaf.org"
+<html layout:decorate="~{layout/card}" th:with="user=${user},headerText=#{login.title},title=#{login}" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <div layout:fragment="card-content">
     <h2 id="client-header" th:text="${client.clientName}">OAuth Client Name</h2>
