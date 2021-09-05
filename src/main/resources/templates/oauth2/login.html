@@ -1,4 +1,4 @@
-<html layout:decorate="~{layout/oauth2}" xmlns:th="http://www.thymeleaf.org"
+<html layout:decorate="~{layout/card}" th:with="headerText=#{login.title},title=#{login.title}" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <div layout:fragment="card-content">
     <form name="login-form" th:action="@{/oauth2/login}" method="post">

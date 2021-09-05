@@ -1,11 +1,11 @@
 <html layout:decorate="~{layout/default}" th:with="currentUser=${user}" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
-    <title th:text="#{login}">Login</title>
+    <title th:text="${title}">Login</title>
 </head>
 <body>
 <div class="background"></div>
 <header>
-    <h1 th:text="#{login.title}" layout:fragment="header-title">FAForever Login</h1>
+    <h1 th:text="${headerText}" layout:fragment="header-title">FAForever</h1>
 </header>
 <div layout:fragment="content">
     <div class="main-card">
