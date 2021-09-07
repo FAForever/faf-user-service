@@ -1,10 +1,7 @@
 <html layout:decorate="~{layout/card}" th:with="headerText=#{login.title},title=#{login}" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <div layout:fragment="card-content">
-    <div id="form-header">
-        <div id="form-header-left"><img src="https://faforever.com/images/faf-logo.png" alt="FAForever Logo"></div>
-        <h2 id="form-header-right" th:text="#{ban.title}">You are Banned from FAForever</h2>
-    </div>
+    <div id="form-header" th:replace="~{fragments/logoHeader :: logoHeader ( #{ban.title} )}"></div>
 
     <div class="error">
         <div>

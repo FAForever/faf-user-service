@@ -2,10 +2,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <div layout:fragment="card-content">
     <form name="login-form" th:action="@{/oauth2/login}" method="post">
-        <div id="form-header">
-            <div id="form-header-left"><img src="https://faforever.com/images/faf-logo.png" alt="FAForever Logo"></div>
-            <h2 id="form-header-right" th:text="#{login.welcomeBack}">Welcome back, commander!</h2>
-        </div>
+        <div id="form-header" th:replace="~{fragments/logoHeader :: logoHeader ( #{login.welcomeBack} )}"></div>
 
         <div class="error" th:if="${loginFailed}">
             <i class="fas fa-exclamation-triangle"></i>
