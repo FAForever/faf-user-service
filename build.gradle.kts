@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val dockerTag: String? by project
 
 plugins {
-    val kotlinVersion = "1.5.21"
+    val kotlinVersion = "1.5.30"
 
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
