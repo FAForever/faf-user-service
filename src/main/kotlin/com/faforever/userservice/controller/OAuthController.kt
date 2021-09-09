@@ -55,7 +55,7 @@ class OAuthController(
         model.addAttribute("challenge", challenge)
         model.addAttribute("passwordResetUrl", fafProperties.passwordResetUrl)
         model.addAttribute("registerAccountUrl", fafProperties.registerAccountUrl)
-        return Mono.just(Rendering.view("login").build())
+        return Mono.just(Rendering.view("oauth2/login").build())
     }
 
     private fun redirect(response: ServerHttpResponse, uriString: String) = response.apply {
@@ -129,7 +129,7 @@ class OAuthController(
                 model.addAttribute("consentRequest", consentRequest)
                 model.addAttribute("client", consentRequest.client)
                 model.addAttribute("user", user)
-                Rendering.view("consent").build()
+                Rendering.view("oauth2/consent").build()
             }
 
     @PostMapping("/consent")
@@ -170,15 +170,15 @@ class OAuthController(
         model.addAttribute("permanentBan", expiration == null)
         model.addAttribute("banReason", reason)
         model.addAttribute("banExpiration", expiration)
-        return Mono.just(Rendering.view("banned").build())
+        return Mono.just(Rendering.view("oauth2/banned").build())
     }
 
     @GetMapping("/gameVerificationFailed")
-    fun showSteamLink(
+    fun showOwnershipVerification(
         request: ServerHttpRequest,
         model: Model,
     ): Mono<Rendering> {
         model.addAttribute("accountLink", fafProperties.accountLinkUrl)
-        return Mono.just(Rendering.view("gameVerificationFailed").build())
+        return Mono.just(Rendering.view("oauth2/gameVerificationFailed").build())
     }
 }

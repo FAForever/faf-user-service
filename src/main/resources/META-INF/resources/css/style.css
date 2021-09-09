@@ -73,7 +73,6 @@ header {
 
 #rightheader {
   flex-basis: 50%;
-  align-self: center;
   text-align: right;
 }
 

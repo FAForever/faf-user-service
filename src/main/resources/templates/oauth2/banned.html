@@ -1,0 +1,21 @@
+<html layout:decorate="~{layout/card}" th:with="headerText=#{login.title},title=#{login}" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<div layout:fragment="card-content">
+    <div id="form-header" th:replace="~{fragments/logoHeader :: logoHeader ( #{ban.title} )}"></div>
+
+    <div class="error">
+        <div>
+            <span th:text="#{ban.expiration}">Ban expiration time:</span>
+            <span th:unless="${permanentBan}" th:text="${#temporals.format(banExpiration, 'dd-MM-yyyy HH:mm O')}">01-01-1970 00:00 UTC</span>
+            <span th:if="${permanentBan}" th:text="#{ban.permanent}">Never</span>
+        </div>
+        <div>
+            <span th:text="#{ban.reason}">Reason:</span>
+            <span th:text="${banReason}">Bad Behavior</span>
+        </div>
+    </div>
+
+    <footer th:text="#{ban.appeal}">You may appeal your ban by emailing moderation@faforever.com</footer>
+
+</div>
+</html>
