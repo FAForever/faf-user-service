@@ -1,4 +1,5 @@
-<html layout:decorate="~{layout/card}" th:with="user=${user},headerText=#{login.title},title=#{login}" xmlns:th="http://www.thymeleaf.org"
+<html layout:decorate="~{layout/card}" th:with="user=${user},headerText=#{login.title},title=#{login}"
+      xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <div layout:fragment="card-content">
     <h2 id="client-header" th:text="${client.clientName}">OAuth Client Name</h2>
@@ -26,7 +27,8 @@
         <li th:each="scope : ${consentRequest.requestedScope}">
             <div th:text="${#messages.msgOrNull('oauth2.scope.'+scope) == null ?
                        #messages.msg('oauth2.scope.textMissing', scope) : #messages.msg('oauth2.scope.'+scope)}"></div>
-            <i class="tooltip fas fa-info-circle"><span class="tooltiptext"
+            <i th:if="${#messages.msgOrNull('oauth2.scope.'+scope+'.description') != null}"
+               class="tooltip fas fa-info-circle"><span class="tooltiptext"
                                                         th:text="${#messages.msg('oauth2.scope.'+scope+'.description')}">Tool tip text</span></i>
         </li>
     </ul>
