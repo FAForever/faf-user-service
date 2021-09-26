@@ -64,7 +64,7 @@ class UserServiceApplicationTests {
         private const val hydraRedirectUrl = "someHydraRedirectUrl"
         private val revokeRequest = RevokeRefreshTokensRequest("1", null, true)
 
-        private val user = User(1, username, password, email, null, 0)
+        private val user = User(1, username, password, email, null, 0, null)
         private val mockServer = ClientAndServer(mockServerPort)
 
         @JvmStatic
@@ -265,7 +265,7 @@ class UserServiceApplicationTests {
 
     @Test
     fun postLoginWithNonLinkedUserWithLobbyScope() {
-        val unlinkedUser = User(1, username, password, email, null, null)
+        val unlinkedUser = User(1, username, password, email, null, null, null)
         `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
         `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
@@ -303,8 +303,86 @@ class UserServiceApplicationTests {
     }
 
     @Test
+    fun postLoginWithGogLinkedUserWithLobbyScope() {
+        val unlinkedUser = User(1, username, password, email, null, null, "someGogId")
+        `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
+        `when`(passwordEncoder.matches(password, password)).thenReturn(true)
+        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+            .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
+        `when`(loginLogRepository.save(anyOrNull()))
+            .thenAnswer { Mono.just(it.arguments[0]) }
+        `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
+            Flux.empty()
+        )
+
+        mockLoginRequest(scopes = listOf(OAuthScope.LOBBY))
+        mockLoginAccept()
+
+        webTestClient
+            .mutateWith(csrf())
+            .post()
+            .uri("/oauth2/login?login_challenge=$challenge")
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .body(
+                BodyInserters.fromFormData("login_challenge", challenge)
+                    .with("usernameOrEmail", username)
+                    .with("password", password)
+            )
+            .exchange()
+            .expectStatus().is3xxRedirection
+            .expectHeader()
+            .location(hydraRedirectUrl)
+            .expectBody(String::class.java)
+
+        verify(userRepository).findByUsernameOrEmail(username, username)
+        verify(passwordEncoder).matches(password, password)
+        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).save(anyOrNull())
+        verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
+    }
+
+    @Test
+    fun postLoginWithSteamLinkedUserWithLobbyScope() {
+        val unlinkedUser = User(1, username, password, email, null, 123456L, null)
+        `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
+        `when`(passwordEncoder.matches(password, password)).thenReturn(true)
+        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+            .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
+        `when`(loginLogRepository.save(anyOrNull()))
+            .thenAnswer { Mono.just(it.arguments[0]) }
+        `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
+            Flux.empty()
+        )
+
+        mockLoginRequest(scopes = listOf(OAuthScope.LOBBY))
+        mockLoginAccept()
+
+        webTestClient
+            .mutateWith(csrf())
+            .post()
+            .uri("/oauth2/login?login_challenge=$challenge")
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .body(
+                BodyInserters.fromFormData("login_challenge", challenge)
+                    .with("usernameOrEmail", username)
+                    .with("password", password)
+            )
+            .exchange()
+            .expectStatus().is3xxRedirection
+            .expectHeader()
+            .location(hydraRedirectUrl)
+            .expectBody(String::class.java)
+
+        verify(userRepository).findByUsernameOrEmail(username, username)
+        verify(passwordEncoder).matches(password, password)
+        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).save(anyOrNull())
+        verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
+    }
+
+    @Test
     fun postLoginWithNonLinkedUserWithoutLobbyScope() {
-        val unlinkedUser = User(1, username, password, email, null, null)
+        val unlinkedUser = User(1, username, password, email, null, null, null)
         `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
         `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))

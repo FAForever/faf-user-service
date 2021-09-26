@@ -139,7 +139,7 @@ class UserService(
                             }
                     }
                     .switchIfEmpty {
-                        if (user.steamId == null && loginRequest.requestedScope.contains(OAuthScope.LOBBY)) {
+                        if (loginRequest.requestedScope.contains(OAuthScope.LOBBY) && !user.hasGameOwnershipVerified) {
                             LOG.debug("Lobby login blocked for user '$usernameOrEmail' because of missing game ownership verification")
                             hydraService.rejectLoginRequest(
                                 challenge,
