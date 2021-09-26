@@ -23,11 +23,14 @@ data class User(
     val ip: String?,
     @Column("steamid")
     val steamId: Long?,
+    val gogId: String?,
 ) {
 
     override fun toString(): String =
         // Do NOT expose personal information here!!
         "User(id=$id, username='$username')"
+
+    val hasGameOwnershipVerified = steamId != null || gogId != null
 }
 
 @Table("group_permission")
