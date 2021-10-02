@@ -127,7 +127,7 @@ class UserServiceApplicationTests {
     fun postLoginWithUnknownUser() {
         `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.empty())
         `when`(loginLogRepository.save(anyOrNull())).thenAnswer { Mono.just(it.arguments[0]) }
-        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+        `when`(loginLogRepository.findFailedAttemptsByIpAfterDate(anyString(), any()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
 
         mockLoginRequest()
@@ -150,12 +150,12 @@ class UserServiceApplicationTests {
 
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(loginLogRepository).save(anyOrNull())
-        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
     }
 
     @Test
     fun postLoginWithThrottling() {
-        `when`(loginLogRepository.findFailedAttemptsByIp(any()))
+        `when`(loginLogRepository.findFailedAttemptsByIpAfterDate(any(), any()))
             .thenReturn(
                 Mono.just(
                     FailedAttemptsSummary(
@@ -186,14 +186,14 @@ class UserServiceApplicationTests {
             .location("/oauth2/login?login_challenge=someChallenge&login_challenge=someChallenge&login_throttled")
             .expectBody(String::class.java)
 
-        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
     }
 
     @Test
     fun postLoginWithInvalidPassword() {
         `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(user))
         `when`(passwordEncoder.matches(password, password)).thenReturn(false)
-        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+        `when`(loginLogRepository.findFailedAttemptsByIpAfterDate(anyString(), any()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
         `when`(loginLogRepository.save(anyOrNull()))
             .thenAnswer { Mono.just(it.arguments[0]) }
@@ -218,7 +218,7 @@ class UserServiceApplicationTests {
 
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
-        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
         verify(loginLogRepository).save(anyOrNull())
     }
 
@@ -226,7 +226,7 @@ class UserServiceApplicationTests {
     fun postLoginWithBannedUser() {
         `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(user))
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
-        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+        `when`(loginLogRepository.findFailedAttemptsByIpAfterDate(anyString(), any()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
         `when`(loginLogRepository.save(anyOrNull()))
             .thenAnswer { Mono.just(it.arguments[0]) }
@@ -258,7 +258,7 @@ class UserServiceApplicationTests {
 
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
-        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
         verify(loginLogRepository).save(anyOrNull())
         verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
     }
@@ -268,7 +268,7 @@ class UserServiceApplicationTests {
         val unlinkedUser = User(1, username, password, email, null, null, null)
         `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
-        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+        `when`(loginLogRepository.findFailedAttemptsByIpAfterDate(anyString(), any()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
         `when`(loginLogRepository.save(anyOrNull()))
             .thenAnswer { Mono.just(it.arguments[0]) }
@@ -297,7 +297,7 @@ class UserServiceApplicationTests {
 
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
-        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
         verify(loginLogRepository).save(anyOrNull())
         verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
     }
@@ -307,7 +307,7 @@ class UserServiceApplicationTests {
         val unlinkedUser = User(1, username, password, email, null, null, "someGogId")
         `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
-        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+        `when`(loginLogRepository.findFailedAttemptsByIpAfterDate(anyString(), any()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
         `when`(loginLogRepository.save(anyOrNull()))
             .thenAnswer { Mono.just(it.arguments[0]) }
@@ -336,7 +336,7 @@ class UserServiceApplicationTests {
 
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
-        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
         verify(loginLogRepository).save(anyOrNull())
         verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
     }
@@ -346,7 +346,7 @@ class UserServiceApplicationTests {
         val unlinkedUser = User(1, username, password, email, null, 123456L, null)
         `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
-        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+        `when`(loginLogRepository.findFailedAttemptsByIpAfterDate(anyString(), any()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
         `when`(loginLogRepository.save(anyOrNull()))
             .thenAnswer { Mono.just(it.arguments[0]) }
@@ -375,7 +375,7 @@ class UserServiceApplicationTests {
 
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
-        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
         verify(loginLogRepository).save(anyOrNull())
         verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
     }
@@ -385,7 +385,7 @@ class UserServiceApplicationTests {
         val unlinkedUser = User(1, username, password, email, null, null, null)
         `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
-        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+        `when`(loginLogRepository.findFailedAttemptsByIpAfterDate(anyString(), any()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
         `when`(loginLogRepository.save(anyOrNull()))
             .thenAnswer { Mono.just(it.arguments[0]) }
@@ -414,7 +414,7 @@ class UserServiceApplicationTests {
 
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
-        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
         verify(loginLogRepository).save(anyOrNull())
         verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
     }
@@ -423,7 +423,7 @@ class UserServiceApplicationTests {
     fun postLoginWithUnbannedUser() {
         `when`(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(user))
         `when`(passwordEncoder.matches(password, password)).thenReturn(true)
-        `when`(loginLogRepository.findFailedAttemptsByIp(anyString()))
+        `when`(loginLogRepository.findFailedAttemptsByIpAfterDate(anyString(), any()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
         `when`(loginLogRepository.save(anyOrNull())).thenAnswer { Mono.just(it.arguments[0]) }
         `when`(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
@@ -454,7 +454,7 @@ class UserServiceApplicationTests {
 
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
-        verify(loginLogRepository).findFailedAttemptsByIp(anyString())
+        verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
         verify(loginLogRepository).save(anyOrNull())
         verify(banRepository).findAllByPlayerIdAndLevel(anyLong(), anyOrNull())
     }

@@ -62,7 +62,7 @@ class UserService(
     fun findUserBySubject(subject: String) =
         userRepository.findById(subject.toLong())
 
-    private fun checkLoginThrottlingRequired(ip: String) = loginLogRepository.findFailedAttemptsByIp(ip)
+    private fun checkLoginThrottlingRequired(ip: String) = loginLogRepository.findFailedAttemptsByIpAfterDate(ip, LocalDateTime.now().minusDays(1))
         .map {
             val accountsAffected = it.accountsAffected ?: 0
             val totalFailedAttempts = it.totalAttempts ?: 0
