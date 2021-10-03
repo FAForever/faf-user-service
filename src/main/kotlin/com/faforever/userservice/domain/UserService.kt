@@ -29,6 +29,7 @@ data class SecurityProperties(
     val failedLoginAccountThreshold: Int,
     val failedLoginAttemptThreshold: Int,
     val failedLoginThrottlingMinutes: Long,
+    val failedLoginDaysToCheck: Long,
 )
 
 sealed class LoginResult {
@@ -62,7 +63,7 @@ class UserService(
     fun findUserBySubject(subject: String) =
         userRepository.findById(subject.toLong())
 
-    private fun checkLoginThrottlingRequired(ip: String) = loginLogRepository.findFailedAttemptsByIpAfterDate(ip, LocalDateTime.now().minusDays(1))
+    private fun checkLoginThrottlingRequired(ip: String) = loginLogRepository.findFailedAttemptsByIpAfterDate(ip, LocalDateTime.now().minusDays(securityProperties.failedLoginDaysToCheck))
         .map {
             val accountsAffected = it.accountsAffected ?: 0
             val totalFailedAttempts = it.totalAttempts ?: 0
