@@ -13,6 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder
 import org.springframework.web.util.UriUtils
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import sh.ory.hydra.model.AcceptConsentRequest
 import sh.ory.hydra.model.AcceptLoginRequest
 import sh.ory.hydra.model.ConsentRequestSession
@@ -34,6 +35,7 @@ data class SecurityProperties(
 sealed class LoginResult {
     object LoginThrottlingActive : LoginResult()
     object UserOrCredentialsMismatch : LoginResult()
+    object TechnicalError : LoginResult()
     data class SuccessfulLogin(val redirectTo: String) : LoginResult()
     data class UserBanned(val redirectTo: String) : LoginResult()
     data class UserNoGameOwnership(val redirectTo: String) : LoginResult()
@@ -96,13 +98,17 @@ class UserService(
     ): Mono<LoginResult> = checkLoginThrottlingRequired(ip)
         .flatMap { throttlingRequired ->
             if (throttlingRequired) {
-                Mono.just(LoginResult.LoginThrottlingActive)
+                LoginResult.LoginThrottlingActive.toMono()
             } else {
                 hydraService.getLoginRequest(challenge)
                     .flatMap { loginRequest ->
                         internalLogin(challenge, usernameOrEmail, password, ip, loginRequest)
                     }
             }
+        }
+        .onErrorResume { error ->
+            LOG.debug("Login failed with technical error for challenge $challenge", error)
+            LoginResult.TechnicalError.toMono()
         }
 
     /**

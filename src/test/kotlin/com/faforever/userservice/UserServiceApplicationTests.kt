@@ -114,6 +114,8 @@ class UserServiceApplicationTests {
 
     @Test
     fun getLogin() {
+        mockLoginRequest()
+
         webTestClient
             .get()
             .uri("/oauth2/login?login_challenge=$challenge")
