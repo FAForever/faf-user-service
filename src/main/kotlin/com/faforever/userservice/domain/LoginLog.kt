@@ -39,8 +39,8 @@ interface LoginLogRepository : ReactiveCrudRepository<LoginLog, Long> {
             count(DISTINCT login_id) as accounts_affected,
             min(create_time) as first_attempt_at,
             max(create_time) as last_attempt_at
-        FROM login_log WHERE ip = :ip AND success = 0
+        FROM login_log WHERE ip = :ip AND success = 0 AND create_time >= :date
     """
     )
-    fun findFailedAttemptsByIp(ip: String): Mono<FailedAttemptsSummary>
+    fun findFailedAttemptsByIpAfterDate(ip: String, date: LocalDateTime): Mono<FailedAttemptsSummary>
 }
