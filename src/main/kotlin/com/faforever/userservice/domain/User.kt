@@ -3,6 +3,7 @@ package com.faforever.userservice.domain
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.annotation.Transient
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -30,6 +31,7 @@ data class User(
         // Do NOT expose personal information here!!
         "User(id=$id, username='$username')"
 
+    @Transient
     val hasGameOwnershipVerified = steamId != null || gogId != null
 }
 
