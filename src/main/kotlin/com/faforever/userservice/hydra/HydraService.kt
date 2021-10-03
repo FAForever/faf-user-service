@@ -92,6 +92,7 @@ class HydraService(
         }
         .build()
 
+    // requesting a handled challenge throws HTTP 410 - Gone
     fun getLoginRequest(challenge: String): Mono<LoginRequest> =
         webClient
             .get()
@@ -112,6 +113,7 @@ class HydraService(
             .retrieve()
             .bodyToMono(ConsentRequest::class.java)
 
+    // accepting login request more than once throws HTTP 409 - Conflict
     fun acceptLoginRequest(challenge: String, acceptLoginRequest: AcceptLoginRequest): Mono<RedirectResponse> =
         webClient
             .put()
@@ -134,6 +136,7 @@ class HydraService(
             .retrieve()
             .bodyToMono(RedirectResponse::class.java)
 
+    // accepting consent more than once does not cause an error
     fun acceptConsentRequest(challenge: String, acceptConsentRequest: AcceptConsentRequest): Mono<RedirectResponse> =
         webClient
             .put()
@@ -145,6 +148,7 @@ class HydraService(
             .retrieve()
             .bodyToMono(RedirectResponse::class.java)
 
+    // rejecting consent more than once does not cause an error
     fun rejectConsentRequest(challenge: String, error: GenericError): Mono<RedirectResponse> =
         webClient
             .put()

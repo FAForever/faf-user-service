@@ -1,6 +1,7 @@
 package com.faforever.userservice.controller
 
 import com.faforever.userservice.config.FafProperties
+import com.faforever.userservice.domain.LoginResult
 import com.faforever.userservice.domain.LoginResult.LoginThrottlingActive
 import com.faforever.userservice.domain.LoginResult.SuccessfulLogin
 import com.faforever.userservice.domain.LoginResult.UserBanned
@@ -28,6 +29,7 @@ import org.springframework.web.reactive.result.view.Rendering
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import java.net.URI
 import java.time.OffsetDateTime
 
@@ -40,28 +42,31 @@ class OAuthController(
 ) {
     companion object {
         val LOG = LoggerFactory.getLogger(OAuthController::class.java)
+        const val LOGIN_TECHNICAL_ERROR_ROUTE = "login/technicalError"
     }
 
     @GetMapping("/login")
     fun showLogin(
         request: ServerHttpRequest,
+        response: ServerHttpResponse,
         @RequestParam("login_challenge") challenge: String,
         model: Model,
-    ): Mono<Rendering> {
-        val loginFailed = request.queryParams.containsKey("login_failed")
-        val loginThrottled = request.queryParams.containsKey("login_throttled")
-        model.addAttribute("loginFailed", loginFailed)
-        model.addAttribute("loginThrottled", loginThrottled)
-        model.addAttribute("challenge", challenge)
-        model.addAttribute("passwordResetUrl", fafProperties.passwordResetUrl)
-        model.addAttribute("registerAccountUrl", fafProperties.registerAccountUrl)
-        return Mono.just(Rendering.view("oauth2/login").build())
-    }
-
-    private fun redirect(response: ServerHttpResponse, uriString: String) = response.apply {
-        statusCode = HttpStatus.FOUND
-        headers.location = URI.create(uriString)
-    }.setComplete()
+    ): Mono<Rendering> =
+        hydraService.getLoginRequest(challenge)
+            .flatMap {
+                val loginFailed = request.queryParams.containsKey("login_failed")
+                val loginThrottled = request.queryParams.containsKey("login_throttled")
+                model.addAttribute("loginFailed", loginFailed)
+                model.addAttribute("loginThrottled", loginThrottled)
+                model.addAttribute("challenge", challenge)
+                model.addAttribute("passwordResetUrl", fafProperties.passwordResetUrl)
+                model.addAttribute("registerAccountUrl", fafProperties.registerAccountUrl)
+                Rendering.view("oauth2/login").build().toMono()
+            }
+            .onErrorResume { error ->
+                LOG.debug("Getting login request from Hydra failed for login challenge $challenge", error)
+                Rendering.redirectTo(LOGIN_TECHNICAL_ERROR_ROUTE).build().toMono()
+            }
 
     @PostMapping("/login")
     fun performLogin(
@@ -104,6 +109,7 @@ class OAuthController(
                                 .build()
                                 .toUriString()
                         )
+                        is LoginResult.TechnicalError -> redirectTechnicalError(response)
                     }
                 }
         }
@@ -111,6 +117,7 @@ class OAuthController(
     @GetMapping("/consent")
     fun showConsent(
         request: ServerHttpRequest,
+        response: ServerHttpResponse,
         @RequestParam("consent_challenge", required = true) challenge: String,
         model: Model,
     ): Mono<Rendering> =
@@ -131,6 +138,10 @@ class OAuthController(
                 model.addAttribute("user", user)
                 Rendering.view("oauth2/consent").build()
             }
+            .onErrorResume { error ->
+                LOG.debug("Getting consent request from Hydra failed for consent challenge $challenge", error)
+                Rendering.redirectTo(LOGIN_TECHNICAL_ERROR_ROUTE).build().toMono()
+            }
 
     @PostMapping("/consent")
     fun decideConsent(
@@ -144,6 +155,9 @@ class OAuthController(
             userService.decideConsent(challenge, permitted)
         }.flatMap { redirectUrl ->
             redirect(response, redirectUrl)
+        }.onErrorResume { error ->
+            LOG.debug("Deciding consent failed", error)
+            redirectTechnicalError(response)
         }
 
     @PostMapping("/revokeTokens")
@@ -157,7 +171,8 @@ class OAuthController(
             "Revoking consent sessions for subject `{}` on client `{}`", revokeRefreshTokensRequest.subject,
             if (revokeRefreshTokensRequest.all == true || revokeRefreshTokensRequest.client == null) "all" else revokeRefreshTokensRequest.client
         )
-        return hydraService.revokeRefreshTokens(revokeRefreshTokensRequest).flatMap { redirect(response, it.redirectTo) }
+        return hydraService.revokeRefreshTokens(revokeRefreshTokensRequest)
+            .flatMap { redirect(response, it.redirectTo) }
     }
 
     @GetMapping("/banned")
@@ -181,4 +196,21 @@ class OAuthController(
         model.addAttribute("accountLink", fafProperties.accountLinkUrl)
         return Mono.just(Rendering.view("oauth2/gameVerificationFailed").build())
     }
+
+    @GetMapping("/$LOGIN_TECHNICAL_ERROR_ROUTE")
+    fun showLoginTechnicalError(
+        request: ServerHttpRequest,
+        model: Model,
+    ): Mono<Rendering> =
+        Rendering.view("oauth2/loginTechnicalError").build().toMono()
+
+    private fun redirect(response: ServerHttpResponse, uriString: String) = response.apply {
+        statusCode = HttpStatus.FOUND
+        headers.location = URI.create(uriString)
+    }.setComplete()
+
+    private fun redirectTechnicalError(response: ServerHttpResponse) = redirect(
+        response,
+        UriComponentsBuilder.fromUriString(LOGIN_TECHNICAL_ERROR_ROUTE).build().toUriString()
+    )
 }
