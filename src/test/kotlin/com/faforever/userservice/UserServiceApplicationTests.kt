@@ -140,7 +140,7 @@ class UserServiceApplicationTests {
             .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
-                BodyInserters.fromFormData("login_challenge", challenge)
+                BodyInserters.fromFormData("challenge", challenge)
                     .with("usernameOrEmail", username)
                     .with("password", password)
             )
@@ -178,7 +178,7 @@ class UserServiceApplicationTests {
             .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
-                BodyInserters.fromFormData("login_challenge", challenge)
+                BodyInserters.fromFormData("challenge", challenge)
                     .with("usernameOrEmail", username)
                     .with("password", password)
             )
@@ -208,7 +208,7 @@ class UserServiceApplicationTests {
             .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
-                BodyInserters.fromFormData("login_challenge", challenge)
+                BodyInserters.fromFormData("challenge", challenge)
                     .with("usernameOrEmail", username)
                     .with("password", password)
             )
@@ -248,7 +248,7 @@ class UserServiceApplicationTests {
             .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
-                BodyInserters.fromFormData("login_challenge", challenge)
+                BodyInserters.fromFormData("challenge", challenge)
                     .with("usernameOrEmail", username)
                     .with("password", password)
             )
@@ -287,7 +287,7 @@ class UserServiceApplicationTests {
             .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
-                BodyInserters.fromFormData("login_challenge", challenge)
+                BodyInserters.fromFormData("challenge", challenge)
                     .with("usernameOrEmail", username)
                     .with("password", password)
             )
@@ -326,7 +326,7 @@ class UserServiceApplicationTests {
             .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
-                BodyInserters.fromFormData("login_challenge", challenge)
+                BodyInserters.fromFormData("challenge", challenge)
                     .with("usernameOrEmail", username)
                     .with("password", password)
             )
@@ -365,7 +365,7 @@ class UserServiceApplicationTests {
             .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
-                BodyInserters.fromFormData("login_challenge", challenge)
+                BodyInserters.fromFormData("challenge", challenge)
                     .with("usernameOrEmail", username)
                     .with("password", password)
             )
@@ -404,7 +404,7 @@ class UserServiceApplicationTests {
             .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
-                BodyInserters.fromFormData("login_challenge", challenge)
+                BodyInserters.fromFormData("challenge", challenge)
                     .with("usernameOrEmail", username)
                     .with("password", password)
             )
@@ -444,7 +444,7 @@ class UserServiceApplicationTests {
             .uri("/oauth2/login?login_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
-                BodyInserters.fromFormData("login_challenge", challenge)
+                BodyInserters.fromFormData("challenge", challenge)
                     .with("usernameOrEmail", username)
                     .with("password", password)
             )
@@ -491,8 +491,7 @@ class UserServiceApplicationTests {
             .uri("/oauth2/consent?consent_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
-                BodyInserters.fromFormData("consent_challenge", challenge)
-                    .with("consent_challenge", challenge)
+                BodyInserters.fromFormData("challenge", challenge)
                     .with("action", "permit")
             )
             .exchange()
@@ -515,8 +514,7 @@ class UserServiceApplicationTests {
             .uri("/oauth2/consent?consent_challenge=$challenge")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .body(
-                BodyInserters.fromFormData("consent_challenge", challenge)
-                    .with("consent_challenge", challenge)
+                BodyInserters.fromFormData("challenge", challenge)
                     .with("action", "deny")
             )
             .exchange()
