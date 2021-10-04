@@ -1,6 +1,7 @@
 package com.faforever.userservice.config
 
 import io.r2dbc.spi.ConnectionFactory
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,7 +17,7 @@ import java.time.ZoneOffset
 @ReadingConverter
 class LocalDateTimeToOffsetDateTimeReadingConverter : Converter<LocalDateTime, OffsetDateTime> {
     companion object {
-        private val LOG = LoggerFactory.getLogger(LocalDateTimeToOffsetDateTimeReadingConverter::class.java)
+        private val LOG: Logger = LoggerFactory.getLogger(LocalDateTimeToOffsetDateTimeReadingConverter::class.java)
     }
 
     override fun convert(source: LocalDateTime): OffsetDateTime {

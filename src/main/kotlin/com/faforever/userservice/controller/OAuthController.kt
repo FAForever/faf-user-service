@@ -12,6 +12,7 @@ import com.faforever.userservice.hydra.HydraService
 import com.faforever.userservice.hydra.RevokeRefreshTokensRequest
 import com.faforever.userservice.security.OAuthRole
 import com.faforever.userservice.security.OAuthScope
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
@@ -41,14 +42,13 @@ class OAuthController(
     private val fafProperties: FafProperties,
 ) {
     companion object {
-        val LOG = LoggerFactory.getLogger(OAuthController::class.java)
+        val LOG: Logger = LoggerFactory.getLogger(OAuthController::class.java)
         const val LOGIN_TECHNICAL_ERROR_ROUTE = "login/technicalError"
     }
 
     @GetMapping("/login")
     fun showLogin(
         request: ServerHttpRequest,
-        response: ServerHttpResponse,
         @RequestParam("login_challenge") challenge: String,
         model: Model,
     ): Mono<Rendering> =
@@ -116,8 +116,6 @@ class OAuthController(
 
     @GetMapping("/consent")
     fun showConsent(
-        request: ServerHttpRequest,
-        response: ServerHttpResponse,
         @RequestParam("consent_challenge", required = true) challenge: String,
         model: Model,
     ): Mono<Rendering> =
@@ -164,7 +162,6 @@ class OAuthController(
     @PreAuthorize("hasRole('${OAuthRole.ADMIN_ACCOUNT_BAN}') and @scopeService.hasScope(authentication, '${OAuthScope.ADMINISTRATIVE_ACTION}')")
     fun revokeRefreshTokens(
         @RequestBody revokeRefreshTokensRequest: RevokeRefreshTokensRequest,
-        request: ServerHttpRequest,
         response: ServerHttpResponse,
     ): Mono<Void> {
         LOG.info(
@@ -177,7 +174,6 @@ class OAuthController(
 
     @GetMapping("/banned")
     fun showBan(
-        request: ServerHttpRequest,
         @RequestParam("reason", required = true) reason: String,
         @RequestParam("expiration") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) expiration: OffsetDateTime?,
         model: Model,
@@ -190,7 +186,6 @@ class OAuthController(
 
     @GetMapping("/gameVerificationFailed")
     fun showOwnershipVerification(
-        request: ServerHttpRequest,
         model: Model,
     ): Mono<Rendering> {
         model.addAttribute("accountLink", fafProperties.accountLinkUrl)
@@ -199,7 +194,6 @@ class OAuthController(
 
     @GetMapping("/$LOGIN_TECHNICAL_ERROR_ROUTE")
     fun showLoginTechnicalError(
-        request: ServerHttpRequest,
         model: Model,
     ): Mono<Rendering> =
         Rendering.view("oauth2/loginTechnicalError").build().toMono()
