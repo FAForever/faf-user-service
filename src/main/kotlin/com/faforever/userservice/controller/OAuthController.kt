@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.reactive.result.view.Rendering
 import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 import java.net.URI
 import java.time.OffsetDateTime
@@ -79,38 +78,40 @@ class OAuthController(
         response: ServerHttpResponse,
         @ModelAttribute
         loginForm: LoginForm,
-    ): Mono<Void> = Mono.justOrEmpty(request.headers.getFirst("X-Real-IP"))
-        .switchIfEmpty {
-            LOG.warn("IP address from reverse proxy missing. Please make sure this service runs behind reverse proxy. Falling back to remote address.")
-            Mono.just(request.remoteAddress?.address?.hostAddress.toString())
-        }.flatMap {
-            userService.login(loginForm.challenge!!, loginForm.usernameOrEmail!!, loginForm.password!!, it)
-        }.flatMap {
-            LOG.debug("Login result is: $it")
-
-            when (it) {
-                is SuccessfulLogin -> redirect(response, it.redirectTo)
-                is UserBanned -> redirect(response, it.redirectTo)
-                is UserNoGameOwnership -> redirect(response, it.redirectTo)
-                is LoginThrottlingActive -> redirect(
-                    response,
-                    UriComponentsBuilder.fromUri(request.uri)
-                        .queryParam("login_challenge", loginForm.challenge)
-                        .queryParam("login_throttled")
-                        .build()
-                        .toUriString()
-                )
-                is UserOrCredentialsMismatch -> redirect(
-                    response,
-                    UriComponentsBuilder.fromUri(request.uri)
-                        .queryParam("login_challenge", loginForm.challenge)
-                        .queryParam("login_failed")
-                        .build()
-                        .toUriString()
-                )
-                is LoginResult.TechnicalError -> redirectTechnicalError(response)
-            }
+    ): Mono<Void> {
+        val reverseProxyIp = request.headers.getFirst("X-Real-IP")
+        val ip = if (reverseProxyIp != null) reverseProxyIp else {
+            LOG.warn("IP address from reverse proxy missing. Please make sure you this service runs behind reverse proxy. Falling back to remote address.")
+            request.remoteAddress?.address?.hostAddress.toString()
         }
+        return userService.login(loginForm.challenge!!, loginForm.usernameOrEmail!!, loginForm.password!!, ip)
+            .flatMap {
+                LOG.debug("Login result is: $it")
+
+                when (it) {
+                    is SuccessfulLogin -> redirect(response, it.redirectTo)
+                    is UserBanned -> redirect(response, it.redirectTo)
+                    is UserNoGameOwnership -> redirect(response, it.redirectTo)
+                    is LoginThrottlingActive -> redirect(
+                        response,
+                        UriComponentsBuilder.fromUri(request.uri)
+                            .queryParam("login_challenge", loginForm.challenge)
+                            .queryParam("login_throttled")
+                            .build()
+                            .toUriString()
+                    )
+                    is UserOrCredentialsMismatch -> redirect(
+                        response,
+                        UriComponentsBuilder.fromUri(request.uri)
+                            .queryParam("login_challenge", loginForm.challenge)
+                            .queryParam("login_failed")
+                            .build()
+                            .toUriString()
+                    )
+                    is LoginResult.TechnicalError -> redirectTechnicalError(response)
+                }
+            }
+    }
 
     @GetMapping("/consent")
     fun showConsent(
