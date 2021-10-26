@@ -1,7 +1,7 @@
 <html layout:decorate="~{layout/card}" th:with="headerText=#{login.title},title=#{login}" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <div layout:fragment="card-content">
-    <form name="login-form" th:action="@{/oauth2/login}" method="post">
+    <form name="login-form" th:action="@{/oauth2/login}" th:object="${loginForm}" method="post">
         <div id="form-header" th:replace="~{fragments/logoHeader :: logoHeader ( #{login.welcomeBack} )}"></div>
 
         <div class="error" th:if="${loginFailed}">
@@ -14,10 +14,10 @@
             <span th:text="#{login.throttled}">Too many of your login attempts have failed. Please wait some time before trying to login again.</span>
         </div>
 
-        <input type="hidden" name="login_challenge" th:value="${challenge}" th:if="${challenge != null }"/>
-        <input type="text" required id="usernameOrEmail" name="usernameOrEmail" placeholder="Username or Email"
+        <input type="hidden" name="challenge" th:field="*{challenge}"/>
+        <input type="text" required th:field="*{usernameOrEmail}" placeholder="Username or Email"
                th:placeholder="#{login.usernameOrEmail}">
-        <input type="password" required id="password" name="password" placeholder="Password"
+        <input type="password" name="password" required th:field="*{password}" placeholder="Password"
                th:placeholder="#{login.password}">
         <input type="submit" name="login" value="Log in" th:value="#{login.loginAction}"/>
     </form>

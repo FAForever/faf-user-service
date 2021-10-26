@@ -1,6 +1,8 @@
 package com.faforever.userservice.controller
 
 import com.faforever.userservice.config.FafProperties
+import com.faforever.userservice.domain.ConsentForm
+import com.faforever.userservice.domain.LoginForm
 import com.faforever.userservice.domain.LoginResult
 import com.faforever.userservice.domain.LoginResult.LoginThrottlingActive
 import com.faforever.userservice.domain.LoginResult.SuccessfulLogin
@@ -22,12 +24,12 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.reactive.result.view.Rendering
-import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
@@ -44,6 +46,8 @@ class OAuthController(
     companion object {
         val LOG: Logger = LoggerFactory.getLogger(OAuthController::class.java)
         const val LOGIN_TECHNICAL_ERROR_ROUTE = "login/technicalError"
+        const val PERMIT = "permit"
+        const val DENY = "deny"
     }
 
     @GetMapping("/login")
@@ -58,7 +62,7 @@ class OAuthController(
                 val loginThrottled = request.queryParams.containsKey("login_throttled")
                 model.addAttribute("loginFailed", loginFailed)
                 model.addAttribute("loginThrottled", loginThrottled)
-                model.addAttribute("challenge", challenge)
+                model.addAttribute("loginForm", LoginForm(challenge = challenge))
                 model.addAttribute("passwordResetUrl", fafProperties.passwordResetUrl)
                 model.addAttribute("registerAccountUrl", fafProperties.registerAccountUrl)
                 Rendering.view("oauth2/login").build().toMono()
@@ -70,53 +74,48 @@ class OAuthController(
 
     @PostMapping("/login")
     fun performLogin(
-        serverWebExchange: ServerWebExchange,
         request: ServerHttpRequest,
         response: ServerHttpResponse,
-    ): Mono<Void> =
-        serverWebExchange.formData.flatMap { form ->
-            val challenge = checkNotNull(form["login_challenge"]?.first())
-            val usernameOrEmail = checkNotNull(form["usernameOrEmail"]?.first())
-            val password = checkNotNull(form["password"]?.first())
-
-            val reverseProxyIp = request.headers.getFirst("X-Real-IP")
-            val ip = if (reverseProxyIp != null) reverseProxyIp else {
-                LOG.warn("IP address from reverse proxy missing. Please make sure you this service runs behind reverse proxy. Falling back to remote address.")
-                request.remoteAddress?.address?.hostAddress.toString()
-            }
-
-            userService.login(challenge, usernameOrEmail, password, ip)
-                .flatMap {
-                    LOG.debug("Login result is: $it")
-
-                    when (it) {
-                        is SuccessfulLogin -> redirect(response, it.redirectTo)
-                        is UserBanned -> redirect(response, it.redirectTo)
-                        is UserNoGameOwnership -> redirect(response, it.redirectTo)
-                        is LoginThrottlingActive -> redirect(
-                            response,
-                            UriComponentsBuilder.fromUri(request.uri)
-                                .queryParam("login_challenge", challenge)
-                                .queryParam("login_throttled")
-                                .build()
-                                .toUriString()
-                        )
-                        is UserOrCredentialsMismatch -> redirect(
-                            response,
-                            UriComponentsBuilder.fromUri(request.uri)
-                                .queryParam("login_challenge", challenge)
-                                .queryParam("login_failed")
-                                .build()
-                                .toUriString()
-                        )
-                        is LoginResult.TechnicalError -> redirectTechnicalError(response)
-                    }
-                }
+        @ModelAttribute
+        loginForm: LoginForm,
+    ): Mono<Void> {
+        val reverseProxyIp = request.headers.getFirst("X-Real-IP")
+        val ip = if (reverseProxyIp != null) reverseProxyIp else {
+            LOG.warn("IP address from reverse proxy missing. Please make sure you this service runs behind reverse proxy. Falling back to remote address.")
+            request.remoteAddress?.address?.hostAddress.toString()
         }
+        return userService.login(loginForm.challenge!!, loginForm.usernameOrEmail!!, loginForm.password!!, ip)
+            .flatMap {
+                LOG.debug("Login result is: $it")
+
+                when (it) {
+                    is SuccessfulLogin -> redirect(response, it.redirectTo)
+                    is UserBanned -> redirect(response, it.redirectTo)
+                    is UserNoGameOwnership -> redirect(response, it.redirectTo)
+                    is LoginThrottlingActive -> redirect(
+                        response,
+                        UriComponentsBuilder.fromUri(request.uri)
+                            .queryParam("login_challenge", loginForm.challenge)
+                            .queryParam("login_throttled")
+                            .build()
+                            .toUriString()
+                    )
+                    is UserOrCredentialsMismatch -> redirect(
+                        response,
+                        UriComponentsBuilder.fromUri(request.uri)
+                            .queryParam("login_challenge", loginForm.challenge)
+                            .queryParam("login_failed")
+                            .build()
+                            .toUriString()
+                    )
+                    is LoginResult.TechnicalError -> redirectTechnicalError(response)
+                }
+            }
+    }
 
     @GetMapping("/consent")
     fun showConsent(
-        @RequestParam("consent_challenge", required = true) challenge: String,
+        @RequestParam("consent_challenge") challenge: String,
         model: Model,
     ): Mono<Rendering> =
         hydraService.getConsentRequest(challenge)
@@ -130,7 +129,8 @@ class OAuthController(
                 }
             }
             .map { (consentRequest, user) ->
-                model.addAttribute("challenge", challenge)
+                model.addAttribute("denyForm", ConsentForm(challenge = challenge, action = DENY))
+                model.addAttribute("permitForm", ConsentForm(challenge = challenge, action = PERMIT))
                 model.addAttribute("consentRequest", consentRequest)
                 model.addAttribute("client", consentRequest.client)
                 model.addAttribute("user", user)
@@ -143,15 +143,11 @@ class OAuthController(
 
     @PostMapping("/consent")
     fun decideConsent(
-        serverWebExchange: ServerWebExchange,
         response: ServerHttpResponse,
-    ): Mono<Void> =
-        serverWebExchange.formData.flatMap { form ->
-            val challenge = checkNotNull(form["consent_challenge"]?.first())
-            val permitted = form["action"]?.first()?.lowercase() == "permit"
-
-            userService.decideConsent(challenge, permitted)
-        }.flatMap { redirectUrl ->
+        @ModelAttribute
+        consentForm: ConsentForm
+    ): Mono<Void> = userService.decideConsent(consentForm.challenge!!, consentForm.action == PERMIT)
+        .flatMap { redirectUrl ->
             redirect(response, redirectUrl)
         }.onErrorResume { error ->
             LOG.debug("Deciding consent failed", error)

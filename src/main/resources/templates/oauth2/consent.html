@@ -34,20 +34,19 @@
     </ul>
 
     <div class="flex-container">
-        <form id='denial-form' name='denialForm' th:action="@{/oauth2/consent}" method='post'>
-            <input type="hidden" th:name="consent_challenge" th:value="${challenge}" th:if="${challenge != null }"/>
+        <form id="denial-form" name='denialForm' th:action="@{/oauth2/consent}" th:object="${denyForm}" method='post'>
+            <input type="hidden" name="challenge" th:field="*{challenge}"/>
+            <input type="hidden" name="action" value="deny" th:field="*{action}">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"
                    th:if="${_csrf != null }"/>
-            <input name='action' value='deny' type='hidden'/>
-            <input name="deny" th:value="#{consent.deny}" value="Deny" type="submit" class="btn"/>
+            <input type="submit" name="deny" th:value="#{consent.deny}" value="Deny" class="btn"/>
         </form>
-        <form id='confirmation-form' name='confirmationForm' th:action="@{/oauth2/consent}" method='post'>
-            <input type="hidden" th:name="consent_challenge" th:value="${challenge}" th:if="${challenge != null }"/>
+        <form id="confirmation-form" name="confirmationForm" th:action="@{/oauth2/consent}" th:object="${permitForm}" method='post'>
+            <input type="hidden" name="challenge" th:field="*{challenge}"/>
+            <input type="hidden" name="action" value="permit" th:field="*{action}">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"
                    th:if="${_csrf != null }"/>
-            <input name='action' value='permit' type='hidden'/>
-            <input name="authorize" th:value="#{consent.authorize}" value="Authorize" type="submit"
-                   class="btn btn-danger"/>
+            <input type="submit" name="authorize" th:value="#{consent.authorize}" value="Authorize" class="btn btn-danger"/>
         </form>
     </div>
 
