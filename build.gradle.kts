@@ -5,12 +5,12 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val dockerTag: String? by project
 
 plugins {
-    val kotlinVersion = "1.5.30"
+    val kotlinVersion = "1.6.0"
 
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "2.5.4"
+    id("org.springframework.boot") version "2.6.1"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("com.google.cloud.tools.jib") version "3.1.4"
 
@@ -18,12 +18,12 @@ plugins {
     // // OpenAPI code generation
     // id("org.openapi.generator") version "4.3.1"
     // Code formatting
-    id("com.diffplug.spotless") version "5.12.5"
+    id("com.diffplug.spotless") version "6.0.1"
 }
 
 group = "com.faforever"
 version = "snapshot"
-java.sourceCompatibility = JavaVersion.VERSION_11
+java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
@@ -63,12 +63,12 @@ dependencies {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 }
 
 spotless {
-    val ktlintVersion = "0.41.0"
+    val ktlintVersion = "0.43.2"
     kotlin {
         ktlint(ktlintVersion)
     }
@@ -81,7 +81,7 @@ spotless {
 plugins.withType<JibPlugin> {
     configure<JibExtension> {
 
-        from.image = "adoptopenjdk:16-jre-hotspot"
+        from.image = "eclipse-temurin:17-jdk"
 
         to {
             image = "faforever/faf-user-service"

@@ -3,7 +3,7 @@ on: [push]
 jobs:
   test:
     runs-on: ubuntu-latest
-    container: adoptopenjdk:11-jdk-hotspot-bionic
+    container: eclipse-temurin:17-jdk
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
