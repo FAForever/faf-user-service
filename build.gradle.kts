@@ -67,10 +67,6 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 spotless {
     val ktlintVersion = "0.41.0"
     kotlin {
