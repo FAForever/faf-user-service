@@ -29,6 +29,7 @@ class SecurityConfiguration {
                 authorize("/oauth2/**", permitAll)
                 authorize("/css/**", permitAll)
                 authorize("/js/**", permitAll)
+                authorize("/actuator/**", permitAll)
                 authorize("/**", authenticated)
             }
             oauth2ResourceServer {

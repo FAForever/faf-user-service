@@ -1,3 +1,11 @@
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
 faf:
   passwordResetUrl:  ${PASSWORD_RESET_URL:https://faforever.com/account/password/reset}
   registerAccountUrl: ${REGISTER_ACCOUNT_URL:https://faforever.com/account/register}

@@ -51,6 +51,7 @@ dependencies {
     implementation("io.swagger.core.v3:swagger-annotations:2.1.11")
     runtimeOnly("dev.miku:r2dbc-mysql")
     runtimeOnly("mysql:mysql-connector-java")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     testImplementation("org.springframework.security:spring-security-oauth2-client")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
