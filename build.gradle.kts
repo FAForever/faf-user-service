@@ -48,7 +48,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    implementation("io.swagger.core.v3:swagger-annotations:2.1.11")
+    implementation("io.swagger.core.v3:swagger-annotations:2.1.12")
     runtimeOnly("dev.miku:r2dbc-mysql")
     runtimeOnly("mysql:mysql-connector-java")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
