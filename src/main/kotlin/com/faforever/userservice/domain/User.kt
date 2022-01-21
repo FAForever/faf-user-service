@@ -47,7 +47,7 @@ data class Permission(
 )
 
 @Repository
-interface UserRepository : ReactiveCrudRepository<User, Long> {
+interface UserRepository : ReactiveCrudRepository<User, Int> {
     fun findByUsernameOrEmail(username: String?, email: String?): Mono<User>
 
     @Query(
