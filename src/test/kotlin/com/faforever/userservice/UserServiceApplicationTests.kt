@@ -480,6 +480,7 @@ class UserServiceApplicationTests {
 
     @Test
     fun postConsentWithPermit() {
+        `when`(userRepository.findById(1)).thenReturn(Mono.just(user))
         `when`(userRepository.findUserPermissions(1)).thenReturn(Flux.empty())
 
         mockConsentRequest()
@@ -500,6 +501,7 @@ class UserServiceApplicationTests {
             .location(hydraRedirectUrl)
             .expectBody(String::class.java)
 
+        verify(userRepository).findById(1)
         verify(userRepository).findUserPermissions(1)
     }
 

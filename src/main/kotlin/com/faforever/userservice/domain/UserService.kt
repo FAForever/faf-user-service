@@ -14,6 +14,8 @@ import org.springframework.web.util.UriUtils
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 import sh.ory.hydra.model.AcceptConsentRequest
 import sh.ory.hydra.model.AcceptLoginRequest
 import sh.ory.hydra.model.ConsentRequestSession
@@ -63,7 +65,7 @@ class UserService(
     }
 
     fun findUserBySubject(subject: String) =
-        userRepository.findById(subject.toLong())
+        userRepository.findById(subject.toInt())
 
     private fun checkLoginThrottlingRequired(ip: String) = loginLogRepository.findFailedAttemptsByIpAfterDate(ip, LocalDateTime.now().minusDays(securityProperties.failedLoginDaysToCheck))
         .map {
@@ -203,32 +205,34 @@ class UserService(
         hydraService.getConsentRequest(challenge)
             .flatMap { consentRequest ->
                 if (permitted) {
-                    userRepository.findUserPermissions(consentRequest.subject?.toInt() ?: -1)
-                        .collectList()
-                        .flatMap { permissions ->
-                            val roles = listOf(ROLE_USER) + permissions.map { it.technicalName }
+                    val userId = consentRequest.subject?.toInt() ?: -1
+                    Mono.zip(
+                        userRepository.findById(userId),
+                        userRepository.findUserPermissions(userId).collectList()
+                    ).flatMap { (user, permissions) ->
+                        val roles = listOf(ROLE_USER) + permissions.map { it.technicalName }
 
-                            /**
-                             * *** Why do we put the FAF roles into the access token? ***
-                             *
-                             * FAF uses OAuth 2.0 / OpenID Connect as a SSO solution. To avoid looking up the
-                             * permissions in each service, we put them into the access token right away.
-                             *
-                             * If you are an external developer and need to utilize some sort of permission system then
-                             * you should NOT rely on FAF roles! You have no guarantee that a role still exists tomorrow
-                             * and you also have no influence on which user has which role.
-                             */
-                            hydraService.acceptConsentRequest(
-                                challenge,
-                                AcceptConsentRequest(
-                                    session = ConsentRequestSession(
-                                        accessToken = mapOf("roles" to roles),
-                                        idToken = mapOf("roles" to roles)
-                                    ),
-                                    grantScope = consentRequest.requestedScope
-                                )
+                        /**
+                         * *** Why do we put the FAF roles into the access token? ***
+                         *
+                         * FAF uses OAuth 2.0 / OpenID Connect as a SSO solution. To avoid looking up the
+                         * permissions in each service, we put them into the access token right away.
+                         *
+                         * If you are an external developer and need to utilize some sort of permission system then
+                         * you should NOT rely on FAF roles! You have no guarantee that a role still exists tomorrow
+                         * and you also have no influence on which user has which role.
+                         */
+                        hydraService.acceptConsentRequest(
+                            challenge,
+                            AcceptConsentRequest(
+                                session = ConsentRequestSession(
+                                    accessToken = mapOf("username" to user.username, "roles" to roles),
+                                    idToken = mapOf("username" to user.username, "roles" to roles)
+                                ),
+                                grantScope = consentRequest.requestedScope
                             )
-                        }
+                        )
+                    }
                 } else {
                     hydraService.rejectConsentRequest(challenge, GenericError("scope_denied"))
                 }
