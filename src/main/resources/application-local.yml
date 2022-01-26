@@ -1,0 +1,8 @@
+faf:
+  environment: LOCAL
+
+logging:
+  level:
+    org.springframework.security: INFO
+    com.faforever: INFO
+    org.thymeleaf: INFO

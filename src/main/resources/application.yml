@@ -22,11 +22,6 @@ hydra:
   fakeTlsForwarding: ${HYDRA_FAKE_TLS_FORWARDING:false}
   acceptUntrustedTlsCertificates: ${HYDRA_ACCEPT_UNTRUSTED_TLS_CERTIFICATES:true}
 
-logging:
-  level:
-    org.springframework.security: INFO
-    com.faforever: INFO
-
 spring:
   r2dbc:
     url: ${DB_R2DBC_URL:r2dbc:pool:mysql://localhost:3306/faf?ssl=false}
