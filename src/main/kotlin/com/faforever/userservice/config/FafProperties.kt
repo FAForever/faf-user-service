@@ -9,6 +9,7 @@ import javax.validation.constraints.NotBlank
 @Validated
 @ConstructorBinding
 data class FafProperties(
+    val environment: String?,
     @NotBlank
     val passwordResetUrl: String,
     @NotBlank

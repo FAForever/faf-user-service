@@ -17,7 +17,7 @@
     <div id="leftheader">
         <a href="https://www.faforever.com"><img src="https://faforever.com/images/faf-logo.png"
                                                  alt="FAForever Logo"></a>
-        <h1 th:text="#{title}" layout:fragment="header-title">FAForever</h1>
+        <h1 th:text="${environment} + #{title}" layout:fragment="header-title">[ENV] FAForever</h1>
     </div>
     <div id="rightheader">
         <p th:if="${currentUser != null}" th:text="#{header.loggedInAs(${currentUser.username})}">You are logged in as [User]</p>

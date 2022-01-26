@@ -5,7 +5,7 @@
 <body>
 <div class="background"></div>
 <header>
-    <h1 th:text="${headerText}" layout:fragment="header-title">FAForever</h1>
+    <h1 th:text="${environment} + ${headerText}" layout:fragment="header-title">[ENV] FAForever</h1>
 </header>
 <div layout:fragment="content">
     <div class="main-card">
