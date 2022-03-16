@@ -12,6 +12,7 @@
 package sh.ory.hydra.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.core.annotation.Introspected
 
 /**
  *
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @param rememberFor RememberFor sets how long the authentication should be remembered for in seconds. If set to `0`, the authorization will be remembered for the duration of the browser session (using a session cookie).
  */
 
+@Introspected
 data class AcceptLoginRequest(
     /* Subject is the user ID of the end-user that authenticated. */
     @field:JsonProperty("subject")

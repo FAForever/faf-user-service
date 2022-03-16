@@ -1,36 +1,58 @@
-management:
-  server:
-    port: 8081
-  endpoints:
-    web:
-      exposure:
-        include: '*'
+micronaut:
+  application:
+    name: fafUserService
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+        descriptions: true
+        step: PT1M
+    enabled: true
+  http:
+    services:
+      hydra:
+        ssl:
+          insecure-trust-all-certificates: ${HYDRA_ACCEPT_UNTRUSTED_TLS_CERTIFICATES:true}
+  router:
+    static-resources:
+      public:
+        paths: "classpath:public"
+r2dbc:
+  datasources:
+    default:
+      dialect: MYSQL
+      url: ${DB_R2DBC_URL:`r2dbc:mariadb://localhost:3306/faf?ssl=false`}
+      username: ${DB_USERNAME:root}
+      password: ${DB_PASSWORD:banana}
+#    default:
+#      schema-generate: CREATE_DROP
+#      dialect: H2
+#      url: r2dbc:h2:mem:///testdb;DB_CLOSE_ON_EXIT=FALSE
+#      username: sa
+#      password: ''
+netty:
+  default:
+    allocator:
+      max-order: 3
 
 faf:
-  passwordResetUrl:  ${PASSWORD_RESET_URL:https://faforever.com/account/password/reset}
-  registerAccountUrl: ${REGISTER_ACCOUNT_URL:https://faforever.com/account/register}
-  accountLinkUrl: ${ACCOUNT_LINK_URL:https://www.faforever.com/account/link}
-
+  passwordResetUrl:  ${PASSWORD_RESET_URL:`https://faforever.com/account/password/reset`}
+  registerAccountUrl: ${REGISTER_ACCOUNT_URL:`https://faforever.com/account/register`}
+  accountLinkUrl: ${ACCOUNT_LINK_URL:`https://www.faforever.com/account/link`}
+  hydra-base-url: http://localhost:4445
 security:
   failedLoginAccountThreshold: ${FAILED_LOGIN_ACCOUNT_THRESHOLD:5}
   failedLoginAttemptThreshold: ${FAILED_LOGIN_ATTEMPT_THRESHOLD:10}
   failedLoginThrottlingMinutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
   failedLoginDaysToCheck: ${FAILED_LOGIN_DAYS_TO_CHECK:1}
 
-hydra:
-  baseUrl: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
-  fakeTlsForwarding: ${HYDRA_FAKE_TLS_FORWARDING:false}
-  acceptUntrustedTlsCertificates: ${HYDRA_ACCEPT_UNTRUSTED_TLS_CERTIFICATES:true}
+logger:
+  levels:
+    com.faforever: DEBUG
+    org.thymeleaf: TRACE
+#    io.micronaut: DEBUG
+#    io.micronaut.http: TRACE
 
-spring:
-  r2dbc:
-    url: ${DB_R2DBC_URL:r2dbc:pool:mysql://localhost:3306/faf?ssl=false}
-    username: ${DB_USERNAME:faf-java-api}
-    password: ${DB_PASSWORD:banana}
-  messages:
-    basename: i18n/messages
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${HYDRA_ISSUER:http://localhost:4444/}
+tracing:
+  jaeger:
+    enabled: true

@@ -1,19 +1,23 @@
 package com.faforever.userservice.config
 
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
-import org.springframework.validation.annotation.Validated
+import io.micronaut.context.annotation.ConfigurationProperties
+import io.micronaut.context.annotation.Context
 import javax.validation.constraints.NotBlank
 
-@ConfigurationProperties(prefix = "faf")
-@Validated
-@ConstructorBinding
-data class FafProperties(
-    val environment: String?,
-    @NotBlank
-    val passwordResetUrl: String,
-    @NotBlank
-    val registerAccountUrl: String,
-    @NotBlank
-    val accountLinkUrl: String,
-)
+@ConfigurationProperties("faf")
+@Context
+interface FafProperties {
+    val environment: String?
+
+    @get:NotBlank
+    val hydraBaseUrl: String
+
+    @get:NotBlank
+    val passwordResetUrl: String
+
+    @get:NotBlank
+    val registerAccountUrl: String
+
+    @get:NotBlank
+    val accountLinkUrl: String
+}

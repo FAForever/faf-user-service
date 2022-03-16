@@ -1,10 +1,7 @@
 package com.faforever.userservice.security
 
-import com.faforever.userservice.security.OAuthScope.SCOPE_PREFIX
-import org.springframework.security.core.GrantedAuthority
-
-data class FafScope(val role: String) : GrantedAuthority {
-    override fun getAuthority() = SCOPE_PREFIX + role
+data class FafScope(val role: String)  {
+//    override fun getAuthority() = SCOPE_PREFIX + role
 }
 
 object OAuthScope {

@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: com.faforever
+testFramework: junit
+sourceLanguage: kotlin
+buildTool: gradle_kotlin
+features: [ annotation-api, app-name, data, data-r2dbc, gradle, h2, http-client, jackson-databind, junit, kotlin, kotlin-application, kotlin-build, logback, management, micrometer, micrometer-prometheus, micronaut-build, mockito, netty-server, openapi, r2dbc, readme, shade, yaml ]

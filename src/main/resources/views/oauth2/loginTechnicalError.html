@@ -1,0 +1,19 @@
+<html layout:decorate="~{layout/card}" th:with="headerText=#{login.title},title=#{login}"
+      xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<div layout:fragment="card-content">
+    <div id="form-header" th:replace="~{fragments/logoHeader :: logoHeader ( #{title.technicalError} )}"></div>
+
+    <div class="error">
+        <div class="error-info">
+            <div th:text="#{login.technicalError}">
+                We encountered a technical error during login.
+                This mostly occurs if you reloaded a page or sent a request twice.
+                Please restart the login from the beginning.
+            </div>
+            <p>
+                Trace ID: <span th:remove="tag" th:text="${traceId}"></span>
+            </p>
+        </div>
+    </div>
+</div>
+</html>

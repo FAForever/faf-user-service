@@ -12,6 +12,7 @@
 package sh.ory.hydra.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.core.annotation.Introspected
 
 /**
  *
@@ -29,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @param subject Subject is the user ID of the end-user that authenticated. Now, that end user needs to grant or deny the scope requested by the OAuth 2.0 client.
  */
 
+@Introspected
 data class ConsentRequest(
     /* ID is the identifier (\"authorization challenge\") of the consent authorization request. It is used to identify the session. */
     @field:JsonProperty("challenge")
