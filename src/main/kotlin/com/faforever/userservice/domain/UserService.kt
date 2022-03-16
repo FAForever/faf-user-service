@@ -2,15 +2,13 @@ package com.faforever.userservice.domain
 
 import com.faforever.userservice.hydra.HydraService
 import com.faforever.userservice.security.OAuthScope
+import io.micronaut.context.annotation.ConfigurationProperties
+import io.micronaut.context.annotation.Context
+import io.micronaut.http.uri.UriBuilder
+import jakarta.inject.Singleton
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.stereotype.Component
-import org.springframework.validation.annotation.Validated
-import org.springframework.web.util.UriComponentsBuilder
-import org.springframework.web.util.UriUtils
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
@@ -21,30 +19,33 @@ import sh.ory.hydra.model.AcceptLoginRequest
 import sh.ory.hydra.model.ConsentRequestSession
 import sh.ory.hydra.model.GenericError
 import sh.ory.hydra.model.LoginRequest
-import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
+import java.time.OffsetDateTime
+import javax.validation.constraints.NotNull
 
-@ConfigurationProperties(prefix = "security")
-@Validated
-@ConstructorBinding
-data class SecurityProperties(
-    val failedLoginAccountThreshold: Int,
-    val failedLoginAttemptThreshold: Int,
-    val failedLoginThrottlingMinutes: Long,
-    val failedLoginDaysToCheck: Long,
-)
+@ConfigurationProperties("security")
+@Context
+interface SecurityProperties {
+    @get:NotNull
+    val failedLoginAccountThreshold: Int
+    @get:NotNull
+    val failedLoginAttemptThreshold: Int
+    @get:NotNull
+    val failedLoginThrottlingMinutes: Long
+    @get:NotNull
+    val failedLoginDaysToCheck: Long
+}
 
 sealed class LoginResult {
     object LoginThrottlingActive : LoginResult()
     object UserOrCredentialsMismatch : LoginResult()
     object TechnicalError : LoginResult()
     data class SuccessfulLogin(val redirectTo: String) : LoginResult()
-    data class UserBanned(val redirectTo: String) : LoginResult()
+    data class UserBanned(val reason: String, val expiresAt: OffsetDateTime?) : LoginResult()
     data class UserNoGameOwnership(val redirectTo: String) : LoginResult()
 }
 
-@Component
+@Singleton
 class UserService(
     private val securityProperties: SecurityProperties,
     private val userRepository: UserRepository,
@@ -135,16 +136,7 @@ class UserService(
                         LOG.debug("User '$usernameOrEmail' is banned by $ban")
                         hydraService.rejectLoginRequest(challenge, GenericError(HYDRA_ERROR_USER_BANNED))
                             .map {
-                                LoginResult.UserBanned(
-                                    UriComponentsBuilder.fromUriString("/oauth2/banned")
-                                        .queryParam(
-                                            "expiration",
-                                            if (ban.expiresAt != null) ISO_OFFSET_DATE_TIME.format(ban.expiresAt) else null
-                                        )
-                                        .queryParam("reason", UriUtils.encode(ban.reason, StandardCharsets.UTF_8))
-                                        .build()
-                                        .toUriString()
-                                )
+                                LoginResult.UserBanned(ban.reason, ban.expiresAt)
                             }
                     }
                     .switchIfEmpty {
@@ -156,9 +148,9 @@ class UserService(
                             )
                                 .map {
                                     LoginResult.UserNoGameOwnership(
-                                        UriComponentsBuilder.fromUriString("/oauth2/gameVerificationFailed")
+                                        UriBuilder.of("/oauth2/gameVerificationFailed")
                                             .build()
-                                            .toUriString()
+                                            .toASCIIString()
                                     )
                                 }
                         } else {

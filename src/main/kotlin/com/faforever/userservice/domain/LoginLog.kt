@@ -1,29 +1,32 @@
 package com.faforever.userservice.domain
 
-import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.Id
-import org.springframework.data.r2dbc.repository.Query
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
-import org.springframework.data.repository.reactive.ReactiveCrudRepository
-import org.springframework.stereotype.Repository
+import io.micronaut.core.annotation.Introspected
+import io.micronaut.data.annotation.DateCreated
+import io.micronaut.data.annotation.Id
+import io.micronaut.data.annotation.MappedEntity
+import io.micronaut.data.annotation.MappedProperty
+import io.micronaut.data.annotation.Query
+import io.micronaut.data.model.query.builder.sql.Dialect
+import io.micronaut.data.r2dbc.annotation.R2dbcRepository
+import io.micronaut.data.repository.reactive.ReactorCrudRepository
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
-@Table("login_log")
+@MappedEntity("login_log")
 data class LoginLog(
-    @Id
+    @field:Id
     val id: Long,
-    @Column("login_id")
+    @field:MappedProperty("login_id")
     val userId: Long?,
-    @Column("login_string")
+    @field:MappedProperty("login_string")
     val loginString: String?,
     val ip: String,
     val success: Boolean,
-    @CreatedDate
+    @field:DateCreated
     val createTime: LocalDateTime = LocalDateTime.now(),
 )
 
+@Introspected
 data class FailedAttemptsSummary(
     val totalAttempts: Long?,
     val accountsAffected: Long?,
@@ -31,14 +34,14 @@ data class FailedAttemptsSummary(
     val lastAttemptAt: LocalDateTime?,
 )
 
-@Repository
-interface LoginLogRepository : ReactiveCrudRepository<LoginLog, Long> {
+@R2dbcRepository(dialect = Dialect.MYSQL)
+interface LoginLogRepository : ReactorCrudRepository<LoginLog, Long> {
     @Query(
         """SELECT
-            count(*) as total_attempts,
-            count(DISTINCT login_id) as accounts_affected,
-            min(create_time) as first_attempt_at,
-            max(create_time) as last_attempt_at
+            count(*) as totalAttempts,
+            count(DISTINCT login_id) as accountsAffected,
+            min(create_time) as firstAttemptAt,
+            max(create_time) as lastAttemptAt
         FROM login_log WHERE ip = :ip AND success = 0 AND create_time >= :date
     """
     )

@@ -12,6 +12,7 @@
 package sh.ory.hydra.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.core.annotation.Introspected
 
 /**
  *
@@ -50,6 +51,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @param userinfoSignedResponseAlg JWS alg algorithm [JWA] REQUIRED for signing UserInfo Responses. If this is specified, the response will be JWT [JWT] serialized, and signed using JWS. The default, if omitted, is for the UserInfo Response to return the Claims as a UTF-8 encoded JSON object using the application/json content-type.
  */
 
+@Introspected
 data class OAuth2Client(
     @field:JsonProperty("allowed_cors_origins")
     val allowedCorsOrigins: kotlin.collections.List<kotlin.String>? = null,

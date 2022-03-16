@@ -1,28 +1,29 @@
 package com.faforever.userservice.domain
 
-import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.annotation.Transient
-import org.springframework.data.r2dbc.repository.Query
-import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.Table
-import org.springframework.data.repository.reactive.ReactiveCrudRepository
-import org.springframework.stereotype.Repository
+import io.micronaut.data.annotation.DateCreated
+import io.micronaut.data.annotation.DateUpdated
+import io.micronaut.data.annotation.Id
+import io.micronaut.data.annotation.MappedEntity
+import io.micronaut.data.annotation.MappedProperty
+import io.micronaut.data.annotation.Query
+import io.micronaut.data.annotation.Transient
+import io.micronaut.data.model.query.builder.sql.Dialect
+import io.micronaut.data.r2dbc.annotation.R2dbcRepository
+import io.micronaut.data.repository.reactive.ReactorCrudRepository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
-@Table("login")
+@MappedEntity("login")
 data class User(
-    @Id
+    @field:Id
     val id: Long,
-    @Column("login")
+    @field:MappedProperty("login")
     val username: String,
     val password: String,
     val email: String,
     val ip: String?,
-    @Column("steamid")
+    @field:MappedProperty("steamid")
     val steamId: Long?,
     val gogId: String?,
 ) {
@@ -35,19 +36,19 @@ data class User(
     val hasGameOwnershipVerified = steamId != null || gogId != null
 }
 
-@Table("group_permission")
+@MappedEntity("group_permission")
 data class Permission(
-    @Id
+    @field:Id
     val id: Long,
     val technicalName: String,
-    @CreatedDate
+    @field:DateCreated
     val createTime: LocalDateTime = LocalDateTime.now(),
-    @LastModifiedDate
+    @field:DateUpdated
     val updateTime: LocalDateTime = LocalDateTime.now(),
 )
 
-@Repository
-interface UserRepository : ReactiveCrudRepository<User, Int> {
+@R2dbcRepository(dialect = Dialect.MYSQL)
+interface UserRepository : ReactorCrudRepository<User, Int> {
     fun findByUsernameOrEmail(username: String?, email: String?): Mono<User>
 
     @Query(
