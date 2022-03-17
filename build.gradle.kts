@@ -54,7 +54,7 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.mock-server:mockserver-netty:5.11.2")
-    testImplementation("org.mock-server:mockserver-client-java:5.11.2")
+    testImplementation("org.mock-server:mockserver-client-java:5.13.0")
 }
 
 tasks.withType<KotlinCompile> {
