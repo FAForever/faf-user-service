@@ -44,7 +44,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
-    implementation("io.swagger.core.v3:swagger-annotations:2.1.13")
+    implementation("io.swagger.core.v3:swagger-annotations:2.2.0")
     runtimeOnly("dev.miku:r2dbc-mysql")
     runtimeOnly("mysql:mysql-connector-java")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
