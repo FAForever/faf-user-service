@@ -10,8 +10,7 @@ import io.swagger.v3.oas.annotations.info.Info
         version = "2.0"
     )
 )
-object Api {
-}
+object Api
 
 fun main(args: Array<String>) {
     build()
@@ -19,4 +18,3 @@ fun main(args: Array<String>) {
         .packages("com.faforever")
         .start()
 }
-

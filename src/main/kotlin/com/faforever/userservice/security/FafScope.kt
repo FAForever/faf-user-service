@@ -1,6 +1,6 @@
 package com.faforever.userservice.security
 
-data class FafScope(val role: String)  {
+data class FafScope(val role: String) {
 //    override fun getAuthority() = SCOPE_PREFIX + role
 }
 

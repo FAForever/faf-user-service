@@ -60,11 +60,10 @@ class ApplicationIT : TestPropertyProvider {
         private const val username = "someUsername"
         private const val email = "some@email.com"
         private const val password = "somePassword"
-        private val hydraRedirectUrl = "${baseUrl}/someHydraRedirectUrl"
+        private val hydraRedirectUrl = "$baseUrl/someHydraRedirectUrl"
 
         private val user = User(1, username, password, email, null, 0, null)
         private val mockServer = ClientAndServer(mockServerPort)
-
     }
 
     override fun getProperties(): Map<String, String> = mutableMapOf(
@@ -228,7 +227,6 @@ class ApplicationIT : TestPropertyProvider {
             it.status == HttpStatus.OK &&
                 it.body()!!.contains(BANNED)
         }.verifyComplete()
-
 
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
@@ -593,5 +591,4 @@ class ApplicationIT : TestPropertyProvider {
                 .withBody(HYDRA_REDIRECT)
         )
     }
-
 }

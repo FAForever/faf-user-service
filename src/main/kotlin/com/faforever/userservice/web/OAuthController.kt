@@ -143,8 +143,6 @@ open class OAuthController(
             .with("accountLink", properties.accountLinkUrl)
             .build("oauth2/gameVerificationFailed")
 
-
     private fun <T> redirect(uriString: String) = redirect<T>(URI.create(uriString))
     private fun <T> redirect(uri: URI) = HttpResponse.redirect<T>(uri).toMono()
-
 }
