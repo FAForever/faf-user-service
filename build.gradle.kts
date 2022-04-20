@@ -56,9 +56,7 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
     testImplementation("org.mock-server:mockserver-netty:5.13.1")
     testImplementation("org.mock-server:mockserver-client-java:5.13.1")
-
 }
-
 
 application {
     mainClass.set("com.faforever.ApplicationKt")
@@ -88,4 +86,14 @@ micronaut {
     }
 }
 
+spotless {
+    val ktlintVersion = "0.45.2"
+    kotlin {
+        ktlint(ktlintVersion)
+    }
+    kotlinGradle {
+        target("*.gradle.kts")
 
+        ktlint(ktlintVersion)
+    }
+}
