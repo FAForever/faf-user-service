@@ -17,6 +17,13 @@ micronaut:
     static-resources:
       public:
         paths: "classpath:public"
+  security:
+    token:
+      jwt:
+        signatures:
+          jwks:
+            hydra:
+              url: ${HYDRA_JWKS_URL:`https://hydra.test.faforever.com/.well-known/jwks.json`}
 r2dbc:
   datasources:
     default:

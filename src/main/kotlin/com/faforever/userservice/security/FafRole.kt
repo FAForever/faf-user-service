@@ -1,6 +1,6 @@
 package com.faforever.userservice.security
 
-object OAuthRole {
+object FafRole {
     const val ROLE_PREFIX = "ROLE_"
 
     const val READ_AUDIT_LOG = "READ_AUDIT_LOG"

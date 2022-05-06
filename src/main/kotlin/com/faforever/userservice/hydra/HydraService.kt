@@ -1,8 +1,11 @@
 package com.faforever.userservice.hydra
 
+import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
+import io.micronaut.http.annotation.Delete
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Put
+import io.micronaut.http.annotation.QueryValue
 import io.micronaut.http.client.annotation.Client
 import reactor.core.publisher.Mono
 import sh.ory.hydra.model.AcceptConsentRequest
@@ -36,4 +39,11 @@ interface HydraService {
     // rejecting consent more than once does not cause an error
     @Put("/oauth2/auth/requests/consent/reject?consent_challenge={challenge}")
     fun rejectConsentRequest(@NotBlank challenge: String, @Body error: GenericError): Mono<RedirectResponse>
+
+    @Delete("/oauth2/auth/sessions/consent")
+    fun revokeRefreshTokens(
+        @QueryValue subject: String,
+        @QueryValue all: Boolean?,
+        @QueryValue client: String?,
+    ): Mono<HttpResponse<Unit>>
 }

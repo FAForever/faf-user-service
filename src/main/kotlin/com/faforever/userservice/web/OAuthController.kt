@@ -6,8 +6,13 @@ import com.faforever.userservice.domain.LoginForm
 import com.faforever.userservice.domain.LoginResult
 import com.faforever.userservice.domain.UserService
 import com.faforever.userservice.hydra.HydraService
+import com.faforever.userservice.hydra.RevokeRefreshTokensRequest
+import com.faforever.userservice.security.FafRole
+import com.faforever.userservice.security.OAuthScope
+import com.faforever.userservice.security.RequiredRoleAndScope
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.MediaType
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.Body
@@ -17,6 +22,7 @@ import io.micronaut.http.annotation.Header
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.views.ModelAndView
+import jakarta.annotation.security.PermitAll
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Mono
@@ -38,12 +44,12 @@ open class OAuthController(
 ) {
     companion object {
         val LOG: Logger = LoggerFactory.getLogger(OAuthController::class.java)
-        const val LOGIN_TECHNICAL_ERROR_ROUTE = "login/technicalError"
         const val PERMIT = "permit"
         const val DENY = "deny"
     }
 
     @Get("/login")
+    @PermitAll
     open fun showLogin(
         @QueryValue("login_challenge") challenge: String,
         @QueryValue("loginFailed") loginFailed: Any?,
@@ -65,6 +71,7 @@ open class OAuthController(
         }
 
     @Post("/login", consumes = [MediaType.APPLICATION_FORM_URLENCODED])
+    @PermitAll
     fun performLogin(
         @Body loginForm: LoginForm,
         @Header("X-Real-Ip") reverseProxyIp: String?,
@@ -92,6 +99,7 @@ open class OAuthController(
     }
 
     @Get("/consent")
+    @PermitAll
     fun showConsent(
         @QueryValue("consent_challenge") challenge: String,
     ): Mono<HttpResponseWithModelView> =
@@ -120,6 +128,7 @@ open class OAuthController(
             }
 
     @Post("/consent", consumes = [MediaType.APPLICATION_FORM_URLENCODED])
+    @PermitAll
     fun decideConsent(
         @Body consentForm: ConsentForm
     ): Mono<HttpResponseWithModelView> =
@@ -130,6 +139,27 @@ open class OAuthController(
                 LOG.error("Deciding consent failed", error)
                 viewFactory.buildError(VIEW_LOGIN_ERROR)
             }
+
+    @Post("/revokeTokens")
+    @RequiredRoleAndScope(OAuthScope.ADMINISTRATIVE_ACTION, FafRole.ADMIN_ACCOUNT_BAN)
+    fun revokeRefreshTokens(
+        @Body revokeRefreshTokensRequest: RevokeRefreshTokensRequest
+    ): Mono<Unit> {
+        LOG.info(
+            "Revoking consent sessions for subject `{}` on client `{}`", revokeRefreshTokensRequest.subject,
+            if (revokeRefreshTokensRequest.all == true || revokeRefreshTokensRequest.client == null) "all"
+            else revokeRefreshTokensRequest.client
+        )
+        return hydraService.revokeRefreshTokens(
+            revokeRefreshTokensRequest.subject,
+            revokeRefreshTokensRequest.all,
+            revokeRefreshTokensRequest.client
+        ).map {
+            if (it.status != HttpStatus.NO_CONTENT) {
+                LOG.error("Revoking tokens from Hydra failed for request: $revokeRefreshTokensRequest")
+            }
+        }
+    }
 
     private fun showBan(reason: String, expiration: OffsetDateTime?): Mono<HttpResponseWithModelView> =
         viewFactory
