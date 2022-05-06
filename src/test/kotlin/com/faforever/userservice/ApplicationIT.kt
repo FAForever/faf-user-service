@@ -9,6 +9,9 @@ import com.faforever.userservice.domain.LoginForm
 import com.faforever.userservice.domain.LoginLogRepository
 import com.faforever.userservice.domain.User
 import com.faforever.userservice.domain.UserRepository
+import com.faforever.userservice.hydra.RevokeRefreshTokensRequest
+import com.faforever.userservice.security.FafRole
+import com.faforever.userservice.security.FafUserAuthentication
 import com.faforever.userservice.security.OAuthScope
 import io.micronaut.http.HttpStatus
 import io.micronaut.runtime.EmbeddedApplication
@@ -61,6 +64,7 @@ class ApplicationIT : TestPropertyProvider {
         private const val email = "some@email.com"
         private const val password = "somePassword"
         private val hydraRedirectUrl = "$baseUrl/someHydraRedirectUrl"
+        private val revokeRequest = RevokeRefreshTokensRequest("1", null, true)
 
         private val user = User(1, username, password, email, null, 0, null)
         private val mockServer = ClientAndServer(mockServerPort)
@@ -94,6 +98,9 @@ class ApplicationIT : TestPropertyProvider {
 
     @Inject
     lateinit var application: EmbeddedApplication<*>
+
+    @Inject
+    lateinit var testAuthenticationFetcher: TestAuthenticationFetcher
 
     @Inject
     private lateinit var oAuthClient: OAuthClient
@@ -443,6 +450,27 @@ class ApplicationIT : TestPropertyProvider {
         }.verifyComplete()
     }
 
+    @Test
+    fun revokeRefreshToken() {
+        mockConsentRevoke()
+
+        testAuthenticationFetcher.setNextAuthentications(
+            FafUserAuthentication(
+                1,
+                username,
+                listOf(OAuthScope.ADMINISTRATIVE_ACTION),
+                listOf(FafRole.ADMIN_ACCOUNT_BAN),
+                mapOf()
+            )
+        )
+
+        StepVerifier.create(
+            oAuthClient.revokeTokens(revokeRequest)
+        ).expectNextMatches {
+            it.status == HttpStatus.OK
+        }.verifyComplete()
+    }
+
     private fun mockLoginRequest(scopes: List<String> = listOf()) {
         mockServer.`when`(
             HttpRequest.request()
@@ -576,6 +604,22 @@ class ApplicationIT : TestPropertyProvider {
                         }
                     """.trimIndent()
                 )
+        )
+    }
+
+    private fun mockConsentRevoke() {
+        mockServer.`when`(
+            HttpRequest.request()
+                .withMethod("DELETE")
+                .withPath("/oauth2/auth/sessions/consent")
+                .withQueryStringParameter("all", if (revokeRequest.all != null) revokeRequest.all.toString() else "")
+                .apply {
+                    if (revokeRequest.client != null) withQueryStringParameter("client", revokeRequest.client.toString())
+                }
+                .withQueryStringParameter("subject", revokeRequest.subject)
+        ).respond(
+            HttpResponse.response()
+                .withStatusCode(204)
         )
     }
 

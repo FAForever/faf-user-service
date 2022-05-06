@@ -2,6 +2,7 @@ package com.faforever.userservice
 
 import com.faforever.userservice.domain.ConsentForm
 import com.faforever.userservice.domain.LoginForm
+import com.faforever.userservice.hydra.RevokeRefreshTokensRequest
 import io.micronaut.http.HttpHeaders
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
@@ -32,4 +33,9 @@ interface OAuthClient {
         @QueryValue("_csrf") csrfToken: String,
         @Body challengeForm: ConsentForm
     ): Mono<HttpResponse<String>>
+
+    @Post("/revokeTokens")
+    fun revokeTokens(
+        @Body revokeRefreshTokensRequest: RevokeRefreshTokensRequest
+    ): Mono <HttpResponse<Unit>>
 }
