@@ -1,11 +1,11 @@
 plugins {
-    val kotlinVersion = "1.6.10"
+    val kotlinVersion = "1.6.21"
 
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
     kotlin("plugin.allopen") version kotlinVersion
     id("com.github.johnrengelman.shadow") version "7.1.1"
-    id("io.micronaut.application") version "3.3.2"
+    id("io.micronaut.application") version "3.4.0"
 
     // /****** Additional tooling *****/
     // // OpenAPI code generation
@@ -30,7 +30,7 @@ dependencies {
     kapt("io.micronaut.security:micronaut-security-annotations")
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut:micronaut-jackson-databind")
-    implementation("org.springframework.security:spring-security-crypto:5.6.2")
+    implementation("org.springframework.security:spring-security-crypto:5.6.3")
     implementation("io.micronaut:micronaut-management")
     implementation("io.micronaut:micronaut-runtime")
     implementation("io.micronaut.security:micronaut-security-jwt")
@@ -43,7 +43,7 @@ dependencies {
     implementation("io.micronaut.tracing:micronaut-tracing-jaeger")
     implementation("io.swagger.core.v3:swagger-annotations")
     implementation("jakarta.annotation:jakarta.annotation-api")
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.1.5")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.1.6")
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("org.mariadb:r2dbc-mariadb")
     runtimeOnly("io.r2dbc:r2dbc-h2")
@@ -51,11 +51,11 @@ dependencies {
 
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
 
-    testImplementation("io.projectreactor:reactor-test:3.4.16")
-    var mockitoVersion = "4.0.0"
+    testImplementation("io.projectreactor:reactor-test:3.4.17")
+    var mockitoVersion = "4.5.1"
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
     testImplementation("org.mock-server:mockserver-netty:5.13.1")
     testImplementation("org.mock-server:mockserver-client-java:5.13.1")
 }
