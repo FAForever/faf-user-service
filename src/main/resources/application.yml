@@ -28,7 +28,7 @@ r2dbc:
   datasources:
     default:
       dialect: MYSQL
-      url: ${DB_R2DBC_URL:`r2dbc:mariadb://localhost:3306/faf?ssl=false`}
+      url: ${ThymeleafDialectLoader:`r2dbc:mariadb://localhost:3306/faf?ssl=false`}
       username: ${DB_USERNAME:root}
       password: ${DB_PASSWORD:banana}
 #    default:
@@ -52,13 +52,6 @@ security:
   failedLoginAttemptThreshold: ${FAILED_LOGIN_ATTEMPT_THRESHOLD:10}
   failedLoginThrottlingMinutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
   failedLoginDaysToCheck: ${FAILED_LOGIN_DAYS_TO_CHECK:1}
-
-logger:
-  levels:
-    com.faforever: DEBUG
-    org.thymeleaf: TRACE
-#    io.micronaut: DEBUG
-#    io.micronaut.http: TRACE
 
 tracing:
   jaeger:

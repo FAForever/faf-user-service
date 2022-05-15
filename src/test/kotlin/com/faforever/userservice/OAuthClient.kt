@@ -37,5 +37,5 @@ interface OAuthClient {
     @Post("/revokeTokens")
     fun revokeTokens(
         @Body revokeRefreshTokensRequest: RevokeRefreshTokensRequest
-    ): Mono <HttpResponse<Unit>>
+    ): Mono <Unit>
 }
