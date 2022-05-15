@@ -61,7 +61,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.faforever.ApplicationKt")
+    mainClass.set("com.faforever.userservice.ApplicationKt")
 }
 
 tasks {

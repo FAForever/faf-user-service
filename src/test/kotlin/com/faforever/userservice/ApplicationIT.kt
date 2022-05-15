@@ -14,6 +14,7 @@ import com.faforever.userservice.security.FafRole
 import com.faforever.userservice.security.FafUserAuthentication
 import com.faforever.userservice.security.OAuthScope
 import io.micronaut.http.HttpStatus
+import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.EmbeddedApplication
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -451,7 +452,7 @@ class ApplicationIT : TestPropertyProvider {
     }
 
     @Test
-    fun revokeRefreshToken() {
+    fun canRevokeRefreshTokenWithScopeAndRole() {
         mockConsentRevoke()
 
         testAuthenticationFetcher.setNextAuthentications(
@@ -466,9 +467,53 @@ class ApplicationIT : TestPropertyProvider {
 
         StepVerifier.create(
             oAuthClient.revokeTokens(revokeRequest)
-        ).expectNextMatches {
-            it.status == HttpStatus.OK
-        }.verifyComplete()
+        )
+            .expectNextCount(1)
+            .verifyComplete()
+    }
+
+    @Test
+    fun cannotRevokeRefreshTokenWithOnlyScope() {
+        mockConsentRevoke()
+
+        testAuthenticationFetcher.setNextAuthentications(
+            FafUserAuthentication(
+                1,
+                username,
+                listOf(OAuthScope.ADMINISTRATIVE_ACTION),
+                listOf(),
+                mapOf()
+            )
+        )
+
+        StepVerifier.create(
+            oAuthClient.revokeTokens(revokeRequest)
+        ).expectErrorMatches {
+            it is HttpClientResponseException &&
+                it.status == HttpStatus.FORBIDDEN
+        }.verify()
+    }
+
+    @Test
+    fun cannotRevokeRefreshTokenWithOnlyRole() {
+        mockConsentRevoke()
+
+        testAuthenticationFetcher.setNextAuthentications(
+            FafUserAuthentication(
+                1,
+                username,
+                listOf(),
+                listOf(FafRole.ADMIN_ACCOUNT_BAN),
+                mapOf()
+            )
+        )
+
+        StepVerifier.create(
+            oAuthClient.revokeTokens(revokeRequest)
+        ).expectErrorMatches {
+            it is HttpClientResponseException &&
+                it.status == HttpStatus.FORBIDDEN
+        }.verify()
     }
 
     private fun mockLoginRequest(scopes: List<String> = listOf()) {
@@ -614,7 +659,10 @@ class ApplicationIT : TestPropertyProvider {
                 .withPath("/oauth2/auth/sessions/consent")
                 .withQueryStringParameter("all", if (revokeRequest.all != null) revokeRequest.all.toString() else "")
                 .apply {
-                    if (revokeRequest.client != null) withQueryStringParameter("client", revokeRequest.client.toString())
+                    if (revokeRequest.client != null) withQueryStringParameter(
+                        "client",
+                        revokeRequest.client.toString()
+                    )
                 }
                 .withQueryStringParameter("subject", revokeRequest.subject)
         ).respond(
