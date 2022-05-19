@@ -46,7 +46,7 @@ faf:
   passwordResetUrl:  ${PASSWORD_RESET_URL:`https://faforever.com/account/password/reset`}
   registerAccountUrl: ${REGISTER_ACCOUNT_URL:`https://faforever.com/account/register`}
   accountLinkUrl: ${ACCOUNT_LINK_URL:`https://www.faforever.com/account/link`}
-  hydra-base-url: http://localhost:4445
+  hydra-base-url: ${HYDRA_BASE_ADMIN_URL:`http://localhost:4445`}
 security:
   failedLoginAccountThreshold: ${FAILED_LOGIN_ACCOUNT_THRESHOLD:5}
   failedLoginAttemptThreshold: ${FAILED_LOGIN_ATTEMPT_THRESHOLD:10}
