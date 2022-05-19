@@ -1,12 +1,9 @@
 package com.faforever.userservice.security
 
-data class FafScope(val role: String) {
-//    override fun getAuthority() = SCOPE_PREFIX + role
-}
-
+/**
+ * Contains pre-defined FAF scopes
+ */
 object OAuthScope {
-    const val SCOPE_PREFIX = "SCOPE_"
-
     const val PUBLIC_PROFILE = "public_profile"
     const val WRITE_ACHIEVEMENTS = "write_achievements"
     const val WRITE_EVENTS = "write_events"
