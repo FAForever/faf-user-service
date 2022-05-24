@@ -5,9 +5,9 @@ This service aims to cover the domain of login and account management in FAForev
 ## Technology stack
 
 - Kotlin
-- Spring Boot
-- Spring Webflux
-- Spring Data R2DBC
+- Micronaut
+- R2DBC
+- Thymeleaf
 
 
 ## Motivation and architecture considerations
@@ -45,4 +45,5 @@ Goal | Status
 ---- | ------
 Usability improvements by serving translated web pages | :heavy_check_mark:
 Improved performance by using reactive stack | :heavy_check_mark:
-Massively reduced startup times and smaller resource footprint by compiling to native images with GraalVM | :hourglass:	
+Massively reduced startup times and smaller resource footprint by using Micronaut | :heavy_check_mark:	
+Even less startup times and smaller resource footprint by compiling to native images with GraalVM | :hourglass:	
