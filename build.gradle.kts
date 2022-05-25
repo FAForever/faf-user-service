@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
     kotlin("plugin.allopen") version kotlinVersion
-    id("com.github.johnrengelman.shadow") version "7.1.1"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
     id("io.micronaut.application") version "3.4.0"
 
     // /****** Additional tooling *****/
