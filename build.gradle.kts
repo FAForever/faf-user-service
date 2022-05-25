@@ -30,7 +30,7 @@ dependencies {
     kapt("io.micronaut.security:micronaut-security-annotations")
     implementation("io.micronaut:micronaut-http-client")
     implementation("io.micronaut:micronaut-jackson-databind")
-    implementation("org.springframework.security:spring-security-crypto:5.6.3")
+    implementation("org.springframework.security:spring-security-crypto:5.7.1")
     implementation("io.micronaut:micronaut-management")
     implementation("io.micronaut:micronaut-runtime")
     implementation("io.micronaut.security:micronaut-security-jwt")
