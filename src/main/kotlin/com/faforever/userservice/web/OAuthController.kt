@@ -54,7 +54,7 @@ open class OAuthController(
         @QueryValue("login_challenge") challenge: String,
         @QueryValue("loginFailed") loginFailed: Any?,
         @QueryValue("loginThrottled") loginThrottled: Any?,
-        @QueryValue("_csrf") csrfToken: String,
+        @QueryValue("_csrf") csrfToken: String?,
     ): Mono<HttpResponseWithModelView> = hydraService.getLoginRequest(challenge)
         .flatMap {
             viewFactory
