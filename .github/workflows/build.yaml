@@ -25,7 +25,7 @@ jobs:
           GRADLE_CLI_OPTS: "-Dversion=${{steps.get_tag_or_branch.outputs.TAG_OR_BRANCH}}"
         run: "chmod +x ./gradlew && ./gradlew ${GRADLE_CLI_OPTS} dockerBuild"
       - name: Push Docker image
-        if: github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags')
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')
         uses: docker/build-push-action@v1.1.1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
