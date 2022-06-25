@@ -1,3 +1,5 @@
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+
 plugins {
     val kotlinVersion = "1.6.21"
 
@@ -14,8 +16,8 @@ plugins {
     id("com.diffplug.spotless") version "6.5.1"
 }
 
+val version: String by project
 group = "com.faforever"
-version = "snapshot"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 val kotlinVersion = project.properties.get("kotlinVersion")
@@ -52,7 +54,7 @@ dependencies {
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     testImplementation("io.projectreactor:reactor-test:3.4.17")
-    var mockitoVersion = "4.5.1"
+    val mockitoVersion = "4.5.1"
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
@@ -75,6 +77,10 @@ tasks {
         kotlinOptions {
             jvmTarget = "17"
         }
+    }
+
+    named<DockerBuildImage>("dockerBuild") {
+        images.add("faforever/faf-user-service/faf-user-service:$version")
     }
 }
 
