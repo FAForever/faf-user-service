@@ -80,7 +80,8 @@ tasks {
     }
 
     named<DockerBuildImage>("dockerBuild") {
-        images.add("faforever/faf-user-service/faf-user-service:$version")
+        images.empty()
+        images.add("faforever/faf-user-service")
     }
 }
 
@@ -91,6 +92,21 @@ micronaut {
     processing {
         incremental(true)
         annotations("com.faforever.*")
+    }
+}
+
+docker {
+    registryCredentials {
+        val envUsername = System.getenv("DOCKER_USERNAME")
+        val envPassword = System.getenv("DOCKER_PASSWORD")
+
+        if (envUsername != null && envPassword != null) {
+            println("Setting up Docker registry login")
+            username.set(envUsername)
+            password.set(envPassword)
+        } else {
+            println("No docker credentials defined")
+        }
     }
 }
 
