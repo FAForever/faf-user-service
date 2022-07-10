@@ -28,7 +28,7 @@ r2dbc:
   datasources:
     default:
       dialect: MYSQL
-      url: ${ThymeleafDialectLoader:`r2dbc:mariadb://localhost:3306/faf?ssl=false`}
+      url: ${DB_R2DBC_URL:`r2dbc:mariadb://localhost:3306/faf?ssl=false`}
       username: ${DB_USERNAME:root}
       password: ${DB_PASSWORD:banana}
 #    default:
