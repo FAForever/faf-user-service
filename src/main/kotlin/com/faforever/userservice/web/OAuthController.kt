@@ -21,6 +21,7 @@ import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Header
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.QueryValue
+import io.micronaut.http.annotation.RequestAttribute
 import io.micronaut.views.ModelAndView
 import jakarta.annotation.security.PermitAll
 import org.slf4j.Logger
@@ -54,7 +55,7 @@ open class OAuthController(
         @QueryValue("login_challenge") challenge: String,
         @QueryValue("loginFailed") loginFailed: Any?,
         @QueryValue("loginThrottled") loginThrottled: Any?,
-        @QueryValue("_csrf") csrfToken: String?,
+        @RequestAttribute("_csrf") csrfToken: String,
     ): Mono<HttpResponseWithModelView> = hydraService.getLoginRequest(challenge)
         .flatMap {
             viewFactory
@@ -102,6 +103,7 @@ open class OAuthController(
     @PermitAll
     fun showConsent(
         @QueryValue("consent_challenge") challenge: String,
+        @RequestAttribute("_csrf") csrfToken: String,
     ): Mono<HttpResponseWithModelView> =
         hydraService.getConsentRequest(challenge)
             .flatMap { consentRequest ->
@@ -115,6 +117,7 @@ open class OAuthController(
             }
             .flatMap { (consentRequest, user) ->
                 viewFactory
+                    .with("_csrf", csrfToken)
                     .with("denyForm", ConsentForm(challenge = challenge, action = DENY))
                     .with("permitForm", ConsentForm(challenge = challenge, action = PERMIT))
                     .with("consentRequest", consentRequest)
