@@ -53,7 +53,7 @@ dependencies {
 
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
 
-    testImplementation("io.projectreactor:reactor-test:3.4.17")
+    testImplementation("io.projectreactor:reactor-test:3.4.19")
     val mockitoVersion = "4.6.1"
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
