@@ -18,6 +18,12 @@ micronaut:
       public:
         paths: "classpath:public"
   security:
+    interceptUrlMap:
+      # Allow access to public resources (right under '/')
+      - pattern: "/**"
+        httpMethod: GET
+        access:
+          - isAnonymous()
     token:
       jwt:
         signatures:
