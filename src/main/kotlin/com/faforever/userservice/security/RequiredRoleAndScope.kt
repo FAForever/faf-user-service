@@ -8,6 +8,8 @@ import io.micronaut.web.router.MethodBasedRouteMatch
 import io.micronaut.web.router.RouteMatch
 import jakarta.inject.Singleton
 import org.reactivestreams.Publisher
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
@@ -20,6 +22,10 @@ annotation class RequiredRoleAndScope(
 
 @Singleton
 class RequiredRoleAndScopeRule : SecurityRule {
+    companion object {
+        val LOG: Logger = LoggerFactory.getLogger(RequiredRoleAndScopeRule::class.java)
+    }
+
     override fun check(
         request: HttpRequest<*>,
         routeMatch: RouteMatch<*>?,
@@ -41,11 +47,18 @@ class RequiredRoleAndScopeRule : SecurityRule {
                     val scope = annotation.stringValue("scope").get()
                     val role = annotation.stringValue("role").get()
 
-                    if (authentication.scopes.contains(scope) && authentication.roles.contains(role)) {
-                        SecurityRuleResult.ALLOWED
-                    } else {
+                    val result = if (!authentication.scopes.contains(scope)) {
+                        LOG.debug("Scope {} is not available", scope)
                         SecurityRuleResult.REJECTED
-                    }.toMono()
+                    } else if (!authentication.roles.contains(role)) {
+                        LOG.debug("Role {} is not available", scope)
+                        SecurityRuleResult.REJECTED
+                    } else {
+                        LOG.debug("Scope {} and role {} are allowed", scope, role)
+                        SecurityRuleResult.ALLOWED
+                    }
+
+                    result.toMono()
                 } else {
                     SecurityRuleResult.UNKNOWN.toMono()
                 }
