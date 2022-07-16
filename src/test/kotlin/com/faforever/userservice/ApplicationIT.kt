@@ -1,10 +1,12 @@
 package com.faforever.userservice
 
+import com.faforever.userservice.domain.AccountLinkRepository
 import com.faforever.userservice.domain.Ban
 import com.faforever.userservice.domain.BanLevel
 import com.faforever.userservice.domain.BanRepository
 import com.faforever.userservice.domain.ConsentForm
 import com.faforever.userservice.domain.FailedAttemptsSummary
+import com.faforever.userservice.domain.LinkedServiceType
 import com.faforever.userservice.domain.LoginForm
 import com.faforever.userservice.domain.LoginLogRepository
 import com.faforever.userservice.domain.User
@@ -32,6 +34,7 @@ import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
@@ -50,6 +53,7 @@ private const val USERNAME_OR_PASSWORD_WRONG = "Username or password was wrong"
 private const val TOO_MANY_FAILED_ATTEMPTS = "Too many of your login attempts have failed"
 private const val BANNED = "Ban expires at"
 private const val HYDRA_REDIRECT = "hydraRedirect"
+private const val BAD_OWNERSHIP = "Game Ownership Verification Missing"
 
 @MicronautTest()
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -67,7 +71,7 @@ class ApplicationIT : TestPropertyProvider {
         private val hydraRedirectUrl = "$baseUrl/someHydraRedirectUrl"
         private val revokeRequest = RevokeRefreshTokensRequest("1", null, true)
 
-        private val user = User(1, username, password, email, null, 0, null)
+        private val user = User(1, username, password, email, null)
         private val mockServer = ClientAndServer(mockServerPort)
     }
 
@@ -84,6 +88,10 @@ class ApplicationIT : TestPropertyProvider {
     @Mock
     @get:MockBean(UserRepository::class)
     lateinit var userRepository: UserRepository
+
+    @Mock
+    @get:MockBean(AccountLinkRepository::class)
+    lateinit var accountLinkRepository: AccountLinkRepository
 
     @Mock
     @get:MockBean(LoginLogRepository::class)
@@ -244,9 +252,9 @@ class ApplicationIT : TestPropertyProvider {
     }
 
     @Test
-    fun postLoginWithGogLinkedUserWithLobbyScope() {
-        val unlinkedUser = User(1, username, password, email, null, null, "someGogId")
-        whenever(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
+    fun postLoginWithLinkedUserWithLobbyScope() {
+        val linkedUser = User(1, username, password, email, null)
+        whenever(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(linkedUser))
         whenever(passwordEncoder.matches(password, password)).thenReturn(true)
         whenever(loginLogRepository.findFailedAttemptsByIpAfterDate(anyString(), any()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
@@ -255,6 +263,8 @@ class ApplicationIT : TestPropertyProvider {
         whenever(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.empty()
         )
+        whenever(accountLinkRepository.existsByUserIdAndServiceTypeIn(linkedUser.id, listOf(LinkedServiceType.STEAM, LinkedServiceType.GOG)))
+            .thenReturn(Mono.just(true))
 
         mockLoginRequest(scopes = listOf(OAuthScope.LOBBY))
         mockLoginAccept()
@@ -273,6 +283,7 @@ class ApplicationIT : TestPropertyProvider {
                 it.body()!!.contains(HYDRA_REDIRECT)
         }.verifyComplete()
 
+        verify(accountLinkRepository).existsByUserIdAndServiceTypeIn(linkedUser.id, listOf(LinkedServiceType.STEAM, LinkedServiceType.GOG))
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
         verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
@@ -281,9 +292,9 @@ class ApplicationIT : TestPropertyProvider {
     }
 
     @Test
-    fun postLoginWithSteamLinkedUserWithLobbyScope() {
-        val unlinkedUser = User(1, username, password, email, null, 123456L, null)
-        whenever(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
+    fun postLoginWithNonLinkedUserWithLobbyScope() {
+        val linkedUser = User(1, username, password, email, null)
+        whenever(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(linkedUser))
         whenever(passwordEncoder.matches(password, password)).thenReturn(true)
         whenever(loginLogRepository.findFailedAttemptsByIpAfterDate(anyString(), any()))
             .thenReturn(Mono.just(FailedAttemptsSummary(null, null, null, null)))
@@ -292,9 +303,11 @@ class ApplicationIT : TestPropertyProvider {
         whenever(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.empty()
         )
+        whenever(accountLinkRepository.existsByUserIdAndServiceTypeIn(linkedUser.id, listOf(LinkedServiceType.STEAM, LinkedServiceType.GOG)))
+            .thenReturn(Mono.just(false))
 
         mockLoginRequest(scopes = listOf(OAuthScope.LOBBY))
-        mockLoginAccept()
+        mockLoginReject()
 
         StepVerifier.create(
             oAuthClient.postLoginRequest(
@@ -307,9 +320,10 @@ class ApplicationIT : TestPropertyProvider {
             )
         ).expectNextMatches {
             it.status == HttpStatus.OK &&
-                it.body()!!.contains(HYDRA_REDIRECT)
+                it.body()!!.contains(BAD_OWNERSHIP)
         }.verifyComplete()
 
+        verify(accountLinkRepository).existsByUserIdAndServiceTypeIn(linkedUser.id, listOf(LinkedServiceType.STEAM, LinkedServiceType.GOG))
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
         verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
@@ -319,7 +333,7 @@ class ApplicationIT : TestPropertyProvider {
 
     @Test
     fun postLoginWithNonLinkedUserWithoutLobbyScope() {
-        val unlinkedUser = User(1, username, password, email, null, null, null)
+        val unlinkedUser = User(1, username, password, email, null)
         whenever(userRepository.findByUsernameOrEmail(username, username)).thenReturn(Mono.just(unlinkedUser))
         whenever(passwordEncoder.matches(password, password)).thenReturn(true)
         whenever(loginLogRepository.findFailedAttemptsByIpAfterDate(anyString(), any()))
@@ -347,6 +361,7 @@ class ApplicationIT : TestPropertyProvider {
                 it.body()!!.contains(HYDRA_REDIRECT)
         }.verifyComplete()
 
+        verify(accountLinkRepository, never()).existsByUserIdAndServiceTypeIn(anyLong(), any())
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
         verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())

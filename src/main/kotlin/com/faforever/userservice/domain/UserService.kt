@@ -52,6 +52,7 @@ sealed class LoginResult {
 class UserService(
     private val securityProperties: SecurityProperties,
     private val userRepository: UserRepository,
+    private val accountLinkRepository: AccountLinkRepository,
     private val loginLogRepository: LoginLogRepository,
     private val banRepository: BanRepository,
     private val hydraService: HydraService,
@@ -71,7 +72,10 @@ class UserService(
     fun findUserBySubject(subject: String) =
         userRepository.findById(subject.toInt())
 
-    private fun checkLoginThrottlingRequired(ip: String) = loginLogRepository.findFailedAttemptsByIpAfterDate(ip, LocalDateTime.now().minusDays(securityProperties.failedLoginDaysToCheck))
+    private fun checkLoginThrottlingRequired(ip: String) = loginLogRepository.findFailedAttemptsByIpAfterDate(
+        ip,
+        LocalDateTime.now().minusDays(securityProperties.failedLoginDaysToCheck)
+    )
         .map {
             val accountsAffected = it.accountsAffected ?: 0
             val totalFailedAttempts = it.totalAttempts ?: 0
@@ -83,7 +87,7 @@ class UserService(
             ) {
                 val lastAttempt = it.lastAttemptAt!!
                 if (LocalDateTime.now().minusMinutes(securityProperties.failedLoginThrottlingMinutes)
-                    .isBefore(lastAttempt)
+                        .isBefore(lastAttempt)
                 ) {
                     LOG.debug("IP '$ip' is trying again to early -> throttle it")
                     true
@@ -143,30 +147,38 @@ class UserService(
                             }
                     }
                     .switchIfEmpty {
-                        if (loginRequest.requestedScope.contains(OAuthScope.LOBBY) && !user.hasGameOwnershipVerified) {
-                            LOG.debug("Lobby login blocked for user '$usernameOrEmail' because of missing game ownership verification")
-                            hydraService.rejectLoginRequest(
-                                challenge,
-                                GenericError(HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION)
-                            )
-                                .map {
-                                    LoginResult.UserNoGameOwnership(
-                                        UriBuilder.of("/oauth2/gameVerificationFailed")
-                                            .build()
-                                            .toASCIIString()
-                                    )
-                                }
-                        } else {
-                            Mono.empty()
-                        }
-                    }
-                    .switchIfEmpty {
-                        LOG.debug("User '$usernameOrEmail' logged in successfully")
+                        if (loginRequest.requestedScope.contains(OAuthScope.LOBBY)) {
+                            accountLinkRepository.existsByUserIdAndOwnership(user.id, true).flatMap {
+                                if (it) {
+                                    LOG.debug("User '$usernameOrEmail' logged in successfully")
 
-                        hydraService.acceptLoginRequest(
-                            challenge,
-                            AcceptLoginRequest(user.id.toString())
-                        ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
+                                    hydraService.acceptLoginRequest(
+                                        challenge,
+                                        AcceptLoginRequest(user.id.toString())
+                                    ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
+                                } else {
+                                    LOG.debug("Lobby login blocked for user '$usernameOrEmail' because of missing game ownership verification")
+
+                                    hydraService.rejectLoginRequest(
+                                        challenge,
+                                        GenericError(HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION)
+                                    ).map {
+                                        LoginResult.UserNoGameOwnership(
+                                            UriBuilder.of("/oauth2/gameVerificationFailed")
+                                                .build()
+                                                .toASCIIString()
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            LOG.debug("User '$usernameOrEmail' logged in successfully")
+
+                            hydraService.acceptLoginRequest(
+                                challenge,
+                                AcceptLoginRequest(user.id.toString())
+                            ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
+                        }
                     }
             } else {
                 LOG.debug("Password for user '$usernameOrEmail' doesn't match")
