@@ -6,7 +6,6 @@ import com.faforever.userservice.domain.BanLevel
 import com.faforever.userservice.domain.BanRepository
 import com.faforever.userservice.domain.ConsentForm
 import com.faforever.userservice.domain.FailedAttemptsSummary
-import com.faforever.userservice.domain.LinkedServiceType
 import com.faforever.userservice.domain.LoginForm
 import com.faforever.userservice.domain.LoginLogRepository
 import com.faforever.userservice.domain.User
@@ -27,6 +26,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
@@ -263,7 +263,7 @@ class ApplicationIT : TestPropertyProvider {
         whenever(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.empty()
         )
-        whenever(accountLinkRepository.existsByUserIdAndServiceTypeIn(linkedUser.id, listOf(LinkedServiceType.STEAM, LinkedServiceType.GOG)))
+        whenever(accountLinkRepository.existsByUserIdAndOwnership(linkedUser.id, true))
             .thenReturn(Mono.just(true))
 
         mockLoginRequest(scopes = listOf(OAuthScope.LOBBY))
@@ -283,7 +283,7 @@ class ApplicationIT : TestPropertyProvider {
                 it.body()!!.contains(HYDRA_REDIRECT)
         }.verifyComplete()
 
-        verify(accountLinkRepository).existsByUserIdAndServiceTypeIn(linkedUser.id, listOf(LinkedServiceType.STEAM, LinkedServiceType.GOG))
+        verify(accountLinkRepository).existsByUserIdAndOwnership(linkedUser.id, true)
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
         verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
@@ -303,7 +303,7 @@ class ApplicationIT : TestPropertyProvider {
         whenever(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.empty()
         )
-        whenever(accountLinkRepository.existsByUserIdAndServiceTypeIn(linkedUser.id, listOf(LinkedServiceType.STEAM, LinkedServiceType.GOG)))
+        whenever(accountLinkRepository.existsByUserIdAndOwnership(linkedUser.id, true))
             .thenReturn(Mono.just(false))
 
         mockLoginRequest(scopes = listOf(OAuthScope.LOBBY))
@@ -323,7 +323,7 @@ class ApplicationIT : TestPropertyProvider {
                 it.body()!!.contains(BAD_OWNERSHIP)
         }.verifyComplete()
 
-        verify(accountLinkRepository).existsByUserIdAndServiceTypeIn(linkedUser.id, listOf(LinkedServiceType.STEAM, LinkedServiceType.GOG))
+        verify(accountLinkRepository).existsByUserIdAndOwnership(linkedUser.id, true)
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
         verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
@@ -361,7 +361,7 @@ class ApplicationIT : TestPropertyProvider {
                 it.body()!!.contains(HYDRA_REDIRECT)
         }.verifyComplete()
 
-        verify(accountLinkRepository, never()).existsByUserIdAndServiceTypeIn(anyLong(), any())
+        verify(accountLinkRepository, never()).existsByUserIdAndOwnership(anyLong(), anyBoolean())
         verify(userRepository).findByUsernameOrEmail(username, username)
         verify(passwordEncoder).matches(password, password)
         verify(loginLogRepository).findFailedAttemptsByIpAfterDate(anyString(), any())
