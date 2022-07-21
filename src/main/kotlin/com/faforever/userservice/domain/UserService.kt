@@ -148,8 +148,8 @@ class UserService(
                     }
                     .switchIfEmpty {
                         if (loginRequest.requestedScope.contains(OAuthScope.LOBBY)) {
-                            accountLinkRepository.existsByUserIdAndOwnership(user.id, true).flatMap {
-                                if (it) {
+                            accountLinkRepository.existsByUserIdAndOwnership(user.id, true).flatMap {exists ->
+                                if (exists) {
                                     LOG.debug("User '$usernameOrEmail' logged in successfully")
 
                                     hydraService.acceptLoginRequest(

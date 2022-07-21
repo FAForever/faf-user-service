@@ -34,7 +34,7 @@ data class AccountLink(
     @field:Id
     val id: String,
     @field:MappedProperty("user_id")
-    val userId: Long,
+    val userId: Long?,
     val ownership: Boolean,
 ) {
 
