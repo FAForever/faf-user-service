@@ -32,6 +32,7 @@ class RequiredRoleAndScopeRule : SecurityRule {
         authentication: Authentication?
     ): Publisher<SecurityRuleResult> {
         if (authentication == null) {
+            LOG.debug("No authentication available")
             return SecurityRuleResult.REJECTED.toMono()
         }
 

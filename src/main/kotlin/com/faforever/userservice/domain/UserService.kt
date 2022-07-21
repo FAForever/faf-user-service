@@ -4,12 +4,15 @@ import com.faforever.userservice.hydra.HydraService
 import com.faforever.userservice.security.OAuthScope
 import io.micronaut.context.annotation.ConfigurationProperties
 import io.micronaut.context.annotation.Context
+import io.micronaut.http.HttpStatus
+import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.http.uri.UriBuilder
 import jakarta.inject.Singleton
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.onErrorResume
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
@@ -19,6 +22,7 @@ import sh.ory.hydra.model.AcceptLoginRequest
 import sh.ory.hydra.model.ConsentRequestSession
 import sh.ory.hydra.model.GenericError
 import sh.ory.hydra.model.LoginRequest
+import sh.ory.hydra.model.RequestWasHandledResponse
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import javax.validation.constraints.NotNull
@@ -116,8 +120,12 @@ class UserService(
                         internalLogin(challenge, usernameOrEmail, password, ip, loginRequest)
                     }
             }
-        }
-        .onErrorResume { error ->
+        }.onErrorResume(HttpClientResponseException::class) { exception ->
+            handleOryGoneRedirect(exception) { redirectTo ->
+                LOG.debug("Login challenge $challenge was already solved, following Ory redirect")
+                LoginResult.SuccessfulLogin(redirectTo)
+            }
+        }.onErrorResume { error ->
             LOG.debug("Login failed with technical error for challenge $challenge", error)
             LoginResult.TechnicalError.toMono()
         }
@@ -245,5 +253,25 @@ class UserService(
                 }
             }.map {
                 it.redirectTo
+            }.onErrorResume(HttpClientResponseException::class) { exception ->
+                handleOryGoneRedirect(exception) { redirectTo ->
+                    LOG.debug("Consent challenge $challenge was already solved, following Ory redirect")
+                    redirectTo
+                }
             }
+
+    private fun <T : Any> handleOryGoneRedirect(
+        exception: HttpClientResponseException,
+        redirectMapper: (String) -> T
+    ): Mono<T> =
+        if (exception.status == HttpStatus.GONE) {
+            val mappedResponse = exception.response.getBody(RequestWasHandledResponse::class.java)
+                .map { redirectMapper(it.redirectTo) }
+                .orElseThrow()
+
+            Mono.just(mappedResponse)
+        } else {
+            // pass through unknown error
+            Mono.error(exception)
+        }
 }
