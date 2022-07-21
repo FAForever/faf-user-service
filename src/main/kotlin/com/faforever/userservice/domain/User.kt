@@ -25,7 +25,7 @@ data class User(
     val ip: String?,
     @field:MappedProperty("steamid")
     val steamId: Long?,
-    val gogId: String?,
+    val gogId: String?
 ) {
 
     override fun toString(): String =
@@ -44,7 +44,7 @@ data class Permission(
     @field:DateCreated
     val createTime: LocalDateTime = LocalDateTime.now(),
     @field:DateUpdated
-    val updateTime: LocalDateTime = LocalDateTime.now(),
+    val updateTime: LocalDateTime = LocalDateTime.now()
 )
 
 @R2dbcRepository(dialect = Dialect.MYSQL)

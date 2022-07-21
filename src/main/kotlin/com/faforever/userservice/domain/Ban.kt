@@ -27,7 +27,7 @@ data class Ban(
     val revokeTime: OffsetDateTime?,
     val reportId: Long?,
     val revokeReason: String?,
-    val revokeAuthorId: Long?,
+    val revokeAuthorId: Long?
 ) {
 
     @get:Transient

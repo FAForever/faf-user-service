@@ -26,7 +26,7 @@ import io.micronaut.core.annotation.Introspected
 data class GenericError(
     /* Name is the error name. */
     @field:JsonProperty("error")
-    val error: kotlin.String,
+    val error: kotlin.String
     /* Debug contains debug information. This is usually not available and has to be enabled. */
     // @field:JsonProperty("debug")
     // val debug: kotlin.String? = null,

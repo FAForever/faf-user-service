@@ -23,7 +23,7 @@ data class LoginLog(
     val ip: String,
     val success: Boolean,
     @field:DateCreated
-    val createTime: LocalDateTime = LocalDateTime.now(),
+    val createTime: LocalDateTime = LocalDateTime.now()
 )
 
 @Introspected
@@ -31,7 +31,7 @@ data class FailedAttemptsSummary(
     val totalAttempts: Long?,
     val accountsAffected: Long?,
     val firstAttemptAt: LocalDateTime?,
-    val lastAttemptAt: LocalDateTime?,
+    val lastAttemptAt: LocalDateTime?
 )
 
 @R2dbcRepository(dialect = Dialect.MYSQL)

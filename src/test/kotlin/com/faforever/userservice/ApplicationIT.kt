@@ -215,7 +215,7 @@ class ApplicationIT : TestPropertyProvider {
         whenever(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.just(
                 Ban(1, 1, 100, BanLevel.CHAT, "test", OffsetDateTime.MIN, null, null, null, null),
-                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, null, null, null, null),
+                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, null, null, null, null)
             )
         )
 
@@ -375,7 +375,7 @@ class ApplicationIT : TestPropertyProvider {
                     null,
                     null,
                     null
-                ),
+                )
             )
         )
 

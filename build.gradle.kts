@@ -112,7 +112,7 @@ docker {
 }
 
 spotless {
-    val ktlintVersion = "0.45.2"
+    val ktlintVersion = "0.46.1"
     kotlin {
         ktlint(ktlintVersion)
     }

@@ -28,10 +28,13 @@ import javax.validation.constraints.NotNull
 interface SecurityProperties {
     @get:NotNull
     val failedLoginAccountThreshold: Int
+
     @get:NotNull
     val failedLoginAttemptThreshold: Int
+
     @get:NotNull
     val failedLoginThrottlingMinutes: Long
+
     @get:NotNull
     val failedLoginDaysToCheck: Long
 }
@@ -52,7 +55,7 @@ class UserService(
     private val loginLogRepository: LoginLogRepository,
     private val banRepository: BanRepository,
     private val hydraService: HydraService,
-    private val passwordEncoder: PasswordEncoder,
+    private val passwordEncoder: PasswordEncoder
 ) {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(UserService::class.java)
@@ -98,7 +101,7 @@ class UserService(
         challenge: String,
         usernameOrEmail: String,
         password: String,
-        ip: String,
+        ip: String
     ): Mono<LoginResult> = checkLoginThrottlingRequired(ip)
         .flatMap { throttlingRequired ->
             if (throttlingRequired) {
@@ -126,7 +129,7 @@ class UserService(
         usernameOrEmail: String,
         password: String,
         ip: String,
-        loginRequest: LoginRequest,
+        loginRequest: LoginRequest
     ): Mono<LoginResult> = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
         .flatMap { user ->
             if (loginRequest.skip || passwordEncoder.matches(password, user.password)) {

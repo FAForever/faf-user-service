@@ -17,7 +17,7 @@ import reactor.kotlin.core.publisher.toMono
 @Retention
 annotation class RequiredRoleAndScope(
     val scope: String,
-    val role: String,
+    val role: String
 )
 
 @Singleton
