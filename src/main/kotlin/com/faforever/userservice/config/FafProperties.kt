@@ -20,4 +20,6 @@ interface FafProperties {
 
     @get:NotBlank
     val accountLinkUrl: String
+
+    val disableCsrf: Boolean
 }
