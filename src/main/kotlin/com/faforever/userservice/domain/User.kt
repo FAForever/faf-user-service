@@ -6,7 +6,6 @@ import io.micronaut.data.annotation.Id
 import io.micronaut.data.annotation.MappedEntity
 import io.micronaut.data.annotation.MappedProperty
 import io.micronaut.data.annotation.Query
-import io.micronaut.data.annotation.Transient
 import io.micronaut.data.model.query.builder.sql.Dialect
 import io.micronaut.data.r2dbc.annotation.R2dbcRepository
 import io.micronaut.data.repository.reactive.ReactorCrudRepository
@@ -23,17 +22,26 @@ data class User(
     val password: String,
     val email: String,
     val ip: String?,
-    @field:MappedProperty("steamid")
-    val steamId: Long?,
-    val gogId: String?
 ) {
 
     override fun toString(): String =
         // Do NOT expose personal information here!!
         "User(id=$id, username='$username')"
+}
 
-    @Transient
-    val hasGameOwnershipVerified = steamId != null || gogId != null
+@MappedEntity("service_links")
+data class AccountLink(
+    @field:Id
+    val id: String,
+    @field:MappedProperty("user_id")
+    val userId: Long?,
+    val ownership: Boolean,
+) {
+
+    override fun toString(): String =
+        // Do NOT expose personal information here!!
+        "AccountLink(id=$id)"
+
 }
 
 @MappedEntity("group_permission")
@@ -60,4 +68,9 @@ interface UserRepository : ReactorCrudRepository<User, Int> {
     """
     )
     fun findUserPermissions(userId: Int): Flux<Permission>
+}
+
+@R2dbcRepository(dialect = Dialect.MYSQL)
+interface AccountLinkRepository : ReactorCrudRepository<AccountLink, String> {
+    fun existsByUserIdAndOwnership(userId: Long, ownership: Boolean): Mono<Boolean>
 }
