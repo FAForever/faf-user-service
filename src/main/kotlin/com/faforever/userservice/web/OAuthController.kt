@@ -5,6 +5,7 @@ import com.faforever.userservice.domain.ConsentForm
 import com.faforever.userservice.domain.LoginForm
 import com.faforever.userservice.domain.LoginResult
 import com.faforever.userservice.domain.UserService
+import com.faforever.userservice.domain.UserService.Companion.handleOryGoneRedirect
 import com.faforever.userservice.hydra.HydraService
 import com.faforever.userservice.hydra.RevokeRefreshTokensRequest
 import com.faforever.userservice.security.FafRole
@@ -22,11 +23,13 @@ import io.micronaut.http.annotation.Header
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.http.annotation.RequestAttribute
+import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.views.ModelAndView
 import jakarta.annotation.security.PermitAll
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.onErrorResume
 import reactor.kotlin.core.publisher.toMono
 import java.net.URI
 import java.time.OffsetDateTime
@@ -66,6 +69,11 @@ open class OAuthController(
                 .with("loginThrottled", loginThrottled != null)
                 .with("loginForm", LoginForm(challenge = challenge))
                 .build("oauth2/login")
+        }.onErrorResume(HttpClientResponseException::class) { exception ->
+            handleOryGoneRedirect(exception) { redirectTo ->
+                LOG.debug("Login challenge $challenge was already solved, following Ory redirect")
+                HttpResponse.redirect(URI.create(redirectTo))
+            }
         }.onErrorResume { error ->
             LOG.error("Getting login request from Hydra failed for login challenge $challenge", error)
             viewFactory.buildError(VIEW_LOGIN_ERROR)
