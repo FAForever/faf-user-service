@@ -71,6 +71,20 @@ class UserService(
          * The user role is used to distinguish users from technical accounts.
          */
         private const val ROLE_USER = "USER"
+        fun <T : Any> handleOryGoneRedirect(
+            exception: HttpClientResponseException,
+            redirectMapper: (String) -> T
+        ): Mono<T> =
+            if (exception.status == HttpStatus.GONE) {
+                val mappedResponse = exception.response.getBody(RequestWasHandledResponse::class.java)
+                    .map { redirectMapper(it.redirectTo) }
+                    .orElseThrow()
+
+                Mono.just(mappedResponse)
+            } else {
+                // pass through unknown error
+                Mono.error(exception)
+            }
     }
 
     fun findUserBySubject(subject: String) =
@@ -91,7 +105,7 @@ class UserService(
             ) {
                 val lastAttempt = it.lastAttemptAt!!
                 if (LocalDateTime.now().minusMinutes(securityProperties.failedLoginThrottlingMinutes)
-                        .isBefore(lastAttempt)
+                    .isBefore(lastAttempt)
                 ) {
                     LOG.debug("IP '$ip' is trying again to early -> throttle it")
                     true
@@ -156,7 +170,7 @@ class UserService(
                     }
                     .switchIfEmpty {
                         if (loginRequest.requestedScope.contains(OAuthScope.LOBBY)) {
-                            accountLinkRepository.existsByUserIdAndOwnership(user.id, true).flatMap {exists ->
+                            accountLinkRepository.existsByUserIdAndOwnership(user.id, true).flatMap { exists ->
                                 if (exists) {
                                     LOG.debug("User '$usernameOrEmail' logged in successfully")
 
@@ -259,19 +273,4 @@ class UserService(
                     redirectTo
                 }
             }
-
-    private fun <T : Any> handleOryGoneRedirect(
-        exception: HttpClientResponseException,
-        redirectMapper: (String) -> T
-    ): Mono<T> =
-        if (exception.status == HttpStatus.GONE) {
-            val mappedResponse = exception.response.getBody(RequestWasHandledResponse::class.java)
-                .map { redirectMapper(it.redirectTo) }
-                .orElseThrow()
-
-            Mono.just(mappedResponse)
-        } else {
-            // pass through unknown error
-            Mono.error(exception)
-        }
 }

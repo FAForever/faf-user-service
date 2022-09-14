@@ -21,7 +21,7 @@ data class User(
     val username: String,
     val password: String,
     val email: String,
-    val ip: String?,
+    val ip: String?
 ) {
 
     override fun toString(): String =
@@ -35,13 +35,12 @@ data class AccountLink(
     val id: String,
     @field:MappedProperty("user_id")
     val userId: Long?,
-    val ownership: Boolean,
+    val ownership: Boolean
 ) {
 
     override fun toString(): String =
         // Do NOT expose personal information here!!
         "AccountLink(id=$id)"
-
 }
 
 @MappedEntity("group_permission")
