@@ -1,0 +1,23 @@
+test-resources:
+  containers:
+    mariadb:
+      image-name: mariadb:10.6
+      network: faf
+      network-aliases: faf-db
+    ory-hydra:
+      image-name: oryd/hydra:v1.11.7
+      network: faf
+      network-aliases: faf-ory-hydra
+      command: serve all -c /hydra.yaml --dangerous-force-http
+      hostnames:
+        - hydra.host
+      exposed-ports:
+        - hydra.port: 4445
+      ro-fs-bind:
+        - classpath:/hydra.yaml: /hydra.yaml
+
+r2dbc:
+  datasources:
+    default:
+      db-type: mariadb
+      dialect: MYSQL

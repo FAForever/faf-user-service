@@ -13,6 +13,7 @@ import com.faforever.userservice.hydra.RevokeRefreshTokensRequest
 import com.faforever.userservice.security.FafRole
 import com.faforever.userservice.security.FafUserAuthentication
 import com.faforever.userservice.security.OAuthScope
+import io.micronaut.context.annotation.Value
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.EmbeddedApplication
@@ -80,6 +81,12 @@ class ApplicationIT : TestPropertyProvider {
         verifyNoMoreInteractions(userRepository, loginLogRepository, banRepository)
         mockServer.reset()
     }
+
+    @Value("\${hydra.host}")
+    private val hydraHost: String? = null
+
+    @Value("\${hydra.port}")
+    private val hydraPort: String? = null
 
     @Mock
     @get:MockBean(UserRepository::class)
