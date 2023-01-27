@@ -13,7 +13,7 @@ plugins {
     // // OpenAPI code generation
     // id("org.openapi.generator") version "4.3.1"
     // Code formatting
-    id("com.diffplug.spotless") version "6.9.1"
+    id("com.diffplug.spotless") version "6.14.0"
 }
 
 val version: String by project
