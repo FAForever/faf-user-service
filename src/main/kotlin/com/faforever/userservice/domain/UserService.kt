@@ -91,7 +91,7 @@ class UserService(
             ) {
                 val lastAttempt = it.lastAttemptAt!!
                 if (LocalDateTime.now().minusMinutes(securityProperties.failedLoginThrottlingMinutes)
-                        .isBefore(lastAttempt)
+                    .isBefore(lastAttempt)
                 ) {
                     LOG.debug("IP '$ip' is trying again to early -> throttle it")
                     true
@@ -156,7 +156,7 @@ class UserService(
                     }
                     .switchIfEmpty {
                         if (loginRequest.requestedScope.contains(OAuthScope.LOBBY)) {
-                            accountLinkRepository.existsByUserIdAndOwnership(user.id, true).flatMap {exists ->
+                            accountLinkRepository.existsByUserIdAndOwnership(user.id, true).flatMap { exists ->
                                 if (exists) {
                                     LOG.debug("User '$usernameOrEmail' logged in successfully")
 
