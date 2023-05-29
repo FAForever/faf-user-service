@@ -27,14 +27,16 @@ interface HydraService {
 
     // accepting login request more than once throws HTTP 409 - Conflict
     @Put("/oauth2/auth/requests/login/accept?login_challenge={challenge}")
-    fun acceptLoginRequest(@NotBlank challenge: String, @Body acceptLoginRequest: AcceptLoginRequest): Mono<RedirectResponse>
+    fun acceptLoginRequest(@NotBlank challenge: String, @Body acceptLoginRequest: AcceptLoginRequest):
+        Mono<RedirectResponse>
 
     @Put("/oauth2/auth/requests/login/reject?login_challenge={challenge}")
     fun rejectLoginRequest(@NotBlank challenge: String, @Body error: GenericError): Mono<RedirectResponse>
 
     // accepting consent more than once does not cause an error
     @Put("/oauth2/auth/requests/consent/accept?consent_challenge={challenge}")
-    fun acceptConsentRequest(@NotBlank challenge: String, @Body acceptConsentRequest: AcceptConsentRequest): Mono<RedirectResponse>
+    fun acceptConsentRequest(@NotBlank challenge: String, @Body acceptConsentRequest: AcceptConsentRequest):
+        Mono<RedirectResponse>
 
     // rejecting consent more than once does not cause an error
     @Put("/oauth2/auth/requests/consent/reject?consent_challenge={challenge}")

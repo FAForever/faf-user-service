@@ -88,7 +88,10 @@ open class OAuthController(
         request: HttpRequest<Any>
     ): Mono<HttpResponseWithModelView> {
         val ip = if (reverseProxyIp != null) reverseProxyIp else {
-            LOG.warn("IP address from reverse proxy missing. Please make sure this service runs behind a reverse proxy. Falling back to remote address.")
+            LOG.warn(
+                "IP address from reverse proxy missing. Please make sure this service runs behind a reverse " +
+                    "proxy. Falling back to remote address."
+            )
             request.remoteAddress.address?.hostAddress.toString()
         }
 

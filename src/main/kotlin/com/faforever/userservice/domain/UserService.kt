@@ -179,7 +179,10 @@ class UserService(
                                         AcceptLoginRequest(user.id.toString())
                                     ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
                                 } else {
-                                    LOG.debug("Lobby login blocked for user '$usernameOrEmail' because of missing game ownership verification")
+                                    LOG.debug(
+                                        "Lobby login blocked for user '$usernameOrEmail' " +
+                                            "because of missing game ownership verification"
+                                    )
 
                                     hydraService.rejectLoginRequest(
                                         challenge,
