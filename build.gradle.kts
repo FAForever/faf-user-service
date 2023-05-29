@@ -1,7 +1,7 @@
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
 plugins {
-    val kotlinVersion = "1.6.21"
+    val kotlinVersion = "1.8.21"
 
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
