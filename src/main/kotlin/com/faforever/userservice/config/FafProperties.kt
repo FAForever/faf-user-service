@@ -9,6 +9,13 @@ import javax.validation.constraints.NotBlank
 interface FafProperties {
     val environment: String?
 
+    /**
+     * Define the header, where to pick the real ip address from. For regular reverse proxies such as nginx or Traefik,
+     * this is X-Real-Ip. However, in certain scenarios such as Cloudflare proxy different headers might be required.
+     */
+    @get:NotBlank
+    val realIpHeader: String
+
     @get:NotBlank
     val hydraBaseUrl: String
 

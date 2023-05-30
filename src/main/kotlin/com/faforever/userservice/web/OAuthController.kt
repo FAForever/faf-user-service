@@ -19,7 +19,6 @@ import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Header
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.http.annotation.RequestAttribute
@@ -83,10 +82,10 @@ open class OAuthController(
     @PermitAll
     fun performLogin(
         @Body loginForm: LoginForm,
-        @Header("X-Real-Ip") reverseProxyIp: String?,
         @QueryValue("_csrf") csrfToken: String,
         request: HttpRequest<Any>,
     ): Mono<HttpResponseWithModelView> {
+        val reverseProxyIp = request.headers[properties.realIpHeader]
         val ip = if (reverseProxyIp != null) {
             reverseProxyIp
         } else {
