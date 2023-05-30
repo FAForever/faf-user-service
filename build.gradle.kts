@@ -37,6 +37,8 @@ dependencies {
     implementation("io.micronaut:micronaut-runtime")
     implementation("io.micronaut.security:micronaut-security-jwt")
     implementation("io.micronaut.data:micronaut-data-r2dbc")
+    // Workaround for https://github.com/micronaut-projects/micronaut-r2dbc/issues/377
+    implementation("io.r2dbc:r2dbc-pool")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
     implementation("io.micronaut.views:micronaut-views-thymeleaf")
     implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.2.1")
