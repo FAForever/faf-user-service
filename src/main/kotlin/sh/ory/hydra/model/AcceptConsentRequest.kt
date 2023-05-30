@@ -39,5 +39,5 @@ data class AcceptConsentRequest(
     @field:JsonProperty("remember_for")
     val rememberFor: kotlin.Long? = null,
     @field:JsonProperty("session")
-    val session: ConsentRequestSession? = null
+    val session: ConsentRequestSession? = null,
 )

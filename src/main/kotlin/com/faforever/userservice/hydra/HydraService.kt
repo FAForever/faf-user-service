@@ -46,6 +46,6 @@ interface HydraService {
     fun revokeRefreshTokens(
         @QueryValue subject: String,
         @QueryValue all: Boolean?,
-        @QueryValue client: String?
+        @QueryValue client: String?,
     ): Mono<HttpResponse<Unit>>
 }

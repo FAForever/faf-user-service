@@ -20,22 +20,22 @@ interface OAuthClient {
     @Post("/login", produces = [MediaType.APPLICATION_FORM_URLENCODED])
     fun postLoginRequest(
         @QueryValue("_csrf") csrfToken: String,
-        @Body loginForm: LoginForm
+        @Body loginForm: LoginForm,
     ): Mono<HttpResponse<String>>
 
     @Get("/consent", produces = [MediaType.APPLICATION_FORM_URLENCODED])
     fun getConsentRequest(
-        @QueryValue("consent_challenge") challenge: String
+        @QueryValue("consent_challenge") challenge: String,
     ): Mono<HttpResponse<String>>
 
     @Post("/consent", produces = [MediaType.APPLICATION_FORM_URLENCODED])
     fun postConsentRequest(
         @QueryValue("_csrf") csrfToken: String,
-        @Body challengeForm: ConsentForm
+        @Body challengeForm: ConsentForm,
     ): Mono<HttpResponse<String>>
 
     @Post("/revokeTokens")
     fun revokeTokens(
-        @Body revokeRefreshTokensRequest: RevokeRefreshTokensRequest
+        @Body revokeRefreshTokensRequest: RevokeRefreshTokensRequest,
     ): Mono<Unit>
 }

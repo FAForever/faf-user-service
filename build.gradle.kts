@@ -112,7 +112,7 @@ docker {
 }
 
 spotless {
-    val ktlintVersion = "0.46.1"
+    val ktlintVersion = "0.49.1"
     kotlin {
         ktlint(ktlintVersion)
     }
@@ -185,7 +185,7 @@ tasks.withType<Test> {
                         --------------------------------------------------------------------------
                         Results: $summaryStyle${result.resultType}$ANSI_RESET (${result.testCount} tests, $successStyle${result.successfulTestCount} passed$ANSI_RESET, $failStyle${result.failedTestCount} failed$ANSI_RESET, $skipStyle${result.skippedTestCount} skipped$ANSI_RESET)
                         --------------------------------------------------------------------------
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }
         }

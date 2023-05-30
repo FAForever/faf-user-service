@@ -21,7 +21,7 @@ data class User(
     val username: String,
     val password: String,
     val email: String,
-    val ip: String?
+    val ip: String?,
 ) {
 
     override fun toString(): String =
@@ -35,7 +35,7 @@ data class AccountLink(
     val id: String,
     @field:MappedProperty("user_id")
     val userId: Long?,
-    val ownership: Boolean
+    val ownership: Boolean,
 ) {
 
     override fun toString(): String =
@@ -51,7 +51,7 @@ data class Permission(
     @field:DateCreated
     val createTime: LocalDateTime = LocalDateTime.now(),
     @field:DateUpdated
-    val updateTime: LocalDateTime = LocalDateTime.now()
+    val updateTime: LocalDateTime = LocalDateTime.now(),
 )
 
 @R2dbcRepository(dialect = Dialect.MYSQL)
@@ -64,7 +64,7 @@ interface UserRepository : ReactorCrudRepository<User, Int> {
         INNER JOIN group_permission_assignment gpa ON uga.group_id = gpa.group_id
         INNER JOIN group_permission ON gpa.permission_id = group_permission.id
         WHERE uga.user_id = :userId;
-    """
+    """,
     )
     fun findUserPermissions(userId: Int): Flux<Permission>
 }

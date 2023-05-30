@@ -12,7 +12,7 @@ class OffsetDateTimeConverter : TypeConverter<String?, OffsetDateTime> {
     override fun convert(
         inputDateTime: String?,
         targetType: Class<OffsetDateTime>,
-        context: ConversionContext
+        context: ConversionContext,
     ): Optional<OffsetDateTime> {
         if (inputDateTime != null) {
             try {

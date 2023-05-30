@@ -62,5 +62,5 @@ data class ConsentRequest(
     val skip: kotlin.Boolean? = null,
     /* Subject is the user ID of the end-user that authenticated. Now, that end user needs to grant or deny the scope requested by the OAuth 2.0 client. */
     @field:JsonProperty("subject")
-    val subject: kotlin.String? = null
+    val subject: kotlin.String? = null,
 )

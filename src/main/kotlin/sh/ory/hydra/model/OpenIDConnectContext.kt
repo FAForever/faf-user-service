@@ -39,5 +39,5 @@ data class OpenIDConnectContext(
     val loginHint: kotlin.String? = null,
     /* UILocales is the End-User'id preferred languages and scripts for the user interface, represented as a space-separated list of BCP47 [RFC5646] language tag values, ordered by preference. For instance, the value \"fr-CA fr en\" represents a preference for French as spoken in Canada, then French (without a region designation), followed by English (without a region designation). An error SHOULD NOT result if some or all of the requested locales are not supported by the OpenID Provider. */
     @field:JsonProperty("ui_locales")
-    val uiLocales: kotlin.collections.List<kotlin.String>? = null
+    val uiLocales: kotlin.collections.List<kotlin.String>? = null,
 )

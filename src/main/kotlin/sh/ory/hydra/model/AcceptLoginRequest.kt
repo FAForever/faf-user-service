@@ -42,5 +42,5 @@ data class AcceptLoginRequest(
     val remember: kotlin.Boolean? = null,
     /* RememberFor sets how long the authentication should be remembered for in seconds. If set to `0`, the authorization will be remembered for the duration of the browser session (using a session cookie). */
     @field:JsonProperty("remember_for")
-    val rememberFor: kotlin.Long? = null
+    val rememberFor: kotlin.Long? = null,
 )

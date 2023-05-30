@@ -17,7 +17,7 @@ import reactor.kotlin.core.publisher.toMono
 @Retention
 annotation class RequiredRoleAndScope(
     val scope: String,
-    val role: String
+    val role: String,
 )
 
 @Singleton
@@ -29,7 +29,7 @@ class RequiredRoleAndScopeRule : SecurityRule {
     override fun check(
         request: HttpRequest<*>,
         routeMatch: RouteMatch<*>?,
-        authentication: Authentication?
+        authentication: Authentication?,
     ): Publisher<SecurityRuleResult> {
         if (authentication == null) {
             LOG.debug("No authentication available")

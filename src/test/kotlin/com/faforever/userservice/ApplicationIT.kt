@@ -76,7 +76,7 @@ class ApplicationIT : TestPropertyProvider {
     }
 
     override fun getProperties(): Map<String, String> = mutableMapOf(
-        "faf.hydra-base-url" to baseUrl
+        "faf.hydra-base-url" to baseUrl,
     )
 
     @AfterEach
@@ -134,9 +134,9 @@ class ApplicationIT : TestPropertyProvider {
                 LoginForm(
                     challenge,
                     username,
-                    password
-                )
-            )
+                    password,
+                ),
+            ),
         ).expectNextMatches {
             it.status == HttpStatus.OK &&
                 it.body()!!.contains(USERNAME_OR_PASSWORD_WRONG)
@@ -156,9 +156,9 @@ class ApplicationIT : TestPropertyProvider {
                         100,
                         1,
                         LocalDateTime.now().minusMinutes(1),
-                        LocalDateTime.now().minusSeconds(10)
-                    )
-                )
+                        LocalDateTime.now().minusSeconds(10),
+                    ),
+                ),
             )
 
         mockLoginRequest()
@@ -170,9 +170,9 @@ class ApplicationIT : TestPropertyProvider {
                 LoginForm(
                     challenge,
                     username,
-                    password
-                )
-            )
+                    password,
+                ),
+            ),
         ).expectNextMatches {
             it.status == HttpStatus.OK &&
                 it.body()!!.contains(TOO_MANY_FAILED_ATTEMPTS)
@@ -198,9 +198,9 @@ class ApplicationIT : TestPropertyProvider {
                 LoginForm(
                     challenge,
                     username,
-                    password
-                )
-            )
+                    password,
+                ),
+            ),
         ).expectNextMatches {
             it.status == HttpStatus.OK &&
                 it.body()!!.contains(USERNAME_OR_PASSWORD_WRONG)
@@ -223,8 +223,8 @@ class ApplicationIT : TestPropertyProvider {
         whenever(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
             Flux.just(
                 Ban(1, 1, 100, BanLevel.CHAT, "test", OffsetDateTime.MIN, null, null, null, null),
-                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, null, null, null, null)
-            )
+                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, null, null, null, null),
+            ),
         )
 
         mockLoginRequest()
@@ -236,9 +236,9 @@ class ApplicationIT : TestPropertyProvider {
                 LoginForm(
                     challenge,
                     username,
-                    password
-                )
-            )
+                    password,
+                ),
+            ),
         ).expectNextMatches {
             it.status == HttpStatus.OK &&
                 it.body()!!.contains(BANNED)
@@ -261,7 +261,7 @@ class ApplicationIT : TestPropertyProvider {
         whenever(loginLogRepository.save(anyOrNull()))
             .thenAnswer { Mono.just(it.arguments[0]) }
         whenever(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
-            Flux.empty()
+            Flux.empty(),
         )
         whenever(accountLinkRepository.existsByUserIdAndOwnership(linkedUser.id, true))
             .thenReturn(Mono.just(true))
@@ -275,9 +275,9 @@ class ApplicationIT : TestPropertyProvider {
                 LoginForm(
                     challenge,
                     username,
-                    password
-                )
-            )
+                    password,
+                ),
+            ),
         ).expectNextMatches {
             it.status == HttpStatus.OK &&
                 it.body()!!.contains(HYDRA_REDIRECT)
@@ -301,7 +301,7 @@ class ApplicationIT : TestPropertyProvider {
         whenever(loginLogRepository.save(anyOrNull()))
             .thenAnswer { Mono.just(it.arguments[0]) }
         whenever(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
-            Flux.empty()
+            Flux.empty(),
         )
         whenever(accountLinkRepository.existsByUserIdAndOwnership(linkedUser.id, true))
             .thenReturn(Mono.just(false))
@@ -315,9 +315,9 @@ class ApplicationIT : TestPropertyProvider {
                 LoginForm(
                     challenge,
                     username,
-                    password
-                )
-            )
+                    password,
+                ),
+            ),
         ).expectNextMatches {
             it.status == HttpStatus.OK &&
                 it.body()!!.contains(BAD_OWNERSHIP)
@@ -341,7 +341,7 @@ class ApplicationIT : TestPropertyProvider {
         whenever(loginLogRepository.save(anyOrNull()))
             .thenAnswer { Mono.just(it.arguments[0]) }
         whenever(banRepository.findAllByPlayerIdAndLevel(anyLong(), anyOrNull())).thenReturn(
-            Flux.empty()
+            Flux.empty(),
         )
 
         mockLoginRequest()
@@ -353,9 +353,9 @@ class ApplicationIT : TestPropertyProvider {
                 LoginForm(
                     challenge,
                     username,
-                    password
-                )
-            )
+                    password,
+                ),
+            ),
         ).expectNextMatches {
             it.status == HttpStatus.OK &&
                 it.body()!!.contains(HYDRA_REDIRECT)
@@ -389,9 +389,9 @@ class ApplicationIT : TestPropertyProvider {
                     OffsetDateTime.now().minusDays(1),
                     null,
                     null,
-                    null
-                )
-            )
+                    null,
+                ),
+            ),
         )
 
         mockLoginRequest()
@@ -403,9 +403,9 @@ class ApplicationIT : TestPropertyProvider {
                 LoginForm(
                     challenge,
                     username,
-                    password
-                )
-            )
+                    password,
+                ),
+            ),
         ).expectNextMatches {
             it.status == HttpStatus.OK &&
                 it.body()!!.contains(HYDRA_REDIRECT)
@@ -425,7 +425,7 @@ class ApplicationIT : TestPropertyProvider {
         mockConsentRequest()
 
         StepVerifier.create(
-            oAuthClient.getConsentRequest(challenge)
+            oAuthClient.getConsentRequest(challenge),
         ).expectNextMatches {
             it.status == HttpStatus.OK
         }.verifyComplete()
@@ -442,7 +442,7 @@ class ApplicationIT : TestPropertyProvider {
         mockConsentAccept()
 
         StepVerifier.create(
-            oAuthClient.postConsentRequest(CSRF_TOKEN, ConsentForm(challenge, "permit"))
+            oAuthClient.postConsentRequest(CSRF_TOKEN, ConsentForm(challenge, "permit")),
         ).expectNextMatches {
             it.status == HttpStatus.OK &&
                 it.body()!!.contains(HYDRA_REDIRECT)
@@ -459,7 +459,7 @@ class ApplicationIT : TestPropertyProvider {
         mockHydraRedirect()
 
         StepVerifier.create(
-            oAuthClient.postConsentRequest(CSRF_TOKEN, ConsentForm(challenge, "deny"))
+            oAuthClient.postConsentRequest(CSRF_TOKEN, ConsentForm(challenge, "deny")),
         ).expectNextMatches {
             it.status == HttpStatus.OK &&
                 it.body()!!.contains(HYDRA_REDIRECT)
@@ -476,12 +476,12 @@ class ApplicationIT : TestPropertyProvider {
                 username,
                 listOf(OAuthScope.ADMINISTRATIVE_ACTION),
                 listOf(FafRole.ADMIN_ACCOUNT_BAN),
-                mapOf()
-            )
+                mapOf(),
+            ),
         )
 
         StepVerifier.create(
-            oAuthClient.revokeTokens(revokeRequest)
+            oAuthClient.revokeTokens(revokeRequest),
         )
             .expectNextCount(1)
             .verifyComplete()
@@ -497,12 +497,12 @@ class ApplicationIT : TestPropertyProvider {
                 username,
                 listOf(OAuthScope.ADMINISTRATIVE_ACTION),
                 listOf(),
-                mapOf()
-            )
+                mapOf(),
+            ),
         )
 
         StepVerifier.create(
-            oAuthClient.revokeTokens(revokeRequest)
+            oAuthClient.revokeTokens(revokeRequest),
         ).expectErrorMatches {
             it is HttpClientResponseException &&
                 it.status == HttpStatus.FORBIDDEN
@@ -519,12 +519,12 @@ class ApplicationIT : TestPropertyProvider {
                 username,
                 listOf(),
                 listOf(FafRole.ADMIN_ACCOUNT_BAN),
-                mapOf()
-            )
+                mapOf(),
+            ),
         )
 
         StepVerifier.create(
-            oAuthClient.revokeTokens(revokeRequest)
+            oAuthClient.revokeTokens(revokeRequest),
         ).expectErrorMatches {
             it is HttpClientResponseException &&
                 it.status == HttpStatus.FORBIDDEN
@@ -536,7 +536,7 @@ class ApplicationIT : TestPropertyProvider {
             HttpRequest.request()
                 .withMethod("GET")
                 .withPath("/oauth2/auth/requests/login")
-                .withQueryStringParameter("login_challenge", challenge)
+                .withQueryStringParameter("login_challenge", challenge),
         ).respond(
             HttpResponse.response()
                 .withStatusCode(200)
@@ -552,8 +552,8 @@ class ApplicationIT : TestPropertyProvider {
                         "skip": false,
                         "subject": "1"
                     }
-                    """.trimIndent()
-                )
+                    """.trimIndent(),
+                ),
         )
     }
 
@@ -562,7 +562,7 @@ class ApplicationIT : TestPropertyProvider {
             HttpRequest.request()
                 .withMethod("PUT")
                 .withPath("/oauth2/auth/requests/login/accept")
-                .withQueryStringParameter("login_challenge", challenge)
+                .withQueryStringParameter("login_challenge", challenge),
         ).respond(
             HttpResponse.response()
                 .withStatusCode(200)
@@ -572,8 +572,8 @@ class ApplicationIT : TestPropertyProvider {
                         {
                             "redirect_to": "$hydraRedirectUrl"
                         }
-                    """.trimIndent()
-                )
+                    """.trimIndent(),
+                ),
         )
 
         mockHydraRedirect()
@@ -584,7 +584,7 @@ class ApplicationIT : TestPropertyProvider {
             HttpRequest.request()
                 .withMethod("PUT")
                 .withPath("/oauth2/auth/requests/login/reject")
-                .withQueryStringParameter("login_challenge", challenge)
+                .withQueryStringParameter("login_challenge", challenge),
         ).respond(
             HttpResponse.response()
                 .withStatusCode(200)
@@ -594,8 +594,8 @@ class ApplicationIT : TestPropertyProvider {
                         {
                             "redirect_to": "$hydraRedirectUrl"
                         }
-                    """.trimIndent()
-                )
+                    """.trimIndent(),
+                ),
         )
     }
 
@@ -604,7 +604,7 @@ class ApplicationIT : TestPropertyProvider {
             HttpRequest.request()
                 .withMethod("GET")
                 .withPath("/oauth2/auth/requests/consent")
-                .withQueryStringParameter("consent_challenge", challenge)
+                .withQueryStringParameter("consent_challenge", challenge),
         ).respond(
             HttpResponse.response()
                 .withStatusCode(200)
@@ -620,8 +620,8 @@ class ApplicationIT : TestPropertyProvider {
                         "skip": false,
                         "subject": "1"
                     }
-                    """.trimIndent()
-                )
+                    """.trimIndent(),
+                ),
         )
     }
 
@@ -630,7 +630,7 @@ class ApplicationIT : TestPropertyProvider {
             HttpRequest.request()
                 .withMethod("PUT")
                 .withPath("/oauth2/auth/requests/consent/accept")
-                .withQueryStringParameter("consent_challenge", challenge)
+                .withQueryStringParameter("consent_challenge", challenge),
         ).respond(
             HttpResponse.response()
                 .withStatusCode(200)
@@ -640,8 +640,8 @@ class ApplicationIT : TestPropertyProvider {
                         {
                             "redirect_to": "$hydraRedirectUrl"
                         }
-                    """.trimIndent()
-                )
+                    """.trimIndent(),
+                ),
         )
 
         mockHydraRedirect()
@@ -652,7 +652,7 @@ class ApplicationIT : TestPropertyProvider {
             HttpRequest.request()
                 .withMethod("PUT")
                 .withPath("/oauth2/auth/requests/consent/reject")
-                .withQueryStringParameter("consent_challenge", challenge)
+                .withQueryStringParameter("consent_challenge", challenge),
         ).respond(
             HttpResponse.response()
                 .withStatusCode(200)
@@ -662,8 +662,8 @@ class ApplicationIT : TestPropertyProvider {
                         {
                             "redirect_to": "$hydraRedirectUrl"
                         }
-                    """.trimIndent()
-                )
+                    """.trimIndent(),
+                ),
         )
     }
 
@@ -674,15 +674,17 @@ class ApplicationIT : TestPropertyProvider {
                 .withPath("/oauth2/auth/sessions/consent")
                 .withQueryStringParameter("all", if (revokeRequest.all != null) revokeRequest.all.toString() else "")
                 .apply {
-                    if (revokeRequest.client != null) withQueryStringParameter(
-                        "client",
-                        revokeRequest.client.toString()
-                    )
+                    if (revokeRequest.client != null) {
+                        withQueryStringParameter(
+                            "client",
+                            revokeRequest.client.toString(),
+                        )
+                    }
                 }
-                .withQueryStringParameter("subject", revokeRequest.subject)
+                .withQueryStringParameter("subject", revokeRequest.subject),
         ).respond(
             HttpResponse.response()
-                .withStatusCode(204)
+                .withStatusCode(204),
         )
     }
 
@@ -690,12 +692,12 @@ class ApplicationIT : TestPropertyProvider {
         mockServer.`when`(
             HttpRequest.request()
                 .withMethod("GET")
-                .withPath("/someHydraRedirectUrl")
+                .withPath("/someHydraRedirectUrl"),
         ).respond(
             HttpResponse.response()
                 .withStatusCode(200)
                 .withHeader("Content-Type", "application/json; charset=utf-8")
-                .withBody(HYDRA_REDIRECT)
+                .withBody(HYDRA_REDIRECT),
         )
     }
 }

@@ -34,8 +34,8 @@ class FafJwtAuthenticationFactory : JwtAuthenticationFactory {
                     extensions["username"] as String,
                     attributes["scp"] as List<String>,
                     extensions["roles"] as List<String>,
-                    attributes
-                )
+                    attributes,
+                ),
             )
         } catch (e: ParseException) {
             LOG.error("ParseException creating authentication", e)

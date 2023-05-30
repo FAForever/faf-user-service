@@ -44,7 +44,7 @@ open class OAuthController(
     private val userService: UserService,
     private val properties: FafProperties,
     private val hydraService: HydraService,
-    private val viewFactory: ReactiveModelAndViewFactory
+    private val viewFactory: ReactiveModelAndViewFactory,
 ) {
     companion object {
         val LOG: Logger = LoggerFactory.getLogger(OAuthController::class.java)
@@ -58,7 +58,7 @@ open class OAuthController(
         @QueryValue("login_challenge") challenge: String,
         @QueryValue("loginFailed") loginFailed: Any?,
         @QueryValue("loginThrottled") loginThrottled: Any?,
-        @RequestAttribute("_csrf") csrfToken: String
+        @RequestAttribute("_csrf") csrfToken: String,
     ): Mono<HttpResponseWithModelView> = hydraService.getLoginRequest(challenge)
         .flatMap {
             viewFactory
@@ -85,12 +85,14 @@ open class OAuthController(
         @Body loginForm: LoginForm,
         @Header("X-Real-Ip") reverseProxyIp: String?,
         @QueryValue("_csrf") csrfToken: String,
-        request: HttpRequest<Any>
+        request: HttpRequest<Any>,
     ): Mono<HttpResponseWithModelView> {
-        val ip = if (reverseProxyIp != null) reverseProxyIp else {
+        val ip = if (reverseProxyIp != null) {
+            reverseProxyIp
+        } else {
             LOG.warn(
                 "IP address from reverse proxy missing. Please make sure this service runs behind a reverse " +
-                    "proxy. Falling back to remote address."
+                    "proxy. Falling back to remote address.",
             )
             request.remoteAddress.address?.hostAddress.toString()
         }
@@ -114,7 +116,7 @@ open class OAuthController(
     @PermitAll
     fun showConsent(
         @QueryValue("consent_challenge") challenge: String,
-        @RequestAttribute("_csrf") csrfToken: String
+        @RequestAttribute("_csrf") csrfToken: String,
     ): Mono<HttpResponseWithModelView> =
         hydraService.getConsentRequest(challenge)
             .flatMap { consentRequest ->
@@ -144,7 +146,7 @@ open class OAuthController(
     @Post("/consent", consumes = [MediaType.APPLICATION_FORM_URLENCODED])
     @PermitAll
     fun decideConsent(
-        @Body consentForm: ConsentForm
+        @Body consentForm: ConsentForm,
     ): Mono<HttpResponseWithModelView> =
         userService.decideConsent(consentForm.challenge!!, consentForm.action == PERMIT)
             .flatMap { redirectUrl ->
@@ -157,18 +159,19 @@ open class OAuthController(
     @Post("/revokeTokens")
     @RequiredRoleAndScope(OAuthScope.ADMINISTRATIVE_ACTION, FafRole.ADMIN_ACCOUNT_BAN)
     fun revokeRefreshTokens(
-        @Body revokeRefreshTokensRequest: RevokeRefreshTokensRequest
+        @Body revokeRefreshTokensRequest: RevokeRefreshTokensRequest,
     ): Mono<Unit> {
         LOG.info(
             "Revoking consent sessions for subject `{}` on client `{}`",
             revokeRefreshTokensRequest.subject,
-            if (revokeRefreshTokensRequest.all == true || revokeRefreshTokensRequest.client == null) "all"
-            else revokeRefreshTokensRequest.client
+            if (revokeRefreshTokensRequest.all == true || revokeRefreshTokensRequest.client == null) {
+                "all"
+            } else revokeRefreshTokensRequest.client,
         )
         return hydraService.revokeRefreshTokens(
             revokeRefreshTokensRequest.subject,
             revokeRefreshTokensRequest.all,
-            revokeRefreshTokensRequest.client
+            revokeRefreshTokensRequest.client,
         ).map {
             if (it.status != HttpStatus.NO_CONTENT) {
                 LOG.error("Revoking tokens from Hydra failed for request: $revokeRefreshTokensRequest")

@@ -27,5 +27,5 @@ data class ConsentRequestSession(
     val accessToken: kotlin.Any? = null,
     /* IDToken sets session data for the OpenID Connect ID token. Keep in mind that the session'id payloads are readable by anyone that has access to the ID Challenge. Use with care! */
     @field:JsonProperty("id_token")
-    val idToken: kotlin.Any? = null
+    val idToken: kotlin.Any? = null,
 )

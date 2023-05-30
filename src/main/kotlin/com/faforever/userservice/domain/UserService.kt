@@ -60,7 +60,7 @@ class UserService(
     private val loginLogRepository: LoginLogRepository,
     private val banRepository: BanRepository,
     private val hydraService: HydraService,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
 ) {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(UserService::class.java)
@@ -73,7 +73,7 @@ class UserService(
         private const val ROLE_USER = "USER"
         fun <T : Any> handleOryGoneRedirect(
             exception: HttpClientResponseException,
-            redirectMapper: (String) -> T
+            redirectMapper: (String) -> T,
         ): Mono<T> =
             if (exception.status == HttpStatus.GONE) {
                 val mappedResponse = exception.response.getBody(RequestWasHandledResponse::class.java)
@@ -92,7 +92,7 @@ class UserService(
 
     private fun checkLoginThrottlingRequired(ip: String) = loginLogRepository.findFailedAttemptsByIpAfterDate(
         ip,
-        LocalDateTime.now().minusDays(securityProperties.failedLoginDaysToCheck)
+        LocalDateTime.now().minusDays(securityProperties.failedLoginDaysToCheck),
     )
         .map {
             val accountsAffected = it.accountsAffected ?: 0
@@ -105,7 +105,7 @@ class UserService(
             ) {
                 val lastAttempt = it.lastAttemptAt!!
                 if (LocalDateTime.now().minusMinutes(securityProperties.failedLoginThrottlingMinutes)
-                    .isBefore(lastAttempt)
+                        .isBefore(lastAttempt)
                 ) {
                     LOG.debug("IP '$ip' is trying again to early -> throttle it")
                     true
@@ -123,7 +123,7 @@ class UserService(
         challenge: String,
         usernameOrEmail: String,
         password: String,
-        ip: String
+        ip: String,
     ): Mono<LoginResult> = checkLoginThrottlingRequired(ip)
         .flatMap { throttlingRequired ->
             if (throttlingRequired) {
@@ -155,7 +155,7 @@ class UserService(
         usernameOrEmail: String,
         password: String,
         ip: String,
-        loginRequest: LoginRequest
+        loginRequest: LoginRequest,
     ): Mono<LoginResult> = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
         .flatMap { user ->
             if (loginRequest.skip || passwordEncoder.matches(password, user.password)) {
@@ -176,22 +176,22 @@ class UserService(
 
                                     hydraService.acceptLoginRequest(
                                         challenge,
-                                        AcceptLoginRequest(user.id.toString())
+                                        AcceptLoginRequest(user.id.toString()),
                                     ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
                                 } else {
                                     LOG.debug(
                                         "Lobby login blocked for user '$usernameOrEmail' " +
-                                            "because of missing game ownership verification"
+                                            "because of missing game ownership verification",
                                     )
 
                                     hydraService.rejectLoginRequest(
                                         challenge,
-                                        GenericError(HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION)
+                                        GenericError(HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION),
                                     ).map {
                                         LoginResult.UserNoGameOwnership(
                                             UriBuilder.of("/oauth2/gameVerificationFailed")
                                                 .build()
-                                                .toASCIIString()
+                                                .toASCIIString(),
                                         )
                                     }
                                 }
@@ -201,7 +201,7 @@ class UserService(
 
                             hydraService.acceptLoginRequest(
                                 challenge,
-                                AcceptLoginRequest(user.id.toString())
+                                AcceptLoginRequest(user.id.toString()),
                             ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
                         }
                     }
@@ -240,7 +240,7 @@ class UserService(
                     val userId = consentRequest.subject?.toInt() ?: -1
                     Mono.zip(
                         userRepository.findById(userId),
-                        userRepository.findUserPermissions(userId).collectList()
+                        userRepository.findUserPermissions(userId).collectList(),
                     ).flatMap { (user, permissions) ->
                         val roles = listOf(ROLE_USER) + permissions.map { it.technicalName }
 
@@ -259,10 +259,10 @@ class UserService(
                             AcceptConsentRequest(
                                 session = ConsentRequestSession(
                                     accessToken = mapOf("username" to user.username, "roles" to roles),
-                                    idToken = mapOf("username" to user.username, "roles" to roles)
+                                    idToken = mapOf("username" to user.username, "roles" to roles),
                                 ),
-                                grantScope = consentRequest.requestedScope
-                            )
+                                grantScope = consentRequest.requestedScope,
+                            ),
                         )
                     }
                 } else {

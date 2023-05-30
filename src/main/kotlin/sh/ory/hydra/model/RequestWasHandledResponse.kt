@@ -19,5 +19,5 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class RequestWasHandledResponse(
     /* Original request URL to which you should redirect the user if request was already handled. */
     @field:JsonProperty("redirect_to")
-    val redirectTo: kotlin.String
+    val redirectTo: kotlin.String,
 )

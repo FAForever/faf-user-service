@@ -17,5 +17,5 @@ data class RevokeRefreshTokensRequest(
     val client: String? = null,
     /* Revoke consent for all clients. */
     @field:JsonProperty("all")
-    val all: Boolean? = null
+    val all: Boolean? = null,
 )

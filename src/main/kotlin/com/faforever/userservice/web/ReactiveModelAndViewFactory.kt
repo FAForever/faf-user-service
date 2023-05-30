@@ -14,7 +14,7 @@ private const val TRACE_ID = "traceId"
 @RequestScope
 class ReactiveModelAndViewFactory(
     properties: FafProperties,
-    private val tracer: Tracer
+    private val tracer: Tracer,
 ) {
     private val variables = mutableMapOf<String, Any?>()
 
@@ -29,7 +29,7 @@ class ReactiveModelAndViewFactory(
 
     fun build(viewName: String): Mono<HttpResponseWithModelView> {
         return HttpResponse.ok(
-            ModelAndView(viewName, variables as Map<String, Any?>)
+            ModelAndView(viewName, variables as Map<String, Any?>),
         ).toMono()
     }
 
@@ -38,7 +38,7 @@ class ReactiveModelAndViewFactory(
             variables[TRACE_ID] = traceId
         }
         return HttpResponse.ok(
-            ModelAndView(errorViewName, variables as Map<String, Any?>)
+            ModelAndView(errorViewName, variables as Map<String, Any?>),
         ).toMono()
     }
 
