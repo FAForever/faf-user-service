@@ -55,7 +55,9 @@ private const val BANNED = "Ban expires at"
 private const val HYDRA_REDIRECT = "hydraRedirect"
 private const val BAD_OWNERSHIP = "Game Ownership Verification Missing"
 
-@MicronautTest()
+// Disable transactional as it does not work with R2DBC,
+// see https://github.com/micronaut-projects/micronaut-test-resources/issues/154#issuecomment-1370888403
+@MicronautTest(transactional = false)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(MockitoExtension::class)
 class ApplicationIT : TestPropertyProvider {
