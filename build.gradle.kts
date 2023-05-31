@@ -47,7 +47,7 @@ dependencies {
     implementation("io.micronaut.tracing:micronaut-tracing-jaeger")
     implementation("io.swagger.core.v3:swagger-annotations")
     implementation("jakarta.annotation:jakarta.annotation-api")
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.1.7")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("org.mariadb:r2dbc-mariadb")
     runtimeOnly("io.r2dbc:r2dbc-h2")
