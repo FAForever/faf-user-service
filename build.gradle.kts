@@ -7,7 +7,7 @@ plugins {
     kotlin("kapt") version kotlinVersion
     kotlin("plugin.allopen") version kotlinVersion
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("io.micronaut.application") version "3.5.3"
+    id("io.micronaut.application") version "3.7.9"
 
     // /****** Additional tooling *****/
     // // OpenAPI code generation
