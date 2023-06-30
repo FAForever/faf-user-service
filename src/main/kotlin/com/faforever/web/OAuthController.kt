@@ -1,8 +1,10 @@
 package com.faforever.web
 
 import com.faforever.config.FafProperties
+import com.faforever.domain.IpAddress
 import com.faforever.domain.LoginResult
-import com.faforever.domain.UserService
+import com.faforever.domain.LoginService
+import com.faforever.hydra.HydraService
 import io.quarkus.qute.TemplateData
 import io.quarkus.qute.TemplateInstance
 import io.vertx.core.http.HttpServerRequest
@@ -34,8 +36,8 @@ data class LoginForm(
 @Path("/oauth2")
 @Produces(MediaType.TEXT_HTML, MediaType.TEXT_PLAIN)
 class OAuthController(
-    private val properties: FafProperties,
-    private val userService: UserService,
+        private val properties: FafProperties,
+        private val hydraService: HydraService,
 ) {
     companion object {
         val LOG: Logger = LoggerFactory.getLogger(OAuthController::class.java)
@@ -66,20 +68,20 @@ class OAuthController(
     ): RestResponse<TemplateInstance> {
         val reverseProxyIp = request.headers().get(properties.realIpHeader())
         val ip = if (reverseProxyIp != null) {
-            reverseProxyIp
+            IpAddress(reverseProxyIp)
         } else {
             LOG.warn(
                 "IP address from reverse proxy missing. Please make sure this service runs behind a reverse " +
                         "proxy. Falling back to remote address.",
             )
-            request.remoteAddress()?.hostAddress().toString()
+            IpAddress(request.remoteAddress()?.hostAddress().toString())
         }
 
-        val loginResult = userService.login(challenge, usernameOrEmail, password, ip)
+        val (redirectTo, loginResult) = hydraService.login(challenge, usernameOrEmail, password, ip)
         LOG.debug("Login result is: {}", loginResult)
 
-        return  when(loginResult) {
-            is LoginResult.SuccessfulLogin -> RestResponse.seeOther(loginResult.redirectTo.uri)
+        return when(loginResult) {
+            is LoginResult.SuccessfulLogin -> RestResponse.seeOther(redirectTo.uri)
             is LoginResult.UserBanned ->  TODO()
             is LoginResult.UserNoGameOwnership -> TODO()
             is LoginResult.LoginThrottlingActive -> ok(Templates.loginView(LoginData(challenge, false, true)))
