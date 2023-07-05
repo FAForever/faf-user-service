@@ -12,7 +12,7 @@ enum class BanLevel {
     VAULT,
 }
 
-@Entity("ban")
+@Entity(name = "ban")
 data class Ban(
         @field:Id
         val id: Long,
@@ -27,7 +27,6 @@ data class Ban(
         val revokeAuthorId: Long?,
 ) {
 
-    @get:Transient
     val isActive: Boolean
         get() = revokeTime == null && (expiresAt == null || expiresAt.isAfter(OffsetDateTime.now()))
 }

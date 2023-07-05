@@ -1,0 +1,22 @@
+{@String traceId}
+{#include default}
+    <div class="main-card">
+    <div class="main-card-inner">
+    <div>
+        {#include includes/logoHeader title=msg:title_technicalError()}{/include}
+
+        <div class="error">
+            <div class="error-info">
+                <div>
+                    {msg:login_technicalError()}
+                </div>
+                <p>
+                    Trace ID: <span>{traceId}</span>
+                </p>
+            </div>
+        </div>
+
+    </div>
+    </div>
+    </div>
+{/include}

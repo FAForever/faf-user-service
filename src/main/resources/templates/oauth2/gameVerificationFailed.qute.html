@@ -1,0 +1,26 @@
+{@String accountLink}
+{#include default}
+    <div class="main-card">
+    <div class="main-card-inner">
+    <div>
+        {#include includes/logoHeader title=msg:verification_title()}{/include}
+
+        <div class="error">
+            <div class="error-info">
+                <div>
+                    {msg:steam_reason()}
+                </div>
+            <a href="{accountLink}">{accountLink}</a>
+            </div>
+        </div>
+
+        <footer>
+            <a href="https://forum.faforever.com/topic/252/why-do-i-need-to-link-my-account-to-steam">
+                {msg:steam_faq()}
+            </a>
+        </footer>
+
+    </div>
+    </div>
+    </div>
+{/include}

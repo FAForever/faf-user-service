@@ -5,6 +5,7 @@ import com.faforever.domain.LoginResult
 import com.faforever.domain.LoginService
 import com.faforever.security.OAuthScope
 import jakarta.inject.Singleton
+import org.eclipse.microprofile.rest.client.inject.RestClient
 import sh.ory.hydra.model.AcceptLoginRequest
 import sh.ory.hydra.model.GenericError
 import java.net.URI
@@ -23,6 +24,7 @@ value class RedirectTo(val url: String) {
 
 @Singleton
 class HydraService(
+    @RestClient
         private val hydraClient: HydraClient,
         private val loginService: LoginService,
 ) {
@@ -43,7 +45,9 @@ class HydraService(
         val redirect = when(loginResult) {
             is LoginResult.LoginThrottlingActive -> hydraClient.rejectLoginRequest(challenge, GenericError(HYDRA_ERROR_LOGIN_THROTTLED))
             is LoginResult.UserNoGameOwnership -> hydraClient.rejectLoginRequest(challenge, GenericError(HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION))
-            is LoginResult.UserBanned -> hydraClient.rejectLoginRequest(challenge, GenericError(HYDRA_ERROR_USER_BANNED))
+            is LoginResult.UserBanned -> {
+                hydraClient.rejectLoginRequest(challenge, GenericError(HYDRA_ERROR_USER_BANNED))
+            }
             is LoginResult.UserOrCredentialsMismatch -> hydraClient.rejectLoginRequest(challenge, GenericError(HYDRA_ERROR_USER_OR_CREDENTIALS_MISMATCH))
             is LoginResult.SuccessfulLogin -> hydraClient.acceptLoginRequest(challenge, AcceptLoginRequest(
                     subject = loginResult.userId.toString()

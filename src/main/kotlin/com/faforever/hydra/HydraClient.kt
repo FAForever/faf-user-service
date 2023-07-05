@@ -8,6 +8,7 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient
 import sh.ory.hydra.model.*
 
 @RegisterRestClient(configKey = "faf-ory-hydra")
+@Path("/")
 interface HydraClient {
 
     // requesting a handled challenge throws HTTP 410 - Gone
@@ -33,28 +34,28 @@ interface HydraClient {
             @PathParam("challenge") @NotBlank challenge: String,
             error: GenericError
     ): RedirectResponse
-
-    // accepting consent more than once does not cause an error
-    @PUT
-    @Path("/oauth2/auth/requests/consent/accept?consent_challenge={challenge}")
-    fun acceptConsentRequest(
-            @PathParam("challenge") @NotBlank challenge: String,
-            acceptConsentRequest: AcceptConsentRequest
-    ): RedirectResponse
-
-    // rejecting consent more than once does not cause an error
-    @PUT
-    @Path("/oauth2/auth/requests/consent/reject?consent_challenge={challenge}")
-    fun rejectConsentRequest(
-            @PathParam("challenge") @NotBlank challenge: String,
-            error: GenericError
-    ): RedirectResponse
-
-    @DELETE
-    @Path("/oauth2/auth/sessions/consent")
-    fun revokeRefreshTokens(
-            @QueryParam("subject") subject: String,
-            @QueryParam("all") all: Boolean?,
-            @QueryParam("client") client: String?,
-    ): Uni<Response>
+//
+//    // accepting consent more than once does not cause an error
+//    @PUT
+//    @Path("/oauth2/auth/requests/consent/accept?consent_challenge={challenge}")
+//    fun acceptConsentRequest(
+//            @PathParam("challenge") @NotBlank challenge: String,
+//            acceptConsentRequest: AcceptConsentRequest
+//    ): RedirectResponse
+//
+//    // rejecting consent more than once does not cause an error
+//    @PUT
+//    @Path("/oauth2/auth/requests/consent/reject?consent_challenge={challenge}")
+//    fun rejectConsentRequest(
+//            @PathParam("challenge") @NotBlank challenge: String,
+//            error: GenericError
+//    ): RedirectResponse
+//
+//    @DELETE
+//    @Path("/oauth2/auth/sessions/consent")
+//    fun revokeRefreshTokens(
+//            @QueryParam("subject") subject: String,
+//            @QueryParam("all") all: Boolean?,
+//            @QueryParam("client") client: String?,
+//    ): Uni<Response>
 }

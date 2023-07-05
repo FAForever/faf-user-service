@@ -7,5 +7,14 @@ import io.quarkus.qute.TemplateInstance
 object Templates {
 
     @JvmStatic
-    external fun loginView(loginData: LoginData): TemplateInstance
+    external fun login(loginData: LoginData): TemplateInstance
+
+    @JvmStatic
+    external fun banned(banData: BanData): TemplateInstance
+
+    @JvmStatic
+    external fun loginTechnicalError(traceId: String): TemplateInstance
+
+    @JvmStatic
+    external fun gameVerificationFailed(accountLink: String): TemplateInstance
 }

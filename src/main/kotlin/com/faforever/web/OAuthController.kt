@@ -3,7 +3,6 @@ package com.faforever.web
 import com.faforever.config.FafProperties
 import com.faforever.domain.IpAddress
 import com.faforever.domain.LoginResult
-import com.faforever.domain.LoginService
 import com.faforever.hydra.HydraService
 import io.quarkus.qute.TemplateData
 import io.quarkus.qute.TemplateInstance
@@ -17,6 +16,8 @@ import org.jboss.resteasy.reactive.RestResponse
 import org.jboss.resteasy.reactive.RestResponse.ok
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.OffsetDateTime
+import java.util.*
 
 
 @TemplateData
@@ -26,11 +27,11 @@ data class LoginData(
     val loginThrottled: Any?,
 )
 
-data class LoginForm(
-    val challenge: String? = null,
-    val usernameOrEmail: String? = null,
-    val password: String? = null,
-    val login: String? = null
+@TemplateData
+data class BanData(
+    val reason: String,
+    val permanent: Boolean,
+    val expiresAt: OffsetDateTime?,
 )
 
 @Path("/oauth2")
@@ -53,7 +54,7 @@ class OAuthController(
         @QueryParam("loginFailed") loginFailed: Boolean?,
         @QueryParam("loginThrottled") loginThrottled: Boolean?,
     ): TemplateInstance {
-        return Templates.loginView(LoginData(challenge, loginFailed, loginThrottled))
+        return Templates.login(LoginData(challenge, loginFailed, loginThrottled))
     }
 
     @POST
@@ -82,11 +83,15 @@ class OAuthController(
 
         return when(loginResult) {
             is LoginResult.SuccessfulLogin -> RestResponse.seeOther(redirectTo.uri)
-            is LoginResult.UserBanned ->  TODO()
-            is LoginResult.UserNoGameOwnership -> TODO()
-            is LoginResult.LoginThrottlingActive -> ok(Templates.loginView(LoginData(challenge, false, true)))
-            is LoginResult.UserOrCredentialsMismatch -> ok(Templates.loginView(LoginData(challenge,  true, false)))
-            is LoginResult.TechnicalError -> TODO()
+            is LoginResult.UserBanned ->  ok(Templates.banned(BanData(loginResult.reason, loginResult.expiresAt == null, loginResult.expiresAt)))
+            is LoginResult.UserNoGameOwnership -> ok(Templates.gameVerificationFailed(properties.accountLinkUrl()))
+            is LoginResult.LoginThrottlingActive -> ok(Templates.login(LoginData(challenge, false, true)))
+            is LoginResult.UserOrCredentialsMismatch -> ok(Templates.login(LoginData(challenge,  true, false)))
+            is LoginResult.TechnicalError -> {
+                val traceId = UUID.randomUUID().toString()
+                LOG.warn("Technical error encountered. TraceId: $traceId")
+                ok(Templates.loginTechnicalError(traceId))
+            }
         }
     }
 }
