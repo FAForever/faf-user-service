@@ -1,0 +1,25 @@
+faf:
+  environment: ${FAF_ENVIRONMENT:dev}
+  real-ip-header: ${REAL_IP_HEADER:X-Real-Ip}
+  password-reset-url: ${PASSWORD_RESET_URL:https://faforever.com/account/password/reset}
+  register-account-url: ${REGISTER_ACCOUNT_URL:https://faforever.com/account/register}
+  account-link-url: ${ACCOUNT_LINK_URL:https://www.faforever.com/account/link}
+  hydra-base-url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
+
+security:
+  failed-login-account-threshold: ${FAILED_LOGIN_ACCOUNT_THRESHOLD:5}
+  failed-login-attempt-threshold: ${FAILED_LOGIN_ATTEMPT_THRESHOLD:10}
+  failed-login-throttling-minutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
+  failed-login-days-to-check: ${FAILED_LOGIN_DAYS_TO_CHECK:1}
+
+quarkus:
+  http.cors: true
+  log:
+    level: INFO
+  rest-client:
+    faf-ory-hydra:
+      url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
+      scope: jakarta.inject.Singleton
+
+"%dev":
+  quarkus.http.cors.origins: "/.*/"

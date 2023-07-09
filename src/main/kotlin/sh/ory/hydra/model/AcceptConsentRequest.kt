@@ -12,7 +12,7 @@
 package sh.ory.hydra.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import io.micronaut.core.annotation.Introspected
+import io.quarkus.runtime.annotations.RegisterForReflection
 
 /**
  *
@@ -24,7 +24,7 @@ import io.micronaut.core.annotation.Introspected
  * @param session
  */
 
-@Introspected
+@RegisterForReflection
 data class AcceptConsentRequest(
     @field:JsonProperty("grant_access_token_audience")
     val grantAccessTokenAudience: kotlin.collections.List<kotlin.String>? = null,
