@@ -1,4 +1,4 @@
-package com.faforever.userservice.security
+package com.faforever.userservice.backend.security
 
 object FafRole {
     const val ROLE_PREFIX = "ROLE_"
