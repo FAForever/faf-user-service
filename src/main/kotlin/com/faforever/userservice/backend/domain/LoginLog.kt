@@ -1,29 +1,43 @@
 package com.faforever.userservice.backend.domain
 
+import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntityBase
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepository
 import io.quarkus.runtime.annotations.RegisterForReflection
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.Id
+import jakarta.persistence.*
 import org.hibernate.annotations.CreationTimestamp
 import java.time.LocalDateTime
 
 @Entity(name = "login_log")
-data class LoginLog(
-    @field:Id
-    @field:GeneratedValue
-    val id: Long,
-    @field:Column(name = "login_id")
-    val userId: Long?,
-    @field:Column(name = "login_string")
-    val loginString: String?,
-    val ip: String,
-    val success: Boolean,
-    @field:CreationTimestamp
-    val createTime: LocalDateTime = LocalDateTime.now(),
-)
+class LoginLog() : PanacheEntityBase {
+
+    constructor(
+        id: Long,
+        userId: Int?,
+        loginString: String?,
+        ip: String,
+        success: Boolean
+    ) : this() {
+        this.id = id
+        this.userId = userId
+        this.loginString = loginString
+        this.ip = ip
+        this.success = success
+    }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long = 0
+    @Column(name = "login_id")
+    var userId: Int? = null
+    @Column(name = "login_string")
+    var loginString: String? = null
+    lateinit var ip: String
+    var success: Boolean = false
+    @CreationTimestamp
+    @Column(name = "create_time")
+    lateinit var createTime: LocalDateTime
+}
 
 @RegisterForReflection
 data class FailedAttemptsSummary(
@@ -37,17 +51,19 @@ data class FailedAttemptsSummary(
 class LoginLogRepository : PanacheRepository<LoginLog> {
 
     fun findFailedAttemptsByIpAfterDate(ip: String, date: LocalDateTime): FailedAttemptsSummary? =
-        getEntityManager().createNativeQuery(
+        getEntityManager().createQuery(
             """
-                        SELECT
-                            count(*) as totalAttempts,
-                            count(DISTINCT login_id) as accountsAffected,
-                            min(create_time) as firstAttemptAt,
-                            max(create_time) as lastAttemptAt
-                        FROM login_log WHERE ip = :ip AND success = 0 AND create_time >= :date
+                        SELECT new com.faforever.userservice.backend.domain.FailedAttemptsSummary(
+                            count(e.id),
+                            count(DISTINCT e.userId),
+                            min(e.createTime),
+                            max(e.createTime)
+                        ) FROM com.faforever.userservice.backend.domain.LoginLog e WHERE e.ip = :ip AND e.success = false AND e.createTime >= :date
                     """,
             FailedAttemptsSummary::class.java
         )
+            .setParameter("ip", ip)
+            .setParameter("date", date)
             .resultStream
             .findFirst()
             .orElse(null) as? FailedAttemptsSummary

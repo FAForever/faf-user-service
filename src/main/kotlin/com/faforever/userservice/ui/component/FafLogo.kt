@@ -1,4 +1,4 @@
-package com.example.starter.base.ui.component
+package com.faforever.userservice.ui.component
 
 import com.vaadin.flow.component.html.Image
 

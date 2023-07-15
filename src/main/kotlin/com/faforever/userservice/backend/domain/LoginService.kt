@@ -31,30 +31,27 @@ interface SecurityProperties {
  * This interface makes sure we consistently return the same set of user information
  */
 private interface LoginUserInfo {
-    val userId: Long
+    val userId: Int
     val userName: String
 }
 
 sealed interface LoginResult {
-    object LoginThrottlingActive : LoginResult
-    object UserOrCredentialsMismatch : LoginResult
-    object TechnicalError : LoginResult
-    data class SuccessfulLogin(
-        override val userId: Long,
-        override val userName: String,
-    ) : LoginResult, LoginUserInfo
+    sealed interface UserError : LoginResult
+    object ThrottlingActive : UserError
+    object UserOrCredentialsMismatch : UserError
 
+    sealed interface RejectedLogin : LoginResult
+    object TechnicalError : RejectedLogin
+    object UserNoGameOwnership : RejectedLogin
     data class UserBanned(
-        override val userId: Long,
-        override val userName: String,
         val reason: String,
         val expiresAt: OffsetDateTime?,
-    ) : LoginResult, LoginUserInfo
+    ) : RejectedLogin
 
-    data class UserNoGameOwnership(
-        override val userId: Long,
+    data class SuccessfulLogin(
+        override val userId: Int,
         override val userName: String,
-    ) : LoginResult, LoginUserInfo
+    ) : RejectedLogin, LoginUserInfo
 }
 
 interface LoginService {
@@ -79,40 +76,39 @@ class LoginServiceImpl(
     override fun findUserBySubject(subject: String) = userRepository.findByUsernameOrEmail(subject)
 
     override fun login(usernameOrEmail: String, password: String, ip: IpAddress, requiresGameOwnership: Boolean): LoginResult {
-        val user = userRepository.findByUsernameOrEmail(usernameOrEmail)
+        if (throttlingRequired(ip)) {
+            return LoginResult.ThrottlingActive
+        }
 
+        val user = userRepository.findByUsernameOrEmail(usernameOrEmail)
         if (user == null || !passwordEncoder.matches(password, user.password)) {
-            logFailedLoginAttempt(usernameOrEmail, ip)
+            logFailedLogin(usernameOrEmail, ip)
             return LoginResult.UserOrCredentialsMismatch
         }
 
-        if (throttlingRequired(ip)) {
-            logLoginAttempt(user, ip, false)
-            return LoginResult.LoginThrottlingActive
-        }
 
-        logLoginAttempt(user, ip, true)
+        logLogin(user, ip)
 
         val activeGlobalBan = findActiveGlobalBan(user)
 
         if (activeGlobalBan != null) {
             LOG.debug("User '{}' is banned by {}", usernameOrEmail, activeGlobalBan)
-            return LoginResult.UserBanned(user.id, user.username, activeGlobalBan.reason, activeGlobalBan.expiresAt)
+            return LoginResult.UserBanned(activeGlobalBan.reason, activeGlobalBan.expiresAt)
         }
 
         if (requiresGameOwnership && !accountLinkRepository.hasOwnershipLink(user.id)) {
             LOG.debug("Lobby login blocked for user '{}' because of missing game ownership verification", usernameOrEmail)
-            return LoginResult.UserNoGameOwnership(user.id, user.username)
+            return LoginResult.UserNoGameOwnership
         }
 
         LOG.debug("User '{}' logged in successfully", usernameOrEmail)
         return LoginResult.SuccessfulLogin(user.id, user.username)
     }
 
-    private fun logLoginAttempt(user: User, ip: IpAddress, success: Boolean) =
-        loginLogRepository.persist(LoginLog(0, user.id, null, ip.value, success))
+    private fun logLogin(user: User, ip: IpAddress) =
+        loginLogRepository.persist(LoginLog(0, user.id, null, ip.value, true))
 
-    private fun logFailedLoginAttempt(unknownLogin: String, ip: IpAddress) =
+    private fun logFailedLogin(unknownLogin: String, ip: IpAddress) =
         loginLogRepository.persist(LoginLog(0, null, unknownLogin.take(100), ip.value, false))
 
     private fun findActiveGlobalBan(user: User): Ban? =

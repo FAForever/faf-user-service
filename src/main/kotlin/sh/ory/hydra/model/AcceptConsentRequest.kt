@@ -26,18 +26,18 @@ import io.quarkus.runtime.annotations.RegisterForReflection
 
 @RegisterForReflection
 data class AcceptConsentRequest(
-    @field:JsonProperty("grant_access_token_audience")
+    @JsonProperty("grant_access_token_audience")
     val grantAccessTokenAudience: kotlin.collections.List<kotlin.String>? = null,
-    @field:JsonProperty("grant_scope")
+    @JsonProperty("grant_scope")
     val grantScope: kotlin.collections.List<kotlin.String>? = null,
-    @field:JsonProperty("handled_at")
+    @JsonProperty("handled_at")
     val handledAt: java.time.OffsetDateTime? = null,
     /* Remember, if set to true, tells ORY Hydra to remember this consent authorization and reuse it if the same client asks the same user for the same, or a subset of, scope. */
-    @field:JsonProperty("remember")
+    @JsonProperty("remember")
     val remember: kotlin.Boolean? = null,
     /* RememberFor sets how long the consent authorization should be remembered for in seconds. If set to `0`, the authorization will be remembered indefinitely. */
-    @field:JsonProperty("remember_for")
+    @JsonProperty("remember_for")
     val rememberFor: kotlin.Long? = null,
-    @field:JsonProperty("session")
+    @JsonProperty("session")
     val session: ConsentRequestSession? = null,
 )
