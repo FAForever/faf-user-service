@@ -20,6 +20,19 @@ quarkus:
     faf-ory-hydra:
       url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
       scope: jakarta.inject.Singleton
+  devservices:
+    enabled: false
+  datasource:
+    db-kind: mariadb
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:banana}
+    jdbc:
+      url: ${DB_URL:jdbc:mariadb://localhost:3306/faf?ssl=false}
 
 "%dev":
   quarkus.http.cors.origins: "/.*/"
+  quarkus:
+    log:
+      category:
+        "com.faforever":
+          level: DEBUG

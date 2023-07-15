@@ -25,15 +25,15 @@ import io.quarkus.runtime.annotations.RegisterForReflection
 @RegisterForReflection
 data class GenericError(
     /* Name is the error name. */
-    @field:JsonProperty("error")
+    @JsonProperty("error")
     val error: kotlin.String,
     /* Debug contains debug information. This is usually not available and has to be enabled. */
-    // @field:JsonProperty("debug")
-    // val debug: kotlin.String? = null,
+     @JsonProperty("debug")
+     val debug: kotlin.String? = null,
     // /* Description contains further information on the nature of the error. */
-    // @field:JsonProperty("error_description")
-    // val errorDescription: kotlin.String? = null,
+     @JsonProperty("error_description")
+     val errorDescription: kotlin.String? = null,
     // /* Code represents the error status code (404, 403, 401, ...). */
-    // @field:JsonProperty("status_code")
-    // val statusCode: kotlin.Long? = null
+     @JsonProperty("status_code")
+     val statusCode: kotlin.Long? = null
 )

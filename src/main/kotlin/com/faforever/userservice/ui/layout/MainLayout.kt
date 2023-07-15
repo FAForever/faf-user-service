@@ -1,9 +1,10 @@
-package com.example.starter.base.ui.layout
+package com.faforever.userservice.ui.layout
 
-import com.example.starter.base.ui.component.FafLogo
+import com.faforever.userservice.ui.component.FafLogo
 import com.vaadin.flow.component.Unit
 import com.vaadin.flow.component.html.*
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
+import com.vaadin.flow.router.ParentLayout
 import com.vaadin.flow.router.RouterLayout
 
 class MainLayout : VerticalLayout(), RouterLayout {
@@ -44,11 +45,13 @@ class MainHeader : Header() {
         leftHeader.add(environment)
 
         add(leftHeader)
+    }
+}
 
-        val rightHeader = Div()
-        rightHeader.setId("rightheader")
+@ParentLayout(MainLayout::class)
+class CardLayout : VerticalLayout(), RouterLayout {
 
-        rightHeader.add(Paragraph("You are logged in as"))
-        add(rightHeader)
+    init {
+        addClassName("main-card")
     }
 }

@@ -1,10 +1,9 @@
 package com.faforever.domain
 
+import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntityBase
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.Id
+import jakarta.persistence.*
 import java.time.OffsetDateTime
 
 enum class BanLevel {
@@ -14,20 +13,26 @@ enum class BanLevel {
 }
 
 @Entity(name = "ban")
-data class Ban(
-    @field:Id
-    @field:GeneratedValue
-    val id: Long,
-    val playerId: Long,
-    val authorId: Long,
-    val level: BanLevel,
-    val reason: String,
-    val expiresAt: OffsetDateTime?,
-    val revokeTime: OffsetDateTime?,
-    val reportId: Long?,
-    val revokeReason: String?,
-    val revokeAuthorId: Long?,
-) {
+class Ban : PanacheEntityBase {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Int = 0
+    @Column(name = "player_id")
+    var playerId: Long = 0
+    @Column(name = "author_id")
+    val authorId: Int = 0
+    lateinit var level: BanLevel
+    lateinit var reason: String
+    @Column(name = "expires_at")
+    var expiresAt: OffsetDateTime? = null
+    @Column(name = "revoke_time")
+    var revokeTime: OffsetDateTime? = null
+    @Column(name = "report_id")
+    var reportId: Long? = null
+    @Column(name = "revoke_reason")
+    var revokeReason: String? = null
+    @Column(name = "revoke_author_id")
+    var revokeAuthorId: Long? = null
 
     val isActive: Boolean
         get() = revokeTime == null && (expiresAt?.isAfter(OffsetDateTime.now()) == true)
@@ -35,6 +40,6 @@ data class Ban(
 
 @ApplicationScoped
 class BanRepository : PanacheRepository<Ban> {
-    fun findGlobalBansByPlayerId(playerId: Long) =
-        find("playerId = ?1 and level = BanLevel.GLOBAL").list()
+    fun findGlobalBansByPlayerId(playerId: Int) =
+        find("playerId = ?1 and level = BanLevel.GLOBAL", playerId).list()
 }

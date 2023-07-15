@@ -1,15 +1,26 @@
 package com.faforever.userservice.backend.hydra
 
-import io.smallrye.mutiny.Uni
+import io.quarkus.rest.client.reactive.ClientExceptionMapper
 import jakarta.validation.constraints.NotBlank
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.Response
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient
 import sh.ory.hydra.model.*
 
+
 @RegisterRestClient(configKey = "faf-ory-hydra")
 @Path("/")
 interface HydraClient {
+
+    companion object {
+        @JvmStatic
+        @ClientExceptionMapper
+        fun toException(response: Response): RuntimeException? {
+            return if (response.status == 410) {
+                GoneException("The request has already been handled")
+            } else null
+        }
+    }
 
     // requesting a handled challenge throws HTTP 410 - Gone
     @GET
@@ -18,7 +29,7 @@ interface HydraClient {
 
     @GET
     @Path("/oauth2/auth/requests/consent")
-    fun getConsentRequest(@QueryParam("consent_challenge") @NotBlank challenge: String): Uni<ConsentRequest>
+    fun getConsentRequest(@QueryParam("consent_challenge") @NotBlank challenge: String): ConsentRequest
 
     // accepting login request more than once throws HTTP 409 - Conflict
     @PUT
@@ -57,5 +68,7 @@ interface HydraClient {
             @QueryParam("subject") subject: String,
             @QueryParam("all") all: Boolean?,
             @QueryParam("client") client: String?,
-    ): Uni<Response>
+    ): Response
 }
+
+class GoneException(override val message: String?) : RuntimeException(message)

@@ -10,12 +10,12 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 data class RevokeRefreshTokensRequest(
     /* Subject is the user ID of the user to revoke consent sessions for. */
-    @field:JsonProperty("subject")
+    @JsonProperty("subject")
     val subject: String,
     /* Client to revoke consent sessions for. */
-    @field:JsonProperty("client")
+    @JsonProperty("client")
     val client: String? = null,
     /* Revoke consent for all clients. */
-    @field:JsonProperty("all")
+    @JsonProperty("all")
     val all: Boolean? = null,
 )
