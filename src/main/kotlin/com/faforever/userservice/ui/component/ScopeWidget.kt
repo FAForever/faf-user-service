@@ -6,12 +6,11 @@ import com.vaadin.flow.component.html.Paragraph
 import com.vaadin.flow.component.html.Span
 import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
-import io.quarkus.arc.Unremovable
 import jakarta.enterprise.context.Dependent
-import jakarta.enterprise.inject.spi.CDI
+import jakarta.enterprise.inject.Instance
 
 @Dependent
-class ScopeWidget(i18n: I18n) : CompactVerticalLayout() {
+class ScopeWidget(i18n: I18n, private val scopeItemFactory : Instance<ScopeItem>) : CompactVerticalLayout() {
     private val scopeLayout = CompactVerticalLayout()
 
     init {
@@ -25,7 +24,7 @@ class ScopeWidget(i18n: I18n) : CompactVerticalLayout() {
     fun setScopes(scopes: List<String>) {
         scopeLayout.removeAll()
         scopes.forEach {
-            val scopeItem = CDI.current().select(ScopeItem::class.java).get()
+            val scopeItem = scopeItemFactory.get()
             scopeItem.setScope(it)
             add(scopeItem)
         }
@@ -34,7 +33,6 @@ class ScopeWidget(i18n: I18n) : CompactVerticalLayout() {
 }
 
 @Dependent
-@Unremovable
 class ScopeItem(private val i18n: I18n) : HorizontalLayout() {
     private val infoTooltip = InfoTooltipIcon()
     private val span = Span()
@@ -51,5 +49,4 @@ class ScopeItem(private val i18n: I18n) : HorizontalLayout() {
         span.text = i18n.getTranslation("oauth2.scope.$scope") ?: i18n.getTranslation("oauth2.scope.textMissing", scope)
         infoTooltip.setTooltip(i18n.getTranslation("oauth2.scope.$scope.description"))
     }
-
 }
