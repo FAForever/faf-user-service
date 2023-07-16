@@ -1,15 +1,17 @@
 package com.faforever.userservice.ui.component
 
+import com.faforever.userservice.backend.i18n.I18n
 import com.vaadin.flow.component.html.Anchor
 import com.vaadin.flow.component.html.H2
 import com.vaadin.flow.component.html.Hr
 import com.vaadin.flow.component.html.Image
 import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
-import com.vaadin.flow.component.orderedlayout.VerticalLayout
+import jakarta.enterprise.context.Dependent
 import sh.ory.hydra.model.OAuth2Client
 
-class ClientHeader : CompactVerticalLayout() {
+@Dependent
+class ClientHeader(private val i18n: I18n) : CompactVerticalLayout() {
     private val clientName = H2()
     private val clientLogo = Image()
     private val clientUrl = Anchor()
@@ -18,8 +20,8 @@ class ClientHeader : CompactVerticalLayout() {
 
 
     init {
-        clientTos.text = "Terms of Service"
-        clientPolicy.text = "Privacy Policy"
+        clientTos.text = i18n.getTranslation("consent.termsOfService")
+        clientPolicy.text = i18n.getTranslation("consent.privacyStatement")
 
         clientLogo.width = "40px"
         clientLogo.height = "40px"
@@ -29,7 +31,8 @@ class ClientHeader : CompactVerticalLayout() {
         add(clientName)
         add(Hr())
 
-        val detailsLayout = VerticalLayout()
+        val detailsLayout = CompactVerticalLayout()
+        detailsLayout.justifyContentMode = FlexComponent.JustifyContentMode.CENTER
         detailsLayout.add(clientUrl)
         detailsLayout.add(HorizontalLayout(clientTos, clientPolicy))
 
@@ -39,9 +42,10 @@ class ClientHeader : CompactVerticalLayout() {
     fun setClient(client: OAuth2Client) {
         clientName.text = client.clientName
         clientLogo.src = client.logoUri
-        clientLogo.setAlt(client.clientName + " Logo")
+        clientLogo.setAlt(i18n.getTranslation("consent.clientLogo"))
 
         clientUrl.href = client.clientUri
+        clientUrl.text = client.clientUri
         clientUrl.isVisible = !clientUrl.href.isNullOrBlank()
         clientTos.href = client.tosUri
         clientTos.isVisible = !clientTos.href.isNullOrBlank()

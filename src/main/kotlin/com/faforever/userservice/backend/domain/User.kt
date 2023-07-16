@@ -44,9 +44,12 @@ class Permission : PanacheEntityBase {
     @Id
     @GeneratedValue
     var id: Long = 0
+    @Column(name = "technical_name")
     lateinit var technicalName: String
+    @Column(name = "create_time")
     @CreationTimestamp
     lateinit var createTime: LocalDateTime
+    @Column(name = "update_time")
     @UpdateTimestamp
     lateinit var updateTime: LocalDateTime
 }
@@ -62,7 +65,7 @@ class UserRepository : PanacheRepositoryBase<User, Int> {
             SELECT DISTINCT group_permission.* FROM user_group_assignment uga
             INNER JOIN group_permission_assignment gpa ON uga.group_id = gpa.group_id
             INNER JOIN group_permission ON gpa.permission_id = group_permission.id
-            WHERE uga.user_id = :userId;
+            WHERE uga.user_id = :userId
             """.trimIndent(), Permission::class.java
         ).setParameter("userId", userId)
             .resultList as List<Permission>

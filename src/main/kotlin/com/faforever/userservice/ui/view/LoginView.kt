@@ -4,11 +4,14 @@ import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.domain.LoginResult
 import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.hydra.LoginResponse
+import com.faforever.userservice.backend.hydra.NoChallengeException
+import com.faforever.userservice.backend.i18n.I18n
 import com.faforever.userservice.ui.component.CompactVerticalLayout
 import com.faforever.userservice.ui.component.FafLogo
 import com.faforever.userservice.ui.component.Icon
 import com.faforever.userservice.ui.component.SocialIcons
 import com.faforever.userservice.ui.layout.CardLayout
+import com.vaadin.flow.component.Key
 import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
 import com.vaadin.flow.component.html.Anchor
@@ -25,14 +28,15 @@ import com.vaadin.flow.router.Route
 import com.vaadin.flow.server.VaadinSession
 
 @Route("/oauth2/login", layout = CardLayout::class)
-class LoginView(private val hydraService: HydraService) : CompactVerticalLayout(), BeforeEnterObserver {
+class LoginView(private val hydraService: HydraService, private val i18n: I18n) : CompactVerticalLayout(),
+    BeforeEnterObserver {
 
     private val errorLayout = HorizontalLayout()
     private val errorMessage = Span()
 
-    private val usernameOrEmail = TextField(null, "Username or Email")
-    private val password = PasswordField(null, "Password")
-    private val submit = Button("Log in") {login()}
+    private val usernameOrEmail = TextField(null, i18n.getTranslation("login.usernameOrEmail"))
+    private val password = PasswordField(null, i18n.getTranslation("login.password"))
+    private val submit = Button(i18n.getTranslation("login.loginAction")) { login() }
 
     private lateinit var challenge: String
 
@@ -40,13 +44,15 @@ class LoginView(private val hydraService: HydraService) : CompactVerticalLayout(
         val formHeader = HorizontalLayout()
 
         val formHeaderLeft = FafLogo()
-        val formHeaderRight = H2("Welcome back, Commander!")
+        val formHeaderRight = H2(i18n.getTranslation("login.welcomeBack"))
         formHeader.add(formHeaderLeft, formHeaderRight)
         formHeader.alignItems = FlexComponent.Alignment.CENTER
         formHeader.setId("form-header")
+        formHeader.setWidthFull()
 
         add(formHeader)
 
+        errorLayout.setWidthFull()
         errorLayout.addClassName("error")
         val errorIcon = Icon()
         errorIcon.addClassNames("fas fa-exclamation-triangle")
@@ -57,6 +63,12 @@ class LoginView(private val hydraService: HydraService) : CompactVerticalLayout(
         errorLayout.setVerticalComponentAlignment(FlexComponent.Alignment.CENTER)
 
         add(errorLayout)
+
+        password.addKeyUpListener {
+            if (it.key.equals(Key.ENTER)) {
+                login()
+            }
+        }
 
         usernameOrEmail.setWidthFull()
         password.setWidthFull()
@@ -70,8 +82,10 @@ class LoginView(private val hydraService: HydraService) : CompactVerticalLayout(
         val links = HorizontalLayout()
         links.addClassName("pipe-separated")
 
-        val passwordReset = Anchor("https://faforever.com/account/password/reset", "Forgot Password")
-        val registerAccount = Anchor("https://faforever.com/account/register", "Register Account")
+        val passwordReset =
+            Anchor("https://faforever.com/account/password/reset", i18n.getTranslation("login.forgotPassword"))
+        val registerAccount =
+            Anchor("https://faforever.com/account/register", i18n.getTranslation("login.registerAccount"))
 
         links.add(passwordReset, registerAccount)
         footer.add(links)
@@ -92,8 +106,8 @@ class LoginView(private val hydraService: HydraService) : CompactVerticalLayout(
 
     private fun setError(loginError: LoginResult.UserError) {
         errorMessage.text = when (loginError) {
-            is LoginResult.UserOrCredentialsMismatch -> "Username or password does not match"
-            is LoginResult.ThrottlingActive -> "Too many of your login attempts have failed. Please wait some time before trying to login again"
+            is LoginResult.UserOrCredentialsMismatch -> i18n.getTranslation("login.badCredentials")
+            is LoginResult.ThrottlingActive -> i18n.getTranslation("login.throttled")
         }
         errorLayout.isVisible = true
     }
@@ -102,6 +116,9 @@ class LoginView(private val hydraService: HydraService) : CompactVerticalLayout(
         val possibleChallenge = event?.location?.queryParameters?.parameters?.get("login_challenge")?.get(0)
         if (possibleChallenge != null) {
             challenge = possibleChallenge
+            hydraService.getLoginRequest(challenge)
+        } else {
+            throw NoChallengeException()
         }
     }
 }

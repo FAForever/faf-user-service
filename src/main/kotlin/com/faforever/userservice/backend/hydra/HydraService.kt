@@ -36,6 +36,8 @@ class HydraService(
         private const val HYDRA_ERROR_TECHNICAL_ERROR = "technical_error"
     }
 
+    fun getLoginRequest(challenge: String) : LoginRequest = hydraClient.getLoginRequest(challenge)
+
     @Transactional
     fun login(challenge: String, usernameOrEmail: String, password: String, ip: IpAddress): LoginResponse {
         val loginRequest = hydraClient.getLoginRequest(challenge)
@@ -77,6 +79,7 @@ class HydraService(
 
     fun getConsentRequest(challenge: String) : ConsentRequest = hydraClient.getConsentRequest(challenge)
 
+    @Transactional
     fun acceptConsentRequest(challenge: String) : RedirectTo {
         val consentRequest = hydraClient.getConsentRequest(challenge)
 
