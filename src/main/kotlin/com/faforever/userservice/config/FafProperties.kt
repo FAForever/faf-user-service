@@ -1,4 +1,4 @@
-package com.faforever.config
+package com.faforever.userservice.config
 
 import io.smallrye.config.ConfigMapping
 import jakarta.inject.Singleton

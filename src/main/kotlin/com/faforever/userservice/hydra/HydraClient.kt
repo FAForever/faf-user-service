@@ -1,4 +1,4 @@
-package com.faforever.hydra
+package com.faforever.userservice.hydra
 
 import io.smallrye.mutiny.Uni
 import jakarta.validation.constraints.NotBlank

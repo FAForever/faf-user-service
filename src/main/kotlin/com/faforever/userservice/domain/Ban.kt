@@ -1,4 +1,4 @@
-package com.faforever.domain
+package com.faforever.userservice.domain
 
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepository
 import jakarta.enterprise.context.ApplicationScoped

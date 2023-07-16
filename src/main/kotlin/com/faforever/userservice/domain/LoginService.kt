@@ -1,6 +1,6 @@
-package com.faforever.domain
+package com.faforever.userservice.domain
 
-import com.faforever.security.PasswordEncoder
+import com.faforever.userservice.security.PasswordEncoder
 import io.smallrye.config.ConfigMapping
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.validation.constraints.NotNull

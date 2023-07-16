@@ -1,4 +1,4 @@
-package com.faforever.security
+package com.faforever.userservice.security
 
 /**
  * Contains pre-defined FAF scopes

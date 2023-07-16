@@ -1,9 +1,9 @@
-package com.faforever.hydra
+package com.faforever.userservice.hydra
 
-import com.faforever.domain.IpAddress
-import com.faforever.domain.LoginResult
-import com.faforever.domain.LoginService
-import com.faforever.security.OAuthScope
+import com.faforever.userservice.domain.IpAddress
+import com.faforever.userservice.domain.LoginResult
+import com.faforever.userservice.domain.LoginService
+import com.faforever.userservice.security.OAuthScope
 import jakarta.inject.Singleton
 import org.eclipse.microprofile.rest.client.inject.RestClient
 import sh.ory.hydra.model.AcceptLoginRequest
@@ -24,7 +24,7 @@ value class RedirectTo(val url: String) {
 
 @Singleton
 class HydraService(
-    @RestClient
+        @RestClient
         private val hydraClient: HydraClient,
         private val loginService: LoginService,
 ) {

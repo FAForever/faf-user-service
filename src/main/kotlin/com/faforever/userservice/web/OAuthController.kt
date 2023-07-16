@@ -1,9 +1,9 @@
-package com.faforever.web
+package com.faforever.userservice.web
 
-import com.faforever.config.FafProperties
-import com.faforever.domain.IpAddress
-import com.faforever.domain.LoginResult
-import com.faforever.hydra.HydraService
+import com.faforever.userservice.config.FafProperties
+import com.faforever.userservice.domain.IpAddress
+import com.faforever.userservice.domain.LoginResult
+import com.faforever.userservice.hydra.HydraService
 import io.quarkus.qute.TemplateData
 import io.quarkus.qute.TemplateInstance
 import io.vertx.core.http.HttpServerRequest
@@ -86,7 +86,7 @@ class OAuthController(
             is LoginResult.UserBanned ->  ok(Templates.banned(BanData(loginResult.reason, loginResult.expiresAt == null, loginResult.expiresAt)))
             is LoginResult.UserNoGameOwnership -> ok(Templates.gameVerificationFailed(properties.accountLinkUrl()))
             is LoginResult.LoginThrottlingActive -> ok(Templates.login(LoginData(challenge, false, true)))
-            is LoginResult.UserOrCredentialsMismatch -> ok(Templates.login(LoginData(challenge,  true, false)))
+            is LoginResult.UserOrCredentialsMismatch -> ok(Templates.login(LoginData(challenge, true, false)))
             is LoginResult.TechnicalError -> {
                 val traceId = UUID.randomUUID().toString()
                 LOG.warn("Technical error encountered. TraceId: $traceId")

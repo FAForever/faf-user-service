@@ -1,4 +1,4 @@
-package com.faforever.hydra
+package com.faforever.userservice.hydra
 
 import com.fasterxml.jackson.annotation.JsonProperty
 

@@ -1,4 +1,4 @@
-package com.faforever.web
+package com.faforever.userservice.web
 
 import io.quarkus.qute.CheckedTemplate
 import io.quarkus.qute.TemplateInstance

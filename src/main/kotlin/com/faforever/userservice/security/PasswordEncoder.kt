@@ -1,4 +1,4 @@
-package com.faforever.security
+package com.faforever.userservice.security
 
 import jakarta.inject.Singleton
 import java.security.MessageDigest

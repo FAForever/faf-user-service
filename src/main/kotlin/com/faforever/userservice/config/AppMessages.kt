@@ -1,4 +1,4 @@
-package com.faforever.config
+package com.faforever.userservice.config
 
 import io.quarkus.qute.i18n.Message
 import io.quarkus.qute.i18n.MessageBundle

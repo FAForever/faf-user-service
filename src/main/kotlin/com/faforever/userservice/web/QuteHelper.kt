@@ -1,6 +1,6 @@
-package com.faforever.web
+package com.faforever.userservice.web
 
-import com.faforever.config.FafProperties
+import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import jakarta.inject.Named

@@ -1,4 +1,4 @@
-package com.faforever.domain
+package com.faforever.userservice.domain
 
 
 @JvmInline
