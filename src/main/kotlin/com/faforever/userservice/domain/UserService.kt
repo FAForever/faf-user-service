@@ -2,50 +2,61 @@ package com.faforever.userservice.domain
 
 import com.faforever.userservice.hydra.HydraService
 import com.faforever.userservice.security.OAuthScope
+import io.micronaut.context.annotation.ConfigurationProperties
+import io.micronaut.context.annotation.Context
+import io.micronaut.http.HttpStatus
+import io.micronaut.http.client.exceptions.HttpClientResponseException
+import io.micronaut.http.uri.UriBuilder
+import jakarta.inject.Singleton
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.stereotype.Component
-import org.springframework.validation.annotation.Validated
-import org.springframework.web.util.UriComponentsBuilder
-import org.springframework.web.util.UriUtils
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.onErrorResume
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 import sh.ory.hydra.model.AcceptConsentRequest
 import sh.ory.hydra.model.AcceptLoginRequest
 import sh.ory.hydra.model.ConsentRequestSession
 import sh.ory.hydra.model.GenericError
 import sh.ory.hydra.model.LoginRequest
-import java.nio.charset.StandardCharsets
+import sh.ory.hydra.model.RequestWasHandledResponse
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
+import java.time.OffsetDateTime
+import javax.validation.constraints.NotNull
 
-@ConfigurationProperties(prefix = "security")
-@Validated
-@ConstructorBinding
-data class SecurityProperties(
-    val failedLoginAccountThreshold: Int,
-    val failedLoginAttemptThreshold: Int,
-    val failedLoginThrottlingMinutes: Long,
-    val failedLoginDaysToCheck: Long,
-)
+@ConfigurationProperties("security")
+@Context
+interface SecurityProperties {
+    @get:NotNull
+    val failedLoginAccountThreshold: Int
+
+    @get:NotNull
+    val failedLoginAttemptThreshold: Int
+
+    @get:NotNull
+    val failedLoginThrottlingMinutes: Long
+
+    @get:NotNull
+    val failedLoginDaysToCheck: Long
+}
 
 sealed class LoginResult {
     object LoginThrottlingActive : LoginResult()
     object UserOrCredentialsMismatch : LoginResult()
     object TechnicalError : LoginResult()
     data class SuccessfulLogin(val redirectTo: String) : LoginResult()
-    data class UserBanned(val redirectTo: String) : LoginResult()
+    data class UserBanned(val reason: String, val expiresAt: OffsetDateTime?) : LoginResult()
     data class UserNoGameOwnership(val redirectTo: String) : LoginResult()
 }
 
-@Component
+@Singleton
 class UserService(
     private val securityProperties: SecurityProperties,
     private val userRepository: UserRepository,
+    private val accountLinkRepository: AccountLinkRepository,
     private val loginLogRepository: LoginLogRepository,
     private val banRepository: BanRepository,
     private val hydraService: HydraService,
@@ -60,12 +71,29 @@ class UserService(
          * The user role is used to distinguish users from technical accounts.
          */
         private const val ROLE_USER = "USER"
+        fun <T : Any> handleOryGoneRedirect(
+            exception: HttpClientResponseException,
+            redirectMapper: (String) -> T,
+        ): Mono<T> =
+            if (exception.status == HttpStatus.GONE) {
+                val mappedResponse = exception.response.getBody(RequestWasHandledResponse::class.java)
+                    .map { redirectMapper(it.redirectTo) }
+                    .orElseThrow()
+
+                Mono.just(mappedResponse)
+            } else {
+                // pass through unknown error
+                Mono.error(exception)
+            }
     }
 
     fun findUserBySubject(subject: String) =
-        userRepository.findById(subject.toLong())
+        userRepository.findById(subject.toInt())
 
-    private fun checkLoginThrottlingRequired(ip: String) = loginLogRepository.findFailedAttemptsByIpAfterDate(ip, LocalDateTime.now().minusDays(securityProperties.failedLoginDaysToCheck))
+    private fun checkLoginThrottlingRequired(ip: String) = loginLogRepository.findFailedAttemptsByIpAfterDate(
+        ip,
+        LocalDateTime.now().minusDays(securityProperties.failedLoginDaysToCheck),
+    )
         .map {
             val accountsAffected = it.accountsAffected ?: 0
             val totalFailedAttempts = it.totalAttempts ?: 0
@@ -77,7 +105,7 @@ class UserService(
             ) {
                 val lastAttempt = it.lastAttemptAt!!
                 if (LocalDateTime.now().minusMinutes(securityProperties.failedLoginThrottlingMinutes)
-                    .isBefore(lastAttempt)
+                        .isBefore(lastAttempt)
                 ) {
                     LOG.debug("IP '$ip' is trying again to early -> throttle it")
                     true
@@ -106,8 +134,12 @@ class UserService(
                         internalLogin(challenge, usernameOrEmail, password, ip, loginRequest)
                     }
             }
-        }
-        .onErrorResume { error ->
+        }.onErrorResume(HttpClientResponseException::class) { exception ->
+            handleOryGoneRedirect(exception) { redirectTo ->
+                LOG.debug("Login challenge $challenge was already solved, following Ory redirect")
+                LoginResult.SuccessfulLogin(redirectTo)
+            }
+        }.onErrorResume { error ->
             LOG.debug("Login failed with technical error for challenge $challenge", error)
             LoginResult.TechnicalError.toMono()
         }
@@ -133,43 +165,45 @@ class UserService(
                         LOG.debug("User '$usernameOrEmail' is banned by $ban")
                         hydraService.rejectLoginRequest(challenge, GenericError(HYDRA_ERROR_USER_BANNED))
                             .map {
-                                LoginResult.UserBanned(
-                                    UriComponentsBuilder.fromUriString("/oauth2/banned")
-                                        .queryParam(
-                                            "expiration",
-                                            if (ban.expiresAt != null) ISO_OFFSET_DATE_TIME.format(ban.expiresAt) else null
-                                        )
-                                        .queryParam("reason", UriUtils.encode(ban.reason, StandardCharsets.UTF_8))
-                                        .build()
-                                        .toUriString()
-                                )
+                                LoginResult.UserBanned(ban.reason, ban.expiresAt)
                             }
                     }
                     .switchIfEmpty {
-                        if (loginRequest.requestedScope.contains(OAuthScope.LOBBY) && !user.hasGameOwnershipVerified) {
-                            LOG.debug("Lobby login blocked for user '$usernameOrEmail' because of missing game ownership verification")
-                            hydraService.rejectLoginRequest(
-                                challenge,
-                                GenericError(HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION)
-                            )
-                                .map {
-                                    LoginResult.UserNoGameOwnership(
-                                        UriComponentsBuilder.fromUriString("/oauth2/gameVerificationFailed")
-                                            .build()
-                                            .toUriString()
-                                    )
-                                }
-                        } else {
-                            Mono.empty()
-                        }
-                    }
-                    .switchIfEmpty {
-                        LOG.debug("User '$usernameOrEmail' logged in successfully")
+                        if (loginRequest.requestedScope.contains(OAuthScope.LOBBY)) {
+                            accountLinkRepository.existsByUserIdAndOwnership(user.id, true).flatMap { exists ->
+                                if (exists) {
+                                    LOG.debug("User '$usernameOrEmail' logged in successfully")
 
-                        hydraService.acceptLoginRequest(
-                            challenge,
-                            AcceptLoginRequest(user.id.toString())
-                        ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
+                                    hydraService.acceptLoginRequest(
+                                        challenge,
+                                        AcceptLoginRequest(user.id.toString()),
+                                    ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
+                                } else {
+                                    LOG.debug(
+                                        "Lobby login blocked for user '$usernameOrEmail' " +
+                                            "because of missing game ownership verification",
+                                    )
+
+                                    hydraService.rejectLoginRequest(
+                                        challenge,
+                                        GenericError(HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION),
+                                    ).map {
+                                        LoginResult.UserNoGameOwnership(
+                                            UriBuilder.of("/oauth2/gameVerificationFailed")
+                                                .build()
+                                                .toASCIIString(),
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            LOG.debug("User '$usernameOrEmail' logged in successfully")
+
+                            hydraService.acceptLoginRequest(
+                                challenge,
+                                AcceptLoginRequest(user.id.toString()),
+                            ).map { LoginResult.SuccessfulLogin(it.redirectTo) }
+                        }
                     }
             } else {
                 LOG.debug("Password for user '$usernameOrEmail' doesn't match")
@@ -203,36 +237,43 @@ class UserService(
         hydraService.getConsentRequest(challenge)
             .flatMap { consentRequest ->
                 if (permitted) {
-                    userRepository.findUserPermissions(consentRequest.subject?.toInt() ?: -1)
-                        .collectList()
-                        .flatMap { permissions ->
-                            val roles = listOf(ROLE_USER) + permissions.map { it.technicalName }
+                    val userId = consentRequest.subject?.toInt() ?: -1
+                    Mono.zip(
+                        userRepository.findById(userId),
+                        userRepository.findUserPermissions(userId).collectList(),
+                    ).flatMap { (user, permissions) ->
+                        val roles = listOf(ROLE_USER) + permissions.map { it.technicalName }
 
-                            /**
-                             * *** Why do we put the FAF roles into the access token? ***
-                             *
-                             * FAF uses OAuth 2.0 / OpenID Connect as a SSO solution. To avoid looking up the
-                             * permissions in each service, we put them into the access token right away.
-                             *
-                             * If you are an external developer and need to utilize some sort of permission system then
-                             * you should NOT rely on FAF roles! You have no guarantee that a role still exists tomorrow
-                             * and you also have no influence on which user has which role.
-                             */
-                            hydraService.acceptConsentRequest(
-                                challenge,
-                                AcceptConsentRequest(
-                                    session = ConsentRequestSession(
-                                        accessToken = mapOf("roles" to roles),
-                                        idToken = mapOf("roles" to roles)
-                                    ),
-                                    grantScope = consentRequest.requestedScope
-                                )
-                            )
-                        }
+                        /**
+                         * *** Why do we put the FAF roles into the access token? ***
+                         *
+                         * FAF uses OAuth 2.0 / OpenID Connect as a SSO solution. To avoid looking up the
+                         * permissions in each service, we put them into the access token right away.
+                         *
+                         * If you are an external developer and need to utilize some sort of permission system then
+                         * you should NOT rely on FAF roles! You have no guarantee that a role still exists tomorrow
+                         * and you also have no influence on which user has which role.
+                         */
+                        hydraService.acceptConsentRequest(
+                            challenge,
+                            AcceptConsentRequest(
+                                session = ConsentRequestSession(
+                                    accessToken = mapOf("username" to user.username, "roles" to roles),
+                                    idToken = mapOf("username" to user.username, "roles" to roles),
+                                ),
+                                grantScope = consentRequest.requestedScope,
+                            ),
+                        )
+                    }
                 } else {
                     hydraService.rejectConsentRequest(challenge, GenericError("scope_denied"))
                 }
             }.map {
                 it.redirectTo
+            }.onErrorResume(HttpClientResponseException::class) { exception ->
+                handleOryGoneRedirect(exception) { redirectTo ->
+                    LOG.debug("Consent challenge $challenge was already solved, following Ory redirect")
+                    redirectTo
+                }
             }
 }

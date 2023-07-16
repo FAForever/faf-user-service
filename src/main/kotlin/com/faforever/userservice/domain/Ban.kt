@@ -1,9 +1,11 @@
 package com.faforever.userservice.domain
 
-import org.springframework.data.annotation.Id
-import org.springframework.data.relational.core.mapping.Table
-import org.springframework.data.repository.reactive.ReactiveCrudRepository
-import org.springframework.stereotype.Repository
+import io.micronaut.data.annotation.Id
+import io.micronaut.data.annotation.MappedEntity
+import io.micronaut.data.annotation.Transient
+import io.micronaut.data.model.query.builder.sql.Dialect
+import io.micronaut.data.r2dbc.annotation.R2dbcRepository
+import io.micronaut.data.repository.reactive.ReactorCrudRepository
 import reactor.core.publisher.Flux
 import java.time.OffsetDateTime
 
@@ -13,9 +15,9 @@ enum class BanLevel {
     VAULT,
 }
 
-@Table("ban")
+@MappedEntity("ban")
 data class Ban(
-    @Id
+    @field:Id
     val id: Long,
     val playerId: Long,
     val authorId: Long,
@@ -28,11 +30,12 @@ data class Ban(
     val revokeAuthorId: Long?,
 ) {
 
+    @get:Transient
     val isActive: Boolean
         get() = revokeTime == null && (expiresAt == null || expiresAt.isAfter(OffsetDateTime.now()))
 }
 
-@Repository
-interface BanRepository : ReactiveCrudRepository<Ban, Long> {
+@R2dbcRepository(dialect = Dialect.MYSQL)
+interface BanRepository : ReactorCrudRepository<Ban, Long> {
     fun findAllByPlayerIdAndLevel(playerId: Long, level: BanLevel): Flux<Ban>
 }

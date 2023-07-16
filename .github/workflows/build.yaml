@@ -3,14 +3,14 @@ on: [push]
 jobs:
   test:
     runs-on: ubuntu-latest
-    container: adoptopenjdk:11-jdk-hotspot-bionic
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Gradle build
-        env:
-          GRADLE_CLI_OPTS: ""
-        run: "chmod +x ./gradlew && ./gradlew ${GRADLE_CLI_OPTS} build"
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
       - name: Get tag or branch
         id: get_tag_or_branch
         run: |
@@ -19,9 +19,20 @@ jobs:
           else
               echo ::set-output name=TAG_OR_BRANCH::${GITHUB_REF#refs/heads/}
           fi
+      - name: Gradle build
+        env:
+          GRADLE_CLI_OPTS: "-Dversion=${{steps.get_tag_or_branch.outputs.TAG_OR_BRANCH}}"
+        run: "chmod +x ./gradlew && ./gradlew ${GRADLE_CLI_OPTS} dockerBuild"
+      - name: Login to DockerHub
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and push Docker images
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')
         env:
-          GRADLE_CLI_OPTS: "-Djib.to.auth.username=${{secrets.DOCKER_USERNAME}} -Djib.to.auth.password=${{secrets.DOCKER_PASSWORD}} -Djib.to.tags=${{steps.get_tag_or_branch.outputs.TAG_OR_BRANCH}}"
-        run: "chmod +x ./gradlew && ./gradlew ${GRADLE_CLI_OPTS} jib"
-
+          TAG_OR_BRANCH: ${{steps.get_tag_or_branch.outputs.TAG_OR_BRANCH}}
+        run: |
+          docker tag faforever/faf-user-service:latest faforever/faf-user-service:${TAG_OR_BRANCH}
+          docker push faforever/faf-user-service:${TAG_OR_BRANCH}

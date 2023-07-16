@@ -1,0 +1,34 @@
+<html layout:decorate="~{layout/card}" th:with="headerText=#{login.title},title=#{login}" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<div layout:fragment="card-content">
+    <form name="login-form" th:action="@{/oauth2/login}+'?_csrf='+${_csrf}" th:object="${loginForm}" method="post">
+        <div id="form-header" th:replace="~{fragments/logoHeader :: logoHeader ( #{login.welcomeBack} )}"></div>
+
+        <div class="error" th:if="${loginFailed}">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="#{login.badCredentials}">Username or password was wrong</span>
+        </div>
+
+        <div class="error" th:if="${loginThrottled}">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="#{login.throttled}">Too many of your login attempts have failed. Please wait some time before trying to login again.</span>
+        </div>
+
+        <input type="hidden" name="challenge" th:value="*{challenge}"/>
+        <input type="text" name="usernameOrEmail" required th:value="*{usernameOrEmail}" placeholder="Username or Email"
+               th:placeholder="#{login.usernameOrEmail}">
+        <input type="password" name="password" required th:value="*{password}" placeholder="Password"
+               th:placeholder="#{login.password}">
+        <input type="submit" name="login" value="Log in" th:value="#{login.loginAction}"/>
+    </form>
+
+    <footer>
+        <ul class="pipe-separated">
+            <!-- no closing li to avoid whitespace -->
+            <li><a href="#" th:href="${passwordResetUrl}" th:text="#{login.forgotPassword}">Forgot password</a>
+            <li><a href="#" th:href="${registerAccountUrl}" th:text="#{login.registerAccount}">Register account</a>
+        </ul>
+        <ul th:replace="~{fragments/socialIcons :: socialIcons}"></ul>
+    </footer>
+</div>
+</html>

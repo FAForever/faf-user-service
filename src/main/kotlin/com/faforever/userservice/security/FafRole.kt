@@ -1,13 +1,6 @@
 package com.faforever.userservice.security
 
-import com.faforever.userservice.security.OAuthRole.ROLE_PREFIX
-import org.springframework.security.core.GrantedAuthority
-
-data class FafRole(val role: String) : GrantedAuthority {
-    override fun getAuthority() = ROLE_PREFIX + role
-}
-
-object OAuthRole {
+object FafRole {
     const val ROLE_PREFIX = "ROLE_"
 
     const val READ_AUDIT_LOG = "READ_AUDIT_LOG"

@@ -1,15 +1,15 @@
 package com.faforever.userservice.security
 
+import jakarta.inject.Singleton
 import org.springframework.security.crypto.codec.Hex.decode
 import org.springframework.security.crypto.codec.Hex.encode
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.stereotype.Component
 import java.security.MessageDigest
 
 /**
  * A pretty insecure SHA-256 password encoder.
  */
-@Component
+@Singleton
 class FafPasswordEncoder : PasswordEncoder {
     private val sha256 = MessageDigest.getInstance("SHA-256")
 

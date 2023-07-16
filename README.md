@@ -1,78 +1,48 @@
-# user-service
+# FAF User Service
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+This service aims to cover the domain of login and account management in FAForever.
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+## Technology stack
 
-## Running the application in dev mode
-
-You can run your application in dev mode that enables live coding using:
-```shell script
-./gradlew quarkusDev
-```
-
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
-
-## Packaging and running the application
-
-The application can be packaged using:
-```shell script
-./gradlew build
-```
-It produces the `quarkus-run.jar` file in the `build/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `build/quarkus-app/lib/` directory.
-
-The application is now runnable using `java -jar build/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-```shell script
-./gradlew build -Dquarkus.package.type=uber-jar
-```
-
-The application, packaged as an _über-jar_, is now runnable using `java -jar build/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using: 
-```shell script
-./gradlew build -Dquarkus.package.type=native
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
-```shell script
-./gradlew build -Dquarkus.package.type=native -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./build/user-service-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/gradle-tooling.
-
-## Related Guides
-
-- Hibernate ORM with Panache and Kotlin ([guide](https://quarkus.io/guides/hibernate-orm-panache-kotlin)): Define your persistent model in Hibernate ORM with Panache
-- Qute ([guide](https://quarkus.io/guides/qute)): Offer templating support for web, email, etc in a build time, type-safe way
-- JDBC Driver - MariaDB ([guide](https://quarkus.io/guides/datasource)): Connect to the MariaDB database via JDBC
-- Kotlin ([guide](https://quarkus.io/guides/kotlin)): Write your services in Kotlin
-
-## Provided Code
-
-### Hibernate ORM
-
-Create your first JPA entity
-
-[Related guide section...](https://quarkus.io/guides/hibernate-orm)
+- Kotlin
+- Spring Boot
+- Spring Webflux
+- Spring Data R2DBC
 
 
-[Related Hibernate with Panache in Kotlin section...](https://quarkus.io/guides/hibernate-orm-panache-kotlin)
+## Motivation and architecture considerations
 
-### RESTEasy Reactive
+### Yet another FAF API?
 
-Easily start your Reactive RESTful Web Services
+> The faf-java-api already offers OAuth2 login and user management. Why do we need yet another service?
 
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+There are multiple reasons that led to this decision:
 
-### RESTEasy Reactive Qute
+1. **Application perspective:** The faf-java-api uses the 
+   [Spring Security OAuth](https://spring.io/projects/spring-security-oauth) library.
+   1. With the release of Spring 5 this got deprecated in favour of a newer one. Unfortunately with this transition
+   the support for OAuth2 identity server was dropped completely. It receives no more updates.
+   1. Since the library is deprecated we lack support for the improved OAuth2 PKCE login flow, which improves overall
+    security compared to the previous implicit flow.
+   1. The current library seems to have issues when trying to login with certified libraries from the Angular ecosystem.
+    It just doesn't work in some cases, where we need it to work. (But nobody will fix it since it's deprecated.)
+2. **Architecture perspective:** The faf-java-api is the FAF swiss army knife. It basically bundles every feature 
+   outside of the lobby server protocol. This makes it very complex to maintain and configure. It also causes very high 
+   startup times causing unnecessary downtimes on deployments. This does not match our desired architecture.
+   A new microservice focussing on one particular topic (and security is a very important topic which is also hard to get 
+   right) simplifies that.
+3. **GDPR and DevOps implications:** Currently FAF runs almost all applications on one server. An admin on that server 
+   has access to all personal data. Adding new admins is a large hassle due to GDPR requirements. Due to this many
+   FAF maintainers have no access to their application logs and configuration, which makes fixing bugs etc. much more 
+   complicated and adds additional work onto the few admins. This new service might
+   be a first step into moving the whole account management out of the main server.
+4. **Long running perspective:** In a perfect world we would migrate all authorization related stuff into a dedicated 
+   (trusted) 3rd party software, so we can't mess up on security.
 
-Create your web page using Quarkus RESTEasy Reactive & Qute
+### Additional goals
 
-[Related guide section...](https://quarkus.io/guides/qute#type-safe-templates)
+Goal | Status
+---- | ------
+Usability improvements by serving translated web pages | :heavy_check_mark:
+Improved performance by using reactive stack | :heavy_check_mark:
+Massively reduced startup times and smaller resource footprint by compiling to native images with GraalVM | :hourglass:	

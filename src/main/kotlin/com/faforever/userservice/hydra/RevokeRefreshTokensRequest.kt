@@ -8,7 +8,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @param client Client to revoke consent sessions for.
  * @param all Revoke consent for all clients.
  */
-
 data class RevokeRefreshTokensRequest(
     /* Subject is the user ID of the user to revoke consent sessions for. */
     @field:JsonProperty("subject")

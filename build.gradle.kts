@@ -1,91 +1,127 @@
-import com.google.cloud.tools.jib.gradle.JibExtension
-import com.google.cloud.tools.jib.gradle.JibPlugin
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-val dockerTag: String? by project
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
 plugins {
-    val kotlinVersion = "1.5.30"
+    val kotlinVersion = "1.8.21"
 
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
-    kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "2.5.4"
-    id("io.spring.dependency-management") version "1.0.11.RELEASE"
-    id("com.google.cloud.tools.jib") version "3.1.4"
+    kotlin("plugin.allopen") version kotlinVersion
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("io.micronaut.application") version "3.5.3"
 
     // /****** Additional tooling *****/
     // // OpenAPI code generation
     // id("org.openapi.generator") version "4.3.1"
     // Code formatting
-    id("com.diffplug.spotless") version "5.12.5"
+    id("com.diffplug.spotless") version "6.19.0"
 }
 
+val version: String by project
 group = "com.faforever"
-version = "snapshot"
-java.sourceCompatibility = JavaVersion.VERSION_11
+java.sourceCompatibility = JavaVersion.VERSION_17
 
+val kotlinVersion = project.properties.get("kotlinVersion")
 repositories {
     mavenCentral()
-    maven("https://jitpack.io")
 }
 
 dependencies {
-    kapt("org.springframework.boot:spring-boot-configuration-processor")
-    implementation("org.springframework.boot:spring-boot-configuration-processor")
-    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.security:spring-security-oauth2-resource-server")
-    implementation("org.springframework.security:spring-security-oauth2-jose")
-    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
-    implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity5")
-    implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    implementation("io.swagger.core.v3:swagger-annotations:2.1.6")
-    runtimeOnly("dev.miku:r2dbc-mysql")
-    runtimeOnly("mysql:mysql-connector-java")
-    testImplementation("org.springframework.security:spring-security-oauth2-client")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.security:spring-security-test")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:3.1.0")
-    testImplementation("io.projectreactor:reactor-test")
-    testImplementation("org.mock-server:mockserver-netty:5.11.2")
-    testImplementation("org.mock-server:mockserver-client-java:5.11.2")
+    kapt("io.micronaut:micronaut-http-validation")
+    kapt("io.micronaut.data:micronaut-data-processor")
+    kapt("io.micronaut.openapi:micronaut-openapi")
+    kapt("io.micronaut.security:micronaut-security-annotations")
+    implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut:micronaut-jackson-databind")
+    implementation("org.springframework.security:spring-security-crypto:6.1.0")
+    implementation("io.micronaut:micronaut-management")
+    implementation("io.micronaut:micronaut-runtime")
+    implementation("io.micronaut.security:micronaut-security-jwt")
+    implementation("io.micronaut.data:micronaut-data-r2dbc")
+    // Workaround for https://github.com/micronaut-projects/micronaut-r2dbc/issues/377
+    implementation("io.r2dbc:r2dbc-pool")
+    implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
+    implementation("io.micronaut.views:micronaut-views-thymeleaf")
+    implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.2.1")
+    implementation("io.micronaut.micrometer:micronaut-micrometer-core")
+    implementation("io.micronaut.micrometer:micronaut-micrometer-registry-prometheus")
+    implementation("io.micronaut.tracing:micronaut-tracing-jaeger")
+    implementation("io.swagger.core.v3:swagger-annotations")
+    implementation("jakarta.annotation:jakarta.annotation-api")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
+    runtimeOnly("ch.qos.logback:logback-classic")
+    runtimeOnly("org.mariadb:r2dbc-mariadb")
+    runtimeOnly("io.r2dbc:r2dbc-h2")
+    implementation("io.micronaut:micronaut-validation")
+
+    runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    testImplementation("io.projectreactor:reactor-test:3.5.6")
+    val mockitoVersion = "5.3.1"
+    testImplementation("org.mockito:mockito-core:$mockitoVersion")
+    testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.0.0")
+    val mockserverVersion = "5.15.0"
+    testImplementation("org.mock-server:mockserver-netty:$mockserverVersion")
+    testImplementation("org.mock-server:mockserver-client-java:$mockserverVersion")
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "11"
+application {
+    mainClass.set("com.faforever.userservice.ApplicationKt")
+}
+
+tasks {
+    compileKotlin {
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+            jvmTarget = "17"
+        }
+    }
+    compileTestKotlin {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
+
+    named<DockerBuildImage>("dockerBuild") {
+        images.empty()
+        images.add("faforever/faf-user-service")
+    }
+}
+
+graalvmNative.toolchainDetection.set(false)
+micronaut {
+    runtime("netty")
+    testRuntime("junit5")
+    processing {
+        incremental(true)
+        annotations("com.faforever.*")
+    }
+}
+
+docker {
+    registryCredentials {
+        val envUsername = System.getenv("DOCKER_USERNAME")
+        val envPassword = System.getenv("DOCKER_PASSWORD")
+
+        if (envUsername != null && envPassword != null) {
+            println("Setting up Docker registry login")
+            username.set(envUsername)
+            password.set(envPassword)
+        } else {
+            println("No docker credentials defined")
+        }
     }
 }
 
 spotless {
-    val ktlintVersion = "0.41.0"
+    val ktlintVersion = "0.49.1"
     kotlin {
         ktlint(ktlintVersion)
     }
     kotlinGradle {
         target("*.gradle.kts")
+
         ktlint(ktlintVersion)
-    }
-}
-
-plugins.withType<JibPlugin> {
-    configure<JibExtension> {
-
-        from.image = "adoptopenjdk:16-jre-hotspot"
-
-        to {
-            image = "faforever/faf-user-service"
-        }
     }
 }
 
@@ -151,7 +187,7 @@ tasks.withType<Test> {
                         --------------------------------------------------------------------------
                         Results: $summaryStyle${result.resultType}$ANSI_RESET (${result.testCount} tests, $successStyle${result.successfulTestCount} passed$ANSI_RESET, $failStyle${result.failedTestCount} failed$ANSI_RESET, $skipStyle${result.skippedTestCount} skipped$ANSI_RESET)
                         --------------------------------------------------------------------------
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }
         }

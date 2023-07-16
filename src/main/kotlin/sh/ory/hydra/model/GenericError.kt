@@ -12,6 +12,7 @@
 package sh.ory.hydra.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.core.annotation.Introspected
 
 /**
  * Error responses are sent when an error (e.g. unauthorized, bad request, ...) occurred.
@@ -21,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @param statusCode Code represents the error status code (404, 403, 401, ...).
  */
 
+@Introspected
 data class GenericError(
     /* Name is the error name. */
     @field:JsonProperty("error")

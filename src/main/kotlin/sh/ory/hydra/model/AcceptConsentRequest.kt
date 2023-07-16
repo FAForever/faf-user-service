@@ -12,6 +12,7 @@
 package sh.ory.hydra.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.core.annotation.Introspected
 
 /**
  *
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @param session
  */
 
+@Introspected
 data class AcceptConsentRequest(
     @field:JsonProperty("grant_access_token_audience")
     val grantAccessTokenAudience: kotlin.collections.List<kotlin.String>? = null,
@@ -37,5 +39,5 @@ data class AcceptConsentRequest(
     @field:JsonProperty("remember_for")
     val rememberFor: kotlin.Long? = null,
     @field:JsonProperty("session")
-    val session: ConsentRequestSession? = null
+    val session: ConsentRequestSession? = null,
 )
