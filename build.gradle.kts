@@ -21,7 +21,6 @@ val vaadinQuarkusVersion: String by project
 
 repositories {
     mavenCentral()
-    maven { setUrl("https://maven.vaadin.com/vaadin-prereleases") }
     mavenLocal()
 }
 

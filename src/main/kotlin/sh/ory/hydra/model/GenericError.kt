@@ -17,8 +17,9 @@ import io.quarkus.runtime.annotations.RegisterForReflection
 /**
  * Error responses are sent when an error (e.g. unauthorized, bad request, ...) occurred.
  * @param error Name is the error name.
- * @param debug Debug contains debug information. This is usually not available and has to be enabled.
+ * @param errorDebug Debug contains debug information. This is usually not available and has to be enabled.
  * @param errorDescription Description contains further information on the nature of the error.
+ * @param errorHint Hint to help resolve the error
  * @param statusCode Code represents the error status code (404, 403, 401, ...).
  */
 
@@ -28,11 +29,14 @@ data class GenericError(
     @JsonProperty("error")
     val error: kotlin.String,
     /* Debug contains debug information. This is usually not available and has to be enabled. */
-    @JsonProperty("debug")
-    val debug: kotlin.String? = null,
+    @JsonProperty("error_debug")
+    val errorDebug: kotlin.String? = null,
     // /* Description contains further information on the nature of the error. */
     @JsonProperty("error_description")
     val errorDescription: kotlin.String? = null,
+    // /* Hint to help resolve the error
+    @JsonProperty("error_hint")
+    val errorHint: kotlin.String? = null,
     // /* Code represents the error status code (404, 403, 401, ...). */
     @JsonProperty("status_code")
     val statusCode: kotlin.Long? = null
