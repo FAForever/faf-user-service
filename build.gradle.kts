@@ -42,7 +42,7 @@ dependencies {
     implementation("io.quarkus:quarkus-resteasy-reactive")
     implementation("com.vaadin:vaadin-core")
     implementation("com.vaadin:vaadin-core-jandex")
-    implementation("com.vaadin:vaadin-quarkus:${vaadinQuarkusVersion}")
+    implementation("com.vaadin:vaadin-quarkus")
     implementation("org.jboss.slf4j:slf4j-jboss-logmanager:1.1.0.Final")
 
     testImplementation("io.quarkus:quarkus-junit5")

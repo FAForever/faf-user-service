@@ -2,14 +2,13 @@ package com.faforever.userservice.backend.i18n
 
 import com.vaadin.flow.component.UI
 import com.vaadin.flow.i18n.I18NProvider
-import jakarta.enterprise.context.ApplicationScoped
+import com.vaadin.quarkus.annotation.VaadinServiceScoped
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.text.MessageFormat
 import java.util.*
 
-
-@ApplicationScoped
+@VaadinServiceScoped
 class I18n : I18NProvider {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(I18n::class.java)
@@ -17,10 +16,8 @@ class I18n : I18NProvider {
         const val BUNDLE_PREFIX = "i18n/messages"
     }
 
-    private val locales: List<Locale> = listOf(Locale.ENGLISH, Locale.GERMAN)
-
     override fun getProvidedLocales(): List<Locale> {
-        return locales
+        return listOf(Locale.ENGLISH, Locale.GERMAN)
     }
 
     override fun getTranslation(key: String, locale: Locale, vararg params: Any): String? {
