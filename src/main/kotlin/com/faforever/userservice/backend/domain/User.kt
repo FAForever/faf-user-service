@@ -9,15 +9,17 @@ import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
 
 @Entity(name = "login")
-class User : PanacheEntityBase {
+data class User(
     @Id
     @GeneratedValue
-    var id: Int = 0
+    val id: Int,
     @Column(name = "login")
-    lateinit var username: String
-    lateinit var password: String
-    lateinit var email: String
-    var ip: String? = null
+    val username: String,
+    val password: String,
+    val email: String,
+    val ip: String?,
+) : PanacheEntityBase {
+
 
     override fun toString(): String =
         // Do NOT expose personal information here!!
@@ -26,13 +28,15 @@ class User : PanacheEntityBase {
 
 
 @Entity(name = "service_links")
-class AccountLink : PanacheEntityBase {
+data class AccountLink(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    lateinit var id: String
+    val id: String,
     @Column(name = "user_id")
-    var userId: Long? = null
-    var ownership: Boolean = false
+    val userId: Long?,
+    val ownership: Boolean,
+) : PanacheEntityBase {
+
 
     override fun toString(): String =
         // Do NOT expose personal information here!!
@@ -40,19 +44,19 @@ class AccountLink : PanacheEntityBase {
 }
 
 @Entity(name = "group_permission")
-class Permission : PanacheEntityBase {
+data class Permission(
     @Id
     @GeneratedValue
-    var id: Long = 0
+    val id: Long,
     @Column(name = "technical_name")
-    lateinit var technicalName: String
+    val technicalName: String,
     @Column(name = "create_time")
     @CreationTimestamp
-    lateinit var createTime: LocalDateTime
+    val createTime: LocalDateTime,
     @Column(name = "update_time")
     @UpdateTimestamp
-    lateinit var updateTime: LocalDateTime
-}
+    val updateTime: LocalDateTime,
+) : PanacheEntityBase
 
 @ApplicationScoped
 class UserRepository : PanacheRepositoryBase<User, Int> {

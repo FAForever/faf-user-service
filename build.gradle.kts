@@ -3,6 +3,7 @@ plugins {
 
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.allopen") version kotlinVersion
+    kotlin("plugin.noarg") version kotlinVersion
     id("io.quarkus") version "3.1.2.Final"
     id("com.vaadin") version "24.1.2"
 }
@@ -67,10 +68,20 @@ allOpen {
     annotation("jakarta.enterprise.context.ApplicationScoped")
     annotation("io.quarkus.test.junit.QuarkusTest")
 
-    // Hibernate Causes issues with no default constructor
-//    annotation("jakarta.persistence.Entity")
-//    annotation("jakarta.persistence.MappedSuperclass")
-//    annotation("jakarta.persistence.Embeddable")
+    // Hibernate
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.MappedSuperclass")
+    annotation("jakarta.persistence.Embeddable")
+}
+
+/**
+ * Provide no-args constructor for Java compatibility
+ */
+noArg {
+    // Hibernate
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.MappedSuperclass")
+    annotation("jakarta.persistence.Embeddable")
 }
 
 tasks.withType<Test> {

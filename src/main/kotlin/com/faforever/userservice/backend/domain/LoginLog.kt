@@ -9,35 +9,20 @@ import org.hibernate.annotations.CreationTimestamp
 import java.time.LocalDateTime
 
 @Entity(name = "login_log")
-class LoginLog() : PanacheEntityBase {
-
-    constructor(
-        id: Long,
-        userId: Int?,
-        loginString: String?,
-        ip: String,
-        success: Boolean
-    ) : this() {
-        this.id = id
-        this.userId = userId
-        this.loginString = loginString
-        this.ip = ip
-        this.success = success
-    }
-
+data class LoginLog(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long = 0
+    val id: Long,
     @Column(name = "login_id")
-    var userId: Int? = null
+    val userId: Int?,
     @Column(name = "login_string")
-    var loginString: String? = null
-    lateinit var ip: String
-    var success: Boolean = false
+    val loginString: String?,
+    val ip: String,
+    val success: Boolean,
     @CreationTimestamp
     @Column(name = "create_time")
-    lateinit var createTime: LocalDateTime
-}
+    val createTime: LocalDateTime = LocalDateTime.now(),
+) : PanacheEntityBase
 
 @RegisterForReflection
 data class FailedAttemptsSummary(

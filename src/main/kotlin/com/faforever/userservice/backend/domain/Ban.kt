@@ -13,26 +13,28 @@ enum class BanLevel {
 }
 
 @Entity(name = "ban")
-class Ban : PanacheEntityBase {
+data class Ban(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Int = 0
+    val id: Int,
     @Column(name = "player_id")
-    var playerId: Long = 0
+    val playerId: Long,
     @Column(name = "author_id")
-    val authorId: Int = 0
-    lateinit var level: BanLevel
-    lateinit var reason: String
+    val authorId: Int,
+    val level: BanLevel,
+    val reason: String,
     @Column(name = "expires_at")
-    var expiresAt: OffsetDateTime? = null
+    val expiresAt: OffsetDateTime?,
     @Column(name = "revoke_time")
-    var revokeTime: OffsetDateTime? = null
+    val revokeTime: OffsetDateTime?,
     @Column(name = "report_id")
-    var reportId: Long? = null
+    val reportId: Long?,
     @Column(name = "revoke_reason")
-    var revokeReason: String? = null
+    val revokeReason: String?,
     @Column(name = "revoke_author_id")
-    var revokeAuthorId: Long? = null
+    val revokeAuthorId: Long?,
+) : PanacheEntityBase {
+
 
     val isActive: Boolean
         get() = revokeTime == null && (expiresAt?.isAfter(OffsetDateTime.now()) == true)
