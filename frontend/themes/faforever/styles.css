@@ -5,6 +5,7 @@ html {
     --lumo-font-family: 'Source Sans Pro', sans-serif;
     --lumo-primary-color: #ea2f10;
     --lumo-primary-text-color: var(--lumo-primary-color);
+    --lumo-clickable-cursor: pointer;
 }
 
 .background {
@@ -104,7 +105,6 @@ header {
 #form-header img {
     width: 100px;
     height: 100px;
-    padding: 0 10%;
 }
 
 #form-header-right {
@@ -162,7 +162,7 @@ a:hover {
     background-color: black;
     color: #fff;
     text-align: center;
-    padding: 5px 0;
+    padding: 5px;
     border-radius: 6px;
 
     /* Position the tooltip */

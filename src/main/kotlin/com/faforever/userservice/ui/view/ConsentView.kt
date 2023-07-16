@@ -1,6 +1,8 @@
 package com.faforever.userservice.ui.view
 
 import com.faforever.userservice.backend.hydra.HydraService
+import com.faforever.userservice.backend.hydra.NoChallengeException
+import com.faforever.userservice.backend.i18n.I18n
 import com.faforever.userservice.ui.component.ClientHeader
 import com.faforever.userservice.ui.component.CompactVerticalLayout
 import com.faforever.userservice.ui.component.ScopeWidget
@@ -16,11 +18,14 @@ import com.vaadin.flow.router.Route
 import sh.ory.hydra.model.ConsentRequest
 
 @Route("/oauth2/consent", layout = CardLayout::class)
-class ConsentView(private val hydraService: HydraService) : CompactVerticalLayout(), BeforeEnterObserver {
-    private val authorize = Button("Authorize") {authorize()}
-    private val deny = Button("Deny") {deny()}
-    private val clientHeader = ClientHeader()
-    private val scopeWidget = ScopeWidget()
+class ConsentView(
+    private val clientHeader: ClientHeader,
+    private val scopeWidget: ScopeWidget,
+    private val hydraService: HydraService,
+    private val i18n: I18n,
+) : CompactVerticalLayout(), BeforeEnterObserver {
+    private val authorize = Button(i18n.getTranslation("consent.authorize")) { authorize() }
+    private val deny = Button(i18n.getTranslation("consent.deny")) { deny() }
 
     private lateinit var challenge: String
 
@@ -52,12 +57,13 @@ class ConsentView(private val hydraService: HydraService) : CompactVerticalLayou
     }
 
     private fun authorize() {
-        hydraService.acceptConsentRequest(challenge)
-
+        val redirectTo = hydraService.acceptConsentRequest(challenge)
+        ui.ifPresent { it.page.setLocation(redirectTo.uri) }
     }
 
     private fun deny() {
-        hydraService.denyConsentRequest(challenge)
+        val redirectTo = hydraService.denyConsentRequest(challenge)
+        ui.ifPresent { it.page.setLocation(redirectTo.uri) }
     }
 
     override fun beforeEnter(event: BeforeEnterEvent?) {
@@ -65,7 +71,8 @@ class ConsentView(private val hydraService: HydraService) : CompactVerticalLayou
         if (possibleChallenge != null) {
             challenge = possibleChallenge
             setDetailsFromRequest(hydraService.getConsentRequest(possibleChallenge))
+        } else {
+            throw NoChallengeException()
         }
     }
-
 }

@@ -40,12 +40,18 @@ class SocialIcons : HorizontalLayout() {
     }
 }
 
-class InfoTooltipIcon(tooltip: String) : Icon() {
+class InfoTooltipIcon : Icon() {
+    private val span = Span()
+
     init {
         addClassNames("tooltip", "fas", "fa-info-circle")
 
-        val tooltipSpan = Span(tooltip)
-        tooltipSpan.addClassNames("tooltiptext")
-        add(tooltipSpan)
+        span.addClassNames("tooltiptext")
+        add(span)
+    }
+
+    fun setTooltip(tooltip: String?) {
+        isVisible = !tooltip.isNullOrBlank()
+        span.text = tooltip
     }
 }
