@@ -1,4 +1,4 @@
-package com.faforever.userservice.ui.view
+package com.faforever.userservice.ui.view.exception
 
 import com.faforever.userservice.backend.hydra.NoChallengeException
 import com.faforever.userservice.backend.i18n.I18n

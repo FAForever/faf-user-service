@@ -22,7 +22,7 @@ class ConsentView(
     private val clientHeader: ClientHeader,
     private val scopeWidget: ScopeWidget,
     private val hydraService: HydraService,
-    private val i18n: I18n,
+    i18n: I18n,
 ) : CompactVerticalLayout(), BeforeEnterObserver {
     private val authorize = Button(i18n.getTranslation("consent.authorize")) { authorize() }
     private val deny = Button(i18n.getTranslation("consent.deny")) { deny() }
