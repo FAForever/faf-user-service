@@ -1,6 +1,7 @@
 package com.faforever.userservice.ui.component
 
 import com.faforever.userservice.backend.i18n.I18n
+import com.faforever.userservice.ui.layout.CompactVerticalLayout
 import com.vaadin.flow.component.html.Hr
 import com.vaadin.flow.component.html.Paragraph
 import com.vaadin.flow.component.html.Span

@@ -6,11 +6,11 @@ import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.hydra.LoginResponse
 import com.faforever.userservice.backend.hydra.NoChallengeException
 import com.faforever.userservice.backend.i18n.I18n
-import com.faforever.userservice.ui.component.CompactVerticalLayout
 import com.faforever.userservice.ui.component.FafLogo
-import com.faforever.userservice.ui.component.Icon
+import com.faforever.userservice.ui.component.FontAwesomeIcon
 import com.faforever.userservice.ui.component.SocialIcons
-import com.faforever.userservice.ui.layout.CardLayout
+import com.faforever.userservice.ui.layout.CompactVerticalLayout
+import com.faforever.userservice.ui.layout.OAuthCardLayout
 import com.vaadin.flow.component.Key
 import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
@@ -27,7 +27,7 @@ import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
 import com.vaadin.flow.server.VaadinSession
 
-@Route("/oauth2/login", layout = CardLayout::class)
+@Route("/oauth2/login", layout = OAuthCardLayout::class)
 class LoginView(private val hydraService: HydraService, private val i18n: I18n) : CompactVerticalLayout(),
     BeforeEnterObserver {
 
@@ -54,7 +54,7 @@ class LoginView(private val hydraService: HydraService, private val i18n: I18n) 
 
         errorLayout.setWidthFull()
         errorLayout.addClassName("error")
-        val errorIcon = Icon()
+        val errorIcon = FontAwesomeIcon()
         errorIcon.addClassNames("fas fa-exclamation-triangle")
         errorLayout.add(errorIcon)
         errorLayout.add(errorMessage)

@@ -26,7 +26,7 @@ class OAuthController(
 
     @POST
     @Path("/revokeTokens")
-    @PermissionsAllowed(FafRole.ADMIN_ACCOUNT_BAN + ":" + OAuthScope.ADMINISTRATIVE_ACTION)
+    @PermissionsAllowed("${FafRole.ADMIN_ACCOUNT_BAN}:${OAuthScope.ADMINISTRATIVE_ACTION}")
     fun revokeRefreshTokens(
         revokeRefreshTokensRequest: RevokeRefreshTokensRequest,
         @Context securityContext: SecurityContext

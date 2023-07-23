@@ -1,4 +1,4 @@
-package com.faforever.userservice.ui.component
+package com.faforever.userservice.ui.layout
 
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.component.orderedlayout.VerticalLayout

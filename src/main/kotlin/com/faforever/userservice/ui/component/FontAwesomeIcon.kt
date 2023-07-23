@@ -10,7 +10,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 
 @Tag("i")
-open class Icon : Component(), HasComponents {
+open class FontAwesomeIcon : Component(), HasComponents {
 
     fun setAriaLabel(label : String) {
         style.set("aria-label", label)
@@ -18,9 +18,9 @@ open class Icon : Component(), HasComponents {
 
 }
 
-class SocialIcon(link : String, label : String, val type : String) : Anchor(link) {
+class SocialIcon(link : String, label : String, type : String) : Anchor(link) {
     init {
-        val icon = Icon()
+        val icon = FontAwesomeIcon()
         icon.addClassNames("fab", "fa-${type}")
         icon.setAriaLabel(label)
 
@@ -40,7 +40,7 @@ class SocialIcons : HorizontalLayout() {
     }
 }
 
-class InfoTooltipIcon : Icon() {
+class InfoTooltipIcon : FontAwesomeIcon() {
     private val span = Span()
 
     init {

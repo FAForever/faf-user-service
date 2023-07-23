@@ -7,7 +7,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.ParentLayout
 import com.vaadin.flow.router.RouterLayout
 
-class MainLayout : VerticalLayout(), RouterLayout {
+class OAuthLayout : VerticalLayout(), RouterLayout {
 
     companion object {
         val BACKGROUND_IMAGES = arrayOf(
@@ -25,11 +25,11 @@ class MainLayout : VerticalLayout(), RouterLayout {
         addClassName("background")
         style.set("background-image", "url(${BACKGROUND_IMAGES.random()})")
 
-        add(MainHeader())
+        add(OAuthHeader())
     }
 }
 
-class MainHeader : Header() {
+class OAuthHeader : Header() {
     init {
         setWidthFull()
         setHeight(50f, Unit.PIXELS)
@@ -48,8 +48,8 @@ class MainHeader : Header() {
     }
 }
 
-@ParentLayout(MainLayout::class)
-class CardLayout : VerticalLayout(), RouterLayout {
+@ParentLayout(OAuthLayout::class)
+class OAuthCardLayout : VerticalLayout(), RouterLayout {
 
     init {
         addClassName("main-card")

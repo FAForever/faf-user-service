@@ -1,6 +1,7 @@
 package com.faforever.userservice.ui.component
 
 import com.faforever.userservice.backend.i18n.I18n
+import com.faforever.userservice.ui.layout.CompactVerticalLayout
 import com.vaadin.flow.component.html.Anchor
 import com.vaadin.flow.component.html.H2
 import com.vaadin.flow.component.html.Hr
@@ -11,7 +12,7 @@ import jakarta.enterprise.context.Dependent
 import sh.ory.hydra.model.OAuth2Client
 
 @Dependent
-class ClientHeader(private val i18n: I18n) : CompactVerticalLayout() {
+class OAuthClientHeader(private val i18n: I18n) : CompactVerticalLayout() {
     private val clientName = H2()
     private val clientLogo = Image()
     private val clientUrl = Anchor()

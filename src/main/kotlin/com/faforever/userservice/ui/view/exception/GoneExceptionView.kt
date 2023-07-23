@@ -2,9 +2,9 @@ package com.faforever.userservice.ui.view.exception
 
 import com.faforever.userservice.backend.hydra.GoneException
 import com.faforever.userservice.backend.i18n.I18n
-import com.faforever.userservice.ui.component.CompactVerticalLayout
 import com.faforever.userservice.ui.component.FafLogo
-import com.faforever.userservice.ui.layout.CardLayout
+import com.faforever.userservice.ui.layout.CompactVerticalLayout
+import com.faforever.userservice.ui.layout.OAuthCardLayout
 import com.vaadin.flow.component.html.H2
 import com.vaadin.flow.component.html.Span
 import com.vaadin.flow.component.orderedlayout.FlexComponent
@@ -15,7 +15,7 @@ import com.vaadin.flow.router.HasErrorParameter
 import com.vaadin.flow.router.ParentLayout
 import jakarta.servlet.http.HttpServletResponse
 
-@ParentLayout(CardLayout::class)
+@ParentLayout(OAuthCardLayout::class)
 class GoneExceptionView(i18n: I18n) : CompactVerticalLayout(), HasErrorParameter<GoneException> {
 
     private val errorLayout = HorizontalLayout()
