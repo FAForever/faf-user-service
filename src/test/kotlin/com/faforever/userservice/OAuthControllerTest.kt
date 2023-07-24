@@ -1,5 +1,6 @@
 package com.faforever.userservice
 
+import com.faforever.userservice.backend.hydra.HydraClient
 import com.faforever.userservice.backend.hydra.RevokeRefreshTokensRequest
 import com.faforever.userservice.backend.security.FafRole
 import com.faforever.userservice.backend.security.OAuthScope
@@ -9,17 +10,35 @@ import io.quarkus.security.identity.SecurityIdentity
 import io.quarkus.security.runtime.QuarkusSecurityIdentity
 import io.quarkus.test.common.http.TestHTTPEndpoint
 import io.quarkus.test.junit.QuarkusTest
+import io.quarkus.test.junit.mockito.InjectMock
 import io.quarkus.test.security.TestSecurity
 import io.quarkus.test.security.TestSecurityIdentityAugmentor
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import io.smallrye.mutiny.Uni
 import jakarta.enterprise.context.ApplicationScoped
+import org.eclipse.microprofile.rest.client.inject.RestClient
+import org.jboss.resteasy.reactive.common.jaxrs.ResponseImpl
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.whenever
 
 @QuarkusTest
 @TestHTTPEndpoint(OAuthController::class)
 class OAuthControllerTest {
+
+    @InjectMock
+    @RestClient
+    private lateinit var hydraClient: HydraClient
+
+    @BeforeEach
+    fun setup() {
+        val response = ResponseImpl()
+        response.status = 204
+        whenever(hydraClient.revokeRefreshTokens(any(), anyOrNull(), anyOrNull())).thenReturn(response)
+    }
 
     @Test
     @TestSecurity(authorizationEnabled = false)
