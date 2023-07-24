@@ -2,7 +2,6 @@ package com.faforever.userservice.ui.view
 
 import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.hydra.NoChallengeException
-import com.faforever.userservice.backend.i18n.I18n
 import com.faforever.userservice.ui.component.OAuthClientHeader
 import com.faforever.userservice.ui.component.ScopeWidget
 import com.faforever.userservice.ui.component.SocialIcons
@@ -22,10 +21,9 @@ class ConsentView(
     private val oAuthClientHeader: OAuthClientHeader,
     private val scopeWidget: ScopeWidget,
     private val hydraService: HydraService,
-    i18n: I18n,
 ) : CompactVerticalLayout(), BeforeEnterObserver {
-    private val authorize = Button(i18n.getTranslation("consent.authorize")) { authorize() }
-    private val deny = Button(i18n.getTranslation("consent.deny")) { deny() }
+    private val authorize = Button(getTranslation("consent.authorize")) { authorize() }
+    private val deny = Button(getTranslation("consent.deny")) { deny() }
 
     private lateinit var challenge: String
 

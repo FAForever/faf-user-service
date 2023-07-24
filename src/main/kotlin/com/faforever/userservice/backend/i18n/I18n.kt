@@ -1,14 +1,17 @@
 package com.faforever.userservice.backend.i18n
 
-import com.vaadin.flow.component.UI
 import com.vaadin.flow.i18n.I18NProvider
-import com.vaadin.quarkus.annotation.VaadinServiceScoped
+import com.vaadin.quarkus.annotation.VaadinServiceEnabled
+import io.quarkus.arc.Unremovable
+import jakarta.enterprise.context.ApplicationScoped
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.text.MessageFormat
 import java.util.*
 
-@VaadinServiceScoped
+@ApplicationScoped
+@VaadinServiceEnabled
+@Unremovable
 class I18n : I18NProvider {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(I18n::class.java)
@@ -32,10 +35,5 @@ class I18n : I18NProvider {
             value = MessageFormat.format(value, *params)
         }
         return value
-    }
-
-    fun getTranslation(key: String, vararg params: Any): String? {
-        val locale = UI.getCurrent()?.locale ?: throw IllegalStateException("Cannot retrieve locale from UI. Possibly not in UI thread")
-        return getTranslation(key, locale, *params)
     }
 }

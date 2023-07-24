@@ -1,7 +1,6 @@
 package com.faforever.userservice.ui.view.exception
 
 import com.faforever.userservice.backend.hydra.GoneException
-import com.faforever.userservice.backend.i18n.I18n
 import com.faforever.userservice.ui.component.FafLogo
 import com.faforever.userservice.ui.layout.CompactVerticalLayout
 import com.faforever.userservice.ui.layout.OAuthCardLayout
@@ -15,8 +14,9 @@ import com.vaadin.flow.router.HasErrorParameter
 import com.vaadin.flow.router.ParentLayout
 import jakarta.servlet.http.HttpServletResponse
 
+@Suppress("unused")
 @ParentLayout(OAuthCardLayout::class)
-class GoneExceptionView(i18n: I18n) : CompactVerticalLayout(), HasErrorParameter<GoneException> {
+class GoneExceptionView : CompactVerticalLayout(), HasErrorParameter<GoneException> {
 
     private val errorLayout = HorizontalLayout()
     private val errorMessage = Span()
@@ -25,7 +25,7 @@ class GoneExceptionView(i18n: I18n) : CompactVerticalLayout(), HasErrorParameter
         val formHeader = HorizontalLayout()
 
         val formHeaderLeft = FafLogo()
-        val formHeaderRight = H2(i18n.getTranslation("title.technicalError"))
+        val formHeaderRight = H2(getTranslation("title.technicalError"))
         formHeader.add(formHeaderLeft, formHeaderRight)
         formHeader.alignItems = FlexComponent.Alignment.CENTER
         formHeader.justifyContentMode = FlexComponent.JustifyContentMode.CENTER
@@ -34,7 +34,7 @@ class GoneExceptionView(i18n: I18n) : CompactVerticalLayout(), HasErrorParameter
 
         add(formHeader)
 
-        errorMessage.text = i18n.getTranslation("login.technicalError")
+        errorMessage.text = getTranslation("login.technicalError")
 
         errorLayout.setWidthFull()
         errorLayout.addClassNames("error", "error-info")

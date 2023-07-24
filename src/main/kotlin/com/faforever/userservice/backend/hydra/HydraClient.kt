@@ -1,6 +1,7 @@
 package com.faforever.userservice.backend.hydra
 
 import io.quarkus.rest.client.reactive.ClientExceptionMapper
+import jakarta.enterprise.context.ApplicationScoped
 import jakarta.validation.constraints.NotBlank
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.Response
@@ -8,17 +9,20 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient
 import sh.ory.hydra.model.*
 
 
-@RegisterRestClient(configKey = "faf-ory-hydra")
 @Path("/")
+@ApplicationScoped
+@RegisterRestClient(configKey = "faf-ory-hydra")
 interface HydraClient {
 
     companion object {
         @JvmStatic
         @ClientExceptionMapper
         fun toException(response: Response): RuntimeException? {
-            return if (response.status == 410) {
-                GoneException("The request has already been handled")
-            } else null
+            return when (response.status) {
+                404 -> NoChallengeException()
+                410 -> GoneException("The request has already been handled")
+                else -> null
+            }
         }
     }
 

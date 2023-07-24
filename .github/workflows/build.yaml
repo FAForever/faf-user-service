@@ -21,18 +21,11 @@ jobs:
           fi
       - name: Gradle build
         env:
-          GRADLE_CLI_OPTS: "-Dversion=${{steps.get_tag_or_branch.outputs.TAG_OR_BRANCH}}"
-        run: "chmod +x ./gradlew && ./gradlew ${GRADLE_CLI_OPTS} dockerBuild"
-      - name: Login to DockerHub
-        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          GRADLE_CLI_OPTS: "-Dversion=${{steps.get_tag_or_branch.outputs.TAG_OR_BRANCH}} -Pvaadin.productionMode=true"
+        run: "chmod +x ./gradlew && ./gradlew ${GRADLE_CLI_OPTS} build"
       - name: Build and push Docker images
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')
         env:
           TAG_OR_BRANCH: ${{steps.get_tag_or_branch.outputs.TAG_OR_BRANCH}}
-        run: |
-          docker tag faforever/faf-user-service:latest faforever/faf-user-service:${TAG_OR_BRANCH}
-          docker push faforever/faf-user-service:${TAG_OR_BRANCH}
+          GRADLE_CLI_OPTS: "-Dversion=${{steps.get_tag_or_branch.outputs.TAG_OR_BRANCH}} -Pvaadin.productionMode=true -Dquarkus.container-image.push=true -Dquarkus.container-image.build=true -Dquarkus.container-image.group=faforever -Dquarkus.container-image.username=${{ secrets.DOCKER_USERNAME }} -Dquarkus.container-image.username=${{ secrets.DOCKER_PASSWORD }}"
+        run: "chmod +x ./gradlew && ./gradlew ${GRADLE_CLI_OPTS} build"

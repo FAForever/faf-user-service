@@ -9,12 +9,11 @@ import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.POST
 import jakarta.ws.rs.Path
-import jakarta.ws.rs.core.Context
-import jakarta.ws.rs.core.SecurityContext
 import org.eclipse.microprofile.rest.client.inject.RestClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+/* Can be removed if this functionality is moved to the api. Only exists to remove logins when players are banned */
 @Path("/oauth2")
 @ApplicationScoped
 class OAuthController(
@@ -28,8 +27,7 @@ class OAuthController(
     @Path("/revokeTokens")
     @PermissionsAllowed("${FafRole.ADMIN_ACCOUNT_BAN}:${OAuthScope.ADMINISTRATIVE_ACTION}")
     fun revokeRefreshTokens(
-        revokeRefreshTokensRequest: RevokeRefreshTokensRequest,
-        @Context securityContext: SecurityContext
+        revokeRefreshTokensRequest: RevokeRefreshTokensRequest
     ) {
         if (revokeRefreshTokensRequest.all == null && revokeRefreshTokensRequest.client == null) {
             throw BadRequestException("All and client cannot both be null")

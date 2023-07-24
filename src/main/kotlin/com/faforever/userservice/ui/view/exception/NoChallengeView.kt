@@ -1,7 +1,6 @@
 package com.faforever.userservice.ui.view.exception
 
 import com.faforever.userservice.backend.hydra.NoChallengeException
-import com.faforever.userservice.backend.i18n.I18n
 import com.faforever.userservice.ui.component.FafLogo
 import com.faforever.userservice.ui.layout.CompactVerticalLayout
 import com.faforever.userservice.ui.layout.OAuthCardLayout
@@ -16,8 +15,9 @@ import com.vaadin.flow.router.ParentLayout
 import jakarta.servlet.http.HttpServletResponse
 
 
+@Suppress("unused")
 @ParentLayout(OAuthCardLayout::class)
-class NoChallengeView(i18n: I18n) : CompactVerticalLayout(), HasErrorParameter<NoChallengeException> {
+class NoChallengeView : CompactVerticalLayout(), HasErrorParameter<NoChallengeException> {
 
     private val errorLayout = HorizontalLayout()
     private val errorMessage = Span()
@@ -26,7 +26,7 @@ class NoChallengeView(i18n: I18n) : CompactVerticalLayout(), HasErrorParameter<N
         val formHeader = HorizontalLayout()
 
         val formHeaderLeft = FafLogo()
-        val formHeaderRight = H2(i18n.getTranslation("title.accessDenied"))
+        val formHeaderRight = H2(getTranslation("title.accessDenied"))
         formHeader.add(formHeaderLeft, formHeaderRight)
         formHeader.alignItems = FlexComponent.Alignment.CENTER
         formHeader.justifyContentMode = FlexComponent.JustifyContentMode.CENTER
@@ -35,7 +35,7 @@ class NoChallengeView(i18n: I18n) : CompactVerticalLayout(), HasErrorParameter<N
 
         add(formHeader)
 
-        errorMessage.text = i18n.getTranslation("login.invalidFlow")
+        errorMessage.text = getTranslation("login.invalidFlow")
 
         errorLayout.setWidthFull()
         errorLayout.addClassNames("error", "error-info")

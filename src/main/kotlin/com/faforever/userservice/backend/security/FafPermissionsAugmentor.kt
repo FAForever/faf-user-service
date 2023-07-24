@@ -8,7 +8,6 @@ import io.smallrye.mutiny.Uni
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.json.JsonString
 import org.eclipse.microprofile.jwt.JsonWebToken
-import java.util.function.Supplier
 
 
 @ApplicationScoped
@@ -18,9 +17,9 @@ class FafPermissionsAugmentor : SecurityIdentityAugmentor {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun build(identity: SecurityIdentity): Supplier<SecurityIdentity> {
+    private fun build(identity: SecurityIdentity): SecurityIdentity {
         return if (identity.isAnonymous) {
-            Supplier<SecurityIdentity> { identity }
+            identity
         } else {
             val builder = QuarkusSecurityIdentity.builder(identity)
             when (val principal = identity.principal) {
@@ -42,7 +41,7 @@ class FafPermissionsAugmentor : SecurityIdentityAugmentor {
                     }
                 }
             }
-            Supplier<SecurityIdentity> { builder.build() }
+            builder.build()
         }
     }
 }

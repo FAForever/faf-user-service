@@ -5,7 +5,7 @@ import com.faforever.userservice.backend.domain.LoginResult
 import com.faforever.userservice.backend.domain.LoginService
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.security.OAuthScope
-import jakarta.inject.Singleton
+import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
 import org.eclipse.microprofile.rest.client.inject.RestClient
 import sh.ory.hydra.model.*
@@ -24,7 +24,7 @@ value class RedirectTo(val url: String) {
     val uri: URI get() = URI.create(url)
 }
 
-@Singleton
+@ApplicationScoped
 class HydraService(
     @RestClient private val hydraClient: HydraClient,
     private val loginService: LoginService,
@@ -46,9 +46,7 @@ class HydraService(
                 OAuthScope.LOBBY
             ) ?: false)
 
-        val loginResult = loginService.login(usernameOrEmail, password, ip, requiresGameOwnership)
-
-        return when (loginResult) {
+        return when (val loginResult = loginService.login(usernameOrEmail, password, ip, requiresGameOwnership)) {
             is LoginResult.ThrottlingActive -> LoginResponse.FailedLogin(loginResult)
             is LoginResult.UserOrCredentialsMismatch -> LoginResponse.FailedLogin(loginResult)
             is LoginResult.UserNoGameOwnership -> {

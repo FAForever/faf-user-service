@@ -1,6 +1,5 @@
 package com.faforever.userservice.ui.component
 
-import com.faforever.userservice.backend.i18n.I18n
 import com.faforever.userservice.ui.layout.CompactVerticalLayout
 import com.vaadin.flow.component.html.Anchor
 import com.vaadin.flow.component.html.H2
@@ -12,7 +11,7 @@ import jakarta.enterprise.context.Dependent
 import sh.ory.hydra.model.OAuth2Client
 
 @Dependent
-class OAuthClientHeader(private val i18n: I18n) : CompactVerticalLayout() {
+class OAuthClientHeader : CompactVerticalLayout() {
     private val clientName = H2()
     private val clientLogo = Image()
     private val clientUrl = Anchor()
@@ -21,8 +20,8 @@ class OAuthClientHeader(private val i18n: I18n) : CompactVerticalLayout() {
 
 
     init {
-        clientTos.text = i18n.getTranslation("consent.termsOfService")
-        clientPolicy.text = i18n.getTranslation("consent.privacyStatement")
+        clientTos.text = getTranslation("consent.termsOfService")
+        clientPolicy.text = getTranslation("consent.privacyStatement")
 
         clientLogo.width = "40px"
         clientLogo.height = "40px"
@@ -43,7 +42,7 @@ class OAuthClientHeader(private val i18n: I18n) : CompactVerticalLayout() {
     fun setClient(client: OAuth2Client) {
         clientName.text = client.clientName
         clientLogo.src = client.logoUri
-        clientLogo.setAlt(i18n.getTranslation("consent.clientLogo"))
+        clientLogo.setAlt(getTranslation("consent.clientLogo"))
 
         clientUrl.href = client.clientUri
         clientUrl.text = client.clientUri

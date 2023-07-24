@@ -1,6 +1,5 @@
 package com.faforever.userservice.ui.component
 
-import com.faforever.userservice.backend.i18n.I18n
 import com.faforever.userservice.ui.layout.CompactVerticalLayout
 import com.vaadin.flow.component.html.Hr
 import com.vaadin.flow.component.html.Paragraph
@@ -11,11 +10,11 @@ import jakarta.enterprise.context.Dependent
 import jakarta.enterprise.inject.Instance
 
 @Dependent
-class ScopeWidget(i18n: I18n, private val scopeItemFactory : Instance<ScopeItem>) : CompactVerticalLayout() {
+class ScopeWidget(private val scopeItemFactory: Instance<ScopeItem>) : CompactVerticalLayout() {
     private val scopeLayout = CompactVerticalLayout()
 
     init {
-        val header = Paragraph(i18n.getTranslation("consent.appRequest"))
+        val header = Paragraph(getTranslation("consent.appRequest"))
         header.setId("scope-header")
         add(header)
         add(Hr())
@@ -34,7 +33,7 @@ class ScopeWidget(i18n: I18n, private val scopeItemFactory : Instance<ScopeItem>
 }
 
 @Dependent
-class ScopeItem(private val i18n: I18n) : HorizontalLayout() {
+class ScopeItem : HorizontalLayout() {
     private val infoTooltip = InfoTooltipIcon()
     private val span = Span()
 
@@ -47,7 +46,15 @@ class ScopeItem(private val i18n: I18n) : HorizontalLayout() {
     }
 
     fun setScope(scope: String) {
-        span.text = i18n.getTranslation("oauth2.scope.$scope") ?: i18n.getTranslation("oauth2.scope.textMissing", scope)
-        infoTooltip.setTooltip(i18n.getTranslation("oauth2.scope.$scope.description"))
+        val translation = getTranslation("oauth2.scope.$scope")
+        span.text = if (translation.matches(Regex("!\\{.*}!"))) {
+            getTranslation(
+                "oauth2.scope.textMissing",
+                scope
+            )
+        } else {
+            translation
+        }
+        infoTooltip.setTooltip(getTranslation("oauth2.scope.$scope.description"))
     }
 }

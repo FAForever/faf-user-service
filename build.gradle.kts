@@ -15,7 +15,8 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-val quarkusVersion: String by project
+val version: String by project
+val quarkusPlatformVersion: String by project
 val vaadinVersion: String by project
 val vaadinQuarkusVersion: String by project
 
@@ -25,8 +26,9 @@ repositories {
 }
 
 dependencies {
+    implementation("io.quarkus:quarkus-container-image-docker")
     implementation(enforcedPlatform("com.vaadin:vaadin-bom:${vaadinVersion}"))
-    implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:${quarkusVersion}"))
+    implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:${quarkusPlatformVersion}"))
 
     implementation("io.quarkus:quarkus-rest-client-reactive-jackson")
     implementation("io.quarkus:quarkus-config-yaml")
@@ -47,8 +49,13 @@ dependencies {
     implementation("com.vaadin:vaadin-quarkus")
     implementation("org.jboss.slf4j:slf4j-jboss-logmanager:1.1.0.Final")
 
-    testImplementation("io.quarkus:quarkus-junit5")
+    testImplementation("io.quarkus:quarkus-junit5-mockito")
     testImplementation("io.rest-assured:rest-assured")
+    testImplementation("io.quarkus:quarkus-test-security")
+    val mockitoVersion = "5.3.1"
+    testImplementation("org.mockito:mockito-core:$mockitoVersion")
+    testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.0.0")
 }
 
 tasks.withType<Test> {

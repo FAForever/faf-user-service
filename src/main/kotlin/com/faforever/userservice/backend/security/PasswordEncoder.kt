@@ -1,13 +1,13 @@
 package com.faforever.userservice.backend.security
 
-import jakarta.inject.Singleton
+import jakarta.enterprise.context.ApplicationScoped
 import java.security.MessageDigest
 import java.util.*
 
 /**
  * A pretty insecure SHA-256 password encoder.
  */
-@Singleton
+@ApplicationScoped
 class PasswordEncoder {
     private val sha256 = MessageDigest.getInstance("SHA-256")
 
