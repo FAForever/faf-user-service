@@ -21,7 +21,7 @@ jobs:
           fi
       - name: Gradle build
         env:
-          GRADLE_CLI_OPTS: "-Dversion=${{steps.get_tag_or_branch.outputs.TAG_OR_BRANCH}} -Pvaadin.productionMode=true -Dquarkus.container-image.builder=docker"
+          GRADLE_CLI_OPTS: "-Dversion=${{steps.get_tag_or_branch.outputs.TAG_OR_BRANCH}} -Pvaadin.productionMode=true"
         run: "chmod +x ./gradlew && ./gradlew ${GRADLE_CLI_OPTS} build"
       - name: Build and push Docker images
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')
