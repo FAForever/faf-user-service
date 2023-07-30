@@ -18,7 +18,6 @@ java {
 val version: String by project
 val quarkusPlatformVersion: String by project
 val vaadinVersion: String by project
-val vaadinQuarkusVersion: String by project
 
 repositories {
     mavenCentral()
@@ -47,7 +46,6 @@ dependencies {
     implementation("com.vaadin:vaadin-core")
     implementation("com.vaadin:vaadin-core-jandex")
     implementation("com.vaadin:vaadin-quarkus")
-    implementation("org.jboss.slf4j:slf4j-jboss-logmanager:1.1.0.Final")
 
     testImplementation("io.quarkus:quarkus-junit5-mockito")
     testImplementation("io.rest-assured:rest-assured")
