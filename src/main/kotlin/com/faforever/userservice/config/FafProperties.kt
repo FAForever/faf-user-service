@@ -2,10 +2,11 @@ package com.faforever.userservice.config
 
 import io.smallrye.config.ConfigMapping
 import jakarta.validation.constraints.NotBlank
+import java.util.*
 
 @ConfigMapping(prefix = "faf")
 interface FafProperties {
-    fun environment(): String?
+    fun environment(): Optional<String>
 
     /**
      * Define the header, where to pick the real ip address from. For regular reverse proxies such as nginx or Traefik,

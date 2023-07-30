@@ -44,18 +44,16 @@ class OAuthHeader(fafProperties: FafProperties) : Header() {
         val leftHeader = Div()
         leftHeader.setId("leftheader")
 
-        val imageLink =
-            Anchor("https://www.faforever.com", FafLogo())
+        val imageLink = Anchor("https://www.faforever.com", FafLogo())
         leftHeader.add(imageLink)
 
         val environment = fafProperties.environment()
-        val headerTitle = if (environment.isNullOrBlank()) {
-            "FAForever"
-        } else {
-            "[${environment.uppercase()}] FAForever"
-        }
+            .map { it.ifBlank { null } }
+            .map { it?.uppercase() }
+            .map { "[$it] FAForever" }
+            .orElse("FAForever")
 
-        leftHeader.add(H1(headerTitle))
+        leftHeader.add(H1(environment))
 
         add(leftHeader)
     }
