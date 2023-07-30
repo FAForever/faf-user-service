@@ -55,6 +55,12 @@ class ScopeItem : HorizontalLayout() {
         } else {
             translation
         }
-        infoTooltip.setTooltip(getTranslation("oauth2.scope.$scope.description"))
+        val descriptionTranslation = getTranslation("oauth2.scope.$scope.description")
+        if (!descriptionTranslation.matches(Regex("!\\{.*}!"))) {
+            infoTooltip.setTooltip(descriptionTranslation)
+        } else {
+            infoTooltip.setTooltip(null)
+        }
+
     }
 }
