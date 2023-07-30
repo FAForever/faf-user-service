@@ -1,13 +1,19 @@
 package com.faforever.userservice.ui.layout
 
+import com.faforever.userservice.config.FafProperties
 import com.faforever.userservice.ui.component.FafLogo
 import com.vaadin.flow.component.Unit
-import com.vaadin.flow.component.html.*
+import com.vaadin.flow.component.html.Anchor
+import com.vaadin.flow.component.html.Div
+import com.vaadin.flow.component.html.H1
+import com.vaadin.flow.component.html.Header
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.ParentLayout
 import com.vaadin.flow.router.RouterLayout
+import jakarta.enterprise.context.Dependent
 
-class OAuthLayout : VerticalLayout(), RouterLayout {
+@Dependent
+class OAuthLayout(oAuthHeader: OAuthHeader) : VerticalLayout(), RouterLayout {
 
     companion object {
         val BACKGROUND_IMAGES = arrayOf(
@@ -25,11 +31,12 @@ class OAuthLayout : VerticalLayout(), RouterLayout {
         addClassName("background")
         style.set("background-image", "url(${BACKGROUND_IMAGES.random()})")
 
-        add(OAuthHeader())
+        add(oAuthHeader)
     }
 }
 
-class OAuthHeader : Header() {
+@Dependent
+class OAuthHeader(fafProperties: FafProperties) : Header() {
     init {
         setWidthFull()
         setHeight(50f, Unit.PIXELS)
@@ -41,8 +48,14 @@ class OAuthHeader : Header() {
             Anchor("https://www.faforever.com", FafLogo())
         leftHeader.add(imageLink)
 
-        val environment = H1("FAForever Login")
-        leftHeader.add(environment)
+        val environment = fafProperties.environment()
+        val headerTitle = if (environment.isNullOrBlank()) {
+            "FAForever"
+        } else {
+            "[${environment.uppercase()}] FAForever"
+        }
+
+        leftHeader.add(H1(headerTitle))
 
         add(leftHeader)
     }

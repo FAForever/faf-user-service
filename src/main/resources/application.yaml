@@ -1,5 +1,5 @@
 faf:
-  environment: ${FAF_ENVIRONMENT:dev}
+  environment: ${FAF_ENVIRONMENT}
   real-ip-header: ${REAL_IP_HEADER:X-Real-Ip}
   password-reset-url: ${PASSWORD_RESET_URL:https://faforever.com/account/password/reset}
   register-account-url: ${REGISTER_ACCOUNT_URL:https://faforever.com/account/register}
@@ -31,12 +31,16 @@ quarkus:
     name: faf-user-service
 
 "%dev":
-  quarkus.http.cors.origins: "/.*/"
   quarkus:
+    http:
+      cors:
+        origins: "/.*/"
     log:
       category:
         "com.faforever":
           level: DEBUG
+  faf:
+    environment: ${FAF_ENVIRONMENT:dev}
 
 mp:
   jwt:
