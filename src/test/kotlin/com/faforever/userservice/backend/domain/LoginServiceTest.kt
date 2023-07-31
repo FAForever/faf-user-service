@@ -86,7 +86,21 @@ class LoginServiceTest {
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
         whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
             listOf(
-                Ban(1, 1, 100, BanLevel.CHAT, "test", OffsetDateTime.MAX, null, null, null, null)
+                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, null, null, null, null)
+            )
+        )
+
+        val result = loginService.login(username, password, ipAddress, false)
+        assertThat(result, instanceOf(LoginResult.UserBanned::class.java))
+    }
+
+    @Test
+    fun loginWithPermaBannedUser() {
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(user)
+        whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
+        whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
+            listOf(
+                Ban(1, 1, 100, BanLevel.GLOBAL, "test", null, null, null, null, null)
             )
         )
 

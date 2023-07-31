@@ -21,6 +21,7 @@ data class Ban(
     val playerId: Long,
     @Column(name = "author_id")
     val authorId: Int,
+    @Enumerated(EnumType.STRING)
     val level: BanLevel,
     val reason: String,
     @Column(name = "expires_at")
