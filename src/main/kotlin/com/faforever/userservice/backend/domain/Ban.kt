@@ -37,7 +37,10 @@ data class Ban(
 
 
     val isActive: Boolean
-        get() = revokeTime == null && (expiresAt?.isAfter(OffsetDateTime.now()) == true)
+        get() {
+            val expiresAtValue = expiresAt
+            return revokeTime == null && (expiresAtValue == null || expiresAtValue.isAfter(OffsetDateTime.now()))
+        }
 }
 
 @ApplicationScoped
