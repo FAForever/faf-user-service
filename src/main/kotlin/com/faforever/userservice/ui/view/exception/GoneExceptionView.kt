@@ -1,6 +1,7 @@
 package com.faforever.userservice.ui.view.exception
 
 import com.faforever.userservice.backend.hydra.GoneException
+import com.faforever.userservice.ui.component.ErrorCard
 import com.faforever.userservice.ui.layout.CardLayout
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.ErrorParameter
