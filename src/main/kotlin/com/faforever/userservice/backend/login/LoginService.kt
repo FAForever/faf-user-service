@@ -1,8 +1,8 @@
 package com.faforever.userservice.backend.login
 
-import com.faforever.domain.Ban
-import com.faforever.domain.BanRepository
 import com.faforever.userservice.backend.domain.AccountLinkRepository
+import com.faforever.userservice.backend.domain.Ban
+import com.faforever.userservice.backend.domain.BanRepository
 import com.faforever.userservice.backend.domain.FailedAttemptsSummary
 import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.domain.LoginLog

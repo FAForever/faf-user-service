@@ -1,6 +1,10 @@
 package com.faforever.userservice.backend.registration
 
-import com.faforever.userservice.backend.domain.*
+import com.faforever.userservice.backend.domain.DomainBlacklistRepository
+import com.faforever.userservice.backend.domain.IpAddress
+import com.faforever.userservice.backend.domain.NameRecordRepository
+import com.faforever.userservice.backend.domain.User
+import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.email.MailSender
 import com.faforever.userservice.backend.metrics.MetricHelper
 import com.faforever.userservice.backend.security.FafTokenService
@@ -47,6 +51,8 @@ class RegistrationService(
     }
 
     fun register(username: String, email: String) {
+        checkUsernameAndEmail(username, email)
+
         sendActivationEmail(username, email)
         metricHelper.userRegistrationCounter.increment()
     }
@@ -131,16 +137,7 @@ class RegistrationService(
         val email = registeredUser.email
         val encodedPassword = passwordEncoder.encode(password)
 
-        // the username and email could have been taken in the meantime
-        val usernameStatus = usernameAvailable(username)
-        if (usernameStatus != UsernameStatus.USERNAME_AVAILABLE) {
-            throw IllegalArgumentException("Username unavailable")
-        }
-
-        val emailStatus = emailAvailable(email)
-        if (emailStatus != EmailStatus.EMAIL_AVAILABLE) {
-            throw IllegalArgumentException("Email unavailable")
-        }
+        checkUsernameAndEmail(username, email)
 
         val user = User(
             username = username,
@@ -155,5 +152,17 @@ class RegistrationService(
         metricHelper.userActivationCounter.increment()
 
         return user
+    }
+
+    private fun checkUsernameAndEmail(username: String, email: String) {
+        val usernameStatus = usernameAvailable(username)
+        if (usernameStatus != UsernameStatus.USERNAME_AVAILABLE) {
+            throw IllegalArgumentException("Username unavailable")
+        }
+
+        val emailStatus = emailAvailable(email)
+        if (emailStatus != EmailStatus.EMAIL_AVAILABLE) {
+            throw IllegalArgumentException("Email unavailable")
+        }
     }
 }

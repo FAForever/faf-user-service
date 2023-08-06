@@ -120,7 +120,7 @@ class LoginView(private val hydraService: HydraService, private val fafPropertie
         when (loginError) {
             is LoginResult.UserNoGameOwnership -> {
                 header.setTitle(getTranslation("verification.title"))
-                errorMessage.text = getTranslation("verification.reason") + " " + fafProperties.accountLinkUrl()
+                errorMessage.text = getTranslation("verification.reason") + " " + fafProperties.account().accountLinkUrl()
             }
 
             is LoginResult.TechnicalError -> {
