@@ -5,8 +5,9 @@ import com.faforever.userservice.backend.domain.LoginResult
 import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.hydra.LoginResponse
 import com.faforever.userservice.backend.hydra.NoChallengeException
-import com.faforever.userservice.ui.component.FafLogo
+import com.faforever.userservice.config.FafProperties
 import com.faforever.userservice.ui.component.FontAwesomeIcon
+import com.faforever.userservice.ui.component.LogoHeader
 import com.faforever.userservice.ui.component.SocialIcons
 import com.faforever.userservice.ui.layout.CompactVerticalLayout
 import com.faforever.userservice.ui.layout.OAuthCardLayout
@@ -14,7 +15,6 @@ import com.vaadin.flow.component.Key
 import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
 import com.vaadin.flow.component.html.Anchor
-import com.vaadin.flow.component.html.H2
 import com.vaadin.flow.component.html.Span
 import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
@@ -25,31 +25,28 @@ import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
 import com.vaadin.flow.server.VaadinSession
+import java.time.format.DateTimeFormatter
 
 @Route("/oauth2/login", layout = OAuthCardLayout::class)
-class LoginView(private val hydraService: HydraService, ) : CompactVerticalLayout(),
-    BeforeEnterObserver {
+class LoginView(private val hydraService: HydraService, private val fafProperties: FafProperties) : CompactVerticalLayout(), BeforeEnterObserver {
+
+    private val loginLayout = CompactVerticalLayout()
+    private val footer = VerticalLayout()
+    private val header = LogoHeader()
 
     private val errorLayout = HorizontalLayout()
     private val errorMessage = Span()
 
     private val usernameOrEmail = TextField(null, getTranslation("login.usernameOrEmail"))
     private val password = PasswordField(null, getTranslation("login.password"))
+
     private val submit = Button(getTranslation("login.loginAction")) { login() }
 
     private lateinit var challenge: String
 
     init {
-        val formHeader = HorizontalLayout()
-
-        val formHeaderLeft = FafLogo()
-        val formHeaderRight = H2(getTranslation("login.welcomeBack"))
-        formHeader.add(formHeaderLeft, formHeaderRight)
-        formHeader.alignItems = FlexComponent.Alignment.CENTER
-        formHeader.setId("form-header")
-        formHeader.setWidthFull()
-
-        add(formHeader)
+        header.setTitle(getTranslation("login.welcomeBack"))
+        add(header)
 
         errorLayout.setWidthFull()
         errorLayout.addClassName("error")
@@ -74,17 +71,17 @@ class LoginView(private val hydraService: HydraService, ) : CompactVerticalLayou
         submit.setWidthFull()
         submit.addThemeVariants(ButtonVariant.LUMO_PRIMARY)
 
-        add(usernameOrEmail, password, submit)
+        loginLayout.add(usernameOrEmail, password, submit)
+        add(loginLayout)
 
-        val footer = VerticalLayout()
+        val footer = footer
 
         val links = HorizontalLayout()
         links.addClassName("pipe-separated")
 
         val passwordReset =
             Anchor("https://faforever.com/account/password/reset", getTranslation("login.forgotPassword"))
-        val registerAccount =
-            Anchor("https://faforever.com/account/register", getTranslation("login.registerAccount"))
+        val registerAccount = Anchor("https://faforever.com/account/register", getTranslation("login.registerAccount"))
 
         links.add(passwordReset, registerAccount)
         footer.add(links)
@@ -97,18 +94,44 @@ class LoginView(private val hydraService: HydraService, ) : CompactVerticalLayou
     fun login() {
         val ipAddress = IpAddress(VaadinSession.getCurrent().browser.address);
         when (val loginResponse = hydraService.login(challenge, usernameOrEmail.value, password.value, ipAddress)) {
-            is LoginResponse.FailedLogin -> setError(loginResponse.userError)
-            is LoginResponse.RejectedLogin -> ui.ifPresent { it.page.setLocation(loginResponse.redirectTo.uri) }
+            is LoginResponse.FailedLogin -> displayErrorMessage(loginResponse.recoverableLoginFailure)
+            is LoginResponse.RejectedLogin -> displayRejectedMessage(loginResponse.unrecoverableLoginFailure)
             is LoginResponse.SuccessfulLogin -> ui.ifPresent { it.page.setLocation(loginResponse.redirectTo.uri) }
         }
     }
 
-    private fun setError(loginError: LoginResult.UserError) {
+    private fun displayErrorMessage(loginError: LoginResult.RecoverableLoginFailure) {
         errorMessage.text = when (loginError) {
-            is LoginResult.UserOrCredentialsMismatch -> getTranslation("login.badCredentials")
+            is LoginResult.RecoverableLoginOrCredentialsMismatch -> getTranslation("login.badCredentials")
             is LoginResult.ThrottlingActive -> getTranslation("login.throttled")
         }
         errorLayout.isVisible = true
+    }
+
+    private fun displayRejectedMessage(loginError: LoginResult.UnrecoverableLoginFailure) {
+        loginLayout.isVisible = false
+        footer.isVisible = false
+        errorLayout.isVisible = true
+
+        when (loginError) {
+            is LoginResult.UserNoGameOwnership -> {
+                header.setTitle(getTranslation("verification.title"))
+                errorMessage.text = getTranslation("verification.reason") + " " + fafProperties.accountLinkUrl()
+            }
+
+            is LoginResult.TechnicalError -> {
+                header.setTitle(getTranslation("title.technicalError"))
+                errorMessage.text = getTranslation("login.technicalError")
+            }
+
+            is LoginResult.UserBanned -> {
+                header.setTitle(getTranslation("ban.title"))
+                val expiration = loginError.expiresAt?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) ?: getTranslation(
+                    "ban.permanent"
+                )
+                errorMessage.text = "${getTranslation("ban.expiration")} $expiration. ${getTranslation("ban.reason")} ${loginError.reason}"
+            }
+        }
     }
 
     override fun beforeEnter(event: BeforeEnterEvent?) {

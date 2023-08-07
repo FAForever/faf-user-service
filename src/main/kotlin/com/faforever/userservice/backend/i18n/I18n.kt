@@ -30,7 +30,7 @@ class I18n : I18NProvider {
         var value = try {
             bundle.getString(key)
         } catch (e: MissingResourceException) {
-            LOG.warn("Missing resource `$key` for locale `$locale`", e)
+            LOG.warn("Missing resource `$key` for locale `$locale`")
             return "!{$key}!"
         }
         if (params.isNotEmpty()) {

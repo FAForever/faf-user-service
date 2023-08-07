@@ -6,27 +6,45 @@ import com.faforever.userservice.backend.domain.LoginService
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.security.OAuthScope
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.enterprise.inject.Produces
 import jakarta.transaction.Transactional
 import org.eclipse.microprofile.rest.client.inject.RestClient
-import sh.ory.hydra.model.*
+import sh.ory.hydra.model.AcceptConsentRequest
+import sh.ory.hydra.model.AcceptLoginRequest
+import sh.ory.hydra.model.ConsentRequest
+import sh.ory.hydra.model.ConsentRequestSession
+import sh.ory.hydra.model.GenericError
+import sh.ory.hydra.model.LoginRequest
 import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse.BodyHandlers
 
 sealed interface LoginResponse {
 
-    data class RejectedLogin(val redirectTo: RedirectTo) : LoginResponse
-    data class FailedLogin(val userError: LoginResult.UserError) : LoginResponse
+    data class RejectedLogin(val unrecoverableLoginFailure: LoginResult.UnrecoverableLoginFailure) : LoginResponse
+    data class FailedLogin(val recoverableLoginFailure: LoginResult.RecoverableLoginFailure) : LoginResponse
     data class SuccessfulLogin(val redirectTo: RedirectTo) : LoginResponse
 
 }
 
 @JvmInline
-value class RedirectTo(val url: String) {
+value class RedirectTo(private val url: String) {
     val uri: URI get() = URI.create(url)
+}
+
+class HttpClientProducer {
+    @Produces
+    @ApplicationScoped
+    fun httpClient(): HttpClient {
+        return HttpClient.newHttpClient()
+    }
 }
 
 @ApplicationScoped
 class HydraService(
     @RestClient private val hydraClient: HydraClient,
+    private val httpClient: HttpClient,
     private val loginService: LoginService,
     private val userRepository: UserRepository,
 ) {
@@ -36,7 +54,7 @@ class HydraService(
         private const val HYDRA_ERROR_TECHNICAL_ERROR = "technical_error"
     }
 
-    fun getLoginRequest(challenge: String) : LoginRequest = hydraClient.getLoginRequest(challenge)
+    fun getLoginRequest(challenge: String): LoginRequest = hydraClient.getLoginRequest(challenge)
 
     @Transactional
     fun login(challenge: String, usernameOrEmail: String, password: String, ip: IpAddress): LoginResponse {
@@ -48,24 +66,34 @@ class HydraService(
 
         return when (val loginResult = loginService.login(usernameOrEmail, password, ip, requiresGameOwnership)) {
             is LoginResult.ThrottlingActive -> LoginResponse.FailedLogin(loginResult)
-            is LoginResult.UserOrCredentialsMismatch -> LoginResponse.FailedLogin(loginResult)
+            is LoginResult.RecoverableLoginOrCredentialsMismatch -> LoginResponse.FailedLogin(loginResult)
             is LoginResult.UserNoGameOwnership -> {
-                val redirectResponse = hydraClient.rejectLoginRequest(
-                    challenge, GenericError(error = HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION, errorDescription = "You must prove game ownership to play", statusCode = 403)
+                rejectLoginRequest(
+                    challenge, GenericError(
+                        error = HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION,
+                        errorDescription = "You must prove game ownership to play",
+                        statusCode = 403
+                    )
                 )
-                LoginResponse.RejectedLogin(RedirectTo(redirectResponse.redirectTo))
+                LoginResponse.RejectedLogin(loginResult)
             }
+
             is LoginResult.UserBanned -> {
-                val redirectResponse =
-                    hydraClient.rejectLoginRequest(challenge, GenericError(error = HYDRA_ERROR_USER_BANNED, errorDescription = "You are banned from FAF ${loginResult.expiresAt?.let { "until $it" } ?: "forever"}", statusCode = 403))
-                LoginResponse.RejectedLogin(RedirectTo(redirectResponse.redirectTo))
+                rejectLoginRequest(challenge, GenericError(error = HYDRA_ERROR_USER_BANNED,
+                        errorDescription = "You are banned from FAF ${loginResult.expiresAt?.let { "until $it" } ?: "forever"}",
+                        statusCode = 403))
+                LoginResponse.RejectedLogin(loginResult)
             }
+
             is LoginResult.TechnicalError -> {
-                val redirectResponse = hydraClient.rejectLoginRequest(
-                    challenge, GenericError(error = HYDRA_ERROR_TECHNICAL_ERROR, errorDescription = "Something went wrong while logging in. Please try again", statusCode = 500)
-                )
-                LoginResponse.RejectedLogin(RedirectTo(redirectResponse.redirectTo))
+                rejectLoginRequest(challenge, GenericError(
+                    error = HYDRA_ERROR_TECHNICAL_ERROR,
+                    errorDescription = "Something went wrong while logging in. Please try again",
+                    statusCode = 500
+                ))
+                LoginResponse.RejectedLogin(loginResult)
             }
+
             is LoginResult.SuccessfulLogin -> {
                 val redirectResponse = hydraClient.acceptLoginRequest(
                     challenge, AcceptLoginRequest(subject = loginResult.userId.toString())
@@ -75,10 +103,21 @@ class HydraService(
         }
     }
 
-    fun getConsentRequest(challenge: String) : ConsentRequest = hydraClient.getConsentRequest(challenge)
+    fun rejectLoginRequest(challenge: String, error: GenericError) {
+        val redirectResponse = hydraClient.rejectLoginRequest(
+            challenge, GenericError(
+                error = HYDRA_ERROR_TECHNICAL_ERROR,
+                errorDescription = "Something went wrong while logging in. Please try again",
+                statusCode = 500
+            )
+        )
+        httpClient.sendAsync(HttpRequest.newBuilder(URI.create(redirectResponse.redirectTo)).build(), BodyHandlers.discarding())
+    }
+
+    fun getConsentRequest(challenge: String): ConsentRequest = hydraClient.getConsentRequest(challenge)
 
     @Transactional
-    fun acceptConsentRequest(challenge: String) : RedirectTo {
+    fun acceptConsentRequest(challenge: String): RedirectTo {
         val consentRequest = hydraClient.getConsentRequest(challenge)
 
         val userId = consentRequest.subject?.toInt() ?: -1
@@ -101,7 +140,7 @@ class HydraService(
         return RedirectTo(redirectResponse.redirectTo)
     }
 
-    fun denyConsentRequest(challenge: String) : RedirectTo {
+    fun denyConsentRequest(challenge: String): RedirectTo {
         val redirectResponse = hydraClient.rejectConsentRequest(challenge, GenericError("scope_denied"))
         return RedirectTo(redirectResponse.redirectTo)
     }

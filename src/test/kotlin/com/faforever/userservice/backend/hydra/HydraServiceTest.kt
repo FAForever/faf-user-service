@@ -19,6 +19,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import sh.ory.hydra.model.LoginRequest
 import sh.ory.hydra.model.OAuth2Client
+import java.net.http.HttpClient
+import java.net.http.HttpResponse.BodyHandler
 import java.time.OffsetDateTime
 
 @QuarkusTest
@@ -36,6 +38,8 @@ class HydraServiceTest {
     private lateinit var hydraService: HydraService
 
     @InjectMock
+    private lateinit var httpClient: HttpClient
+    @InjectMock
     @RestClient
     private lateinit var hydraClient: HydraClient
     @InjectMock
@@ -51,58 +55,67 @@ class HydraServiceTest {
         val response = hydraService.login("test", "", "", ipAddress)
 
         assertThat(response, instanceOf(LoginResponse.FailedLogin::class.java))
-        assertThat((response as LoginResponse.FailedLogin).userError, instanceOf(LoginResult.ThrottlingActive::class.java))
+        assertThat((response as LoginResponse.FailedLogin).recoverableLoginFailure, instanceOf(LoginResult.ThrottlingActive::class.java))
     }
 
     @Test
     fun testCredentialsMismatch() {
         whenever(hydraClient.getLoginRequest(any())).thenReturn(loginRequest)
-        whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(LoginResult.UserOrCredentialsMismatch)
+        whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(LoginResult.RecoverableLoginOrCredentialsMismatch)
 
         val response = hydraService.login("test", "", "", ipAddress)
 
         assertThat(response, instanceOf(LoginResponse.FailedLogin::class.java))
-        assertThat((response as LoginResponse.FailedLogin).userError, instanceOf(LoginResult.UserOrCredentialsMismatch::class.java))
+        assertThat((response as LoginResponse.FailedLogin).recoverableLoginFailure, instanceOf(LoginResult.RecoverableLoginOrCredentialsMismatch::class.java))
     }
 
     @Test
     fun testNoOwnership() {
         whenever(hydraClient.getLoginRequest(any())).thenReturn(lobbyLoginRequest)
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(LoginResult.UserNoGameOwnership)
-        whenever(hydraClient.rejectLoginRequest(anyString(), any())).thenReturn(RedirectResponse("localhost"))
+        whenever(hydraClient.rejectLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
 
         val response = hydraService.login("test", "", "", ipAddress)
 
         assertThat(response, instanceOf(LoginResponse.RejectedLogin::class.java))
+        assertThat((response as LoginResponse.RejectedLogin).unrecoverableLoginFailure, instanceOf(LoginResult.UserNoGameOwnership::class.java))
+        verify(hydraClient).rejectLoginRequest(anyString(), any())
+        verify(httpClient).sendAsync(any(), any<BodyHandler<Void>>())
     }
 
     @Test
     fun testUserBanned() {
         whenever(hydraClient.getLoginRequest(any())).thenReturn(loginRequest)
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(LoginResult.UserBanned("", OffsetDateTime.MAX))
-        whenever(hydraClient.rejectLoginRequest(anyString(), any())).thenReturn(RedirectResponse("localhost"))
+        whenever(hydraClient.rejectLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
 
         val response = hydraService.login("test", "", "", ipAddress)
 
         assertThat(response, instanceOf(LoginResponse.RejectedLogin::class.java))
+        assertThat((response as LoginResponse.RejectedLogin).unrecoverableLoginFailure, instanceOf(LoginResult.UserBanned::class.java))
+        verify(hydraClient).rejectLoginRequest(anyString(), any())
+        verify(httpClient).sendAsync(any(), any<BodyHandler<Void>>())
     }
 
     @Test
     fun testTechnicalError() {
         whenever(hydraClient.getLoginRequest(any())).thenReturn(loginRequest)
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(LoginResult.TechnicalError)
-        whenever(hydraClient.rejectLoginRequest(anyString(), any())).thenReturn(RedirectResponse("localhost"))
+        whenever(hydraClient.rejectLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
 
         val response = hydraService.login("test", "", "", ipAddress)
 
         assertThat(response, instanceOf(LoginResponse.RejectedLogin::class.java))
+        assertThat((response as LoginResponse.RejectedLogin).unrecoverableLoginFailure, instanceOf(LoginResult.TechnicalError::class.java))
+        verify(hydraClient).rejectLoginRequest(anyString(), any())
+        verify(httpClient).sendAsync(any(), any<BodyHandler<Void>>())
     }
 
     @Test
     fun testSuccess() {
         whenever(hydraClient.getLoginRequest(any())).thenReturn(loginRequest)
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(LoginResult.SuccessfulLogin(1, "test"))
-        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("localhost"))
+        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
 
         val response = hydraService.login("test", "", "", ipAddress)
 
@@ -113,7 +126,7 @@ class HydraServiceTest {
     fun testOwnershipRequiredExplicitRequest() {
         whenever(hydraClient.getLoginRequest(any())).thenReturn(lobbyLoginRequest)
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(LoginResult.SuccessfulLogin(1, ""))
-        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("localhost"))
+        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
 
         hydraService.login("test", "", "", ipAddress)
 
@@ -124,7 +137,7 @@ class HydraServiceTest {
     fun testOwnershipRequiredImplicitRequest() {
         whenever(hydraClient.getLoginRequest(any())).thenReturn(implicitLobbyLoginRequest)
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(LoginResult.SuccessfulLogin(1, ""))
-        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("localhost"))
+        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
 
         hydraService.login("test", "", "", ipAddress)
 
@@ -135,7 +148,7 @@ class HydraServiceTest {
     fun testOwnershipNotRequested() {
         whenever(hydraClient.getLoginRequest(any())).thenReturn(noLobbyLoginRequest)
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(LoginResult.SuccessfulLogin(1, ""))
-        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("localhost"))
+        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
 
         hydraService.login("test", "", "", ipAddress)
 
@@ -146,7 +159,7 @@ class HydraServiceTest {
     fun testOwnershipNotApplicable() {
         whenever(hydraClient.getLoginRequest(any())).thenReturn(noLobbyLoginRequest)
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(LoginResult.SuccessfulLogin(1, ""))
-        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("localhost"))
+        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
 
         hydraService.login("test", "", "", ipAddress)
 

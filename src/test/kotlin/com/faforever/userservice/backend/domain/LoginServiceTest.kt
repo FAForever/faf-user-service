@@ -53,7 +53,7 @@ class LoginServiceTest {
     @Test
     fun loginWithUnknownUser() {
         val result = loginService.login(username, password, ipAddress, false)
-        assertThat(result, instanceOf(LoginResult.UserOrCredentialsMismatch::class.java))
+        assertThat(result, instanceOf(LoginResult.RecoverableLoginOrCredentialsMismatch::class.java))
     }
 
     @Test
@@ -77,7 +77,7 @@ class LoginServiceTest {
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(false)
 
         val result = loginService.login(username, password, ipAddress, false)
-        assertThat(result, instanceOf(LoginResult.UserOrCredentialsMismatch::class.java))
+        assertThat(result, instanceOf(LoginResult.RecoverableLoginOrCredentialsMismatch::class.java))
     }
 
     @Test

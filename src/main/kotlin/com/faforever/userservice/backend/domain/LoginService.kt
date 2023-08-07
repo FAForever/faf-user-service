@@ -26,32 +26,23 @@ interface SecurityProperties {
     fun failedLoginDaysToCheck(): Long
 }
 
-
-/**
- * This interface makes sure we consistently return the same set of user information
- */
-private interface LoginUserInfo {
-    val userId: Int
-    val userName: String
-}
-
 sealed interface LoginResult {
-    sealed interface UserError : LoginResult
-    object ThrottlingActive : UserError
-    object UserOrCredentialsMismatch : UserError
+    sealed interface RecoverableLoginFailure : LoginResult
+    object ThrottlingActive : RecoverableLoginFailure
+    object RecoverableLoginOrCredentialsMismatch : RecoverableLoginFailure
 
-    sealed interface RejectedLogin : LoginResult
-    object TechnicalError : RejectedLogin
-    object UserNoGameOwnership : RejectedLogin
+    sealed interface UnrecoverableLoginFailure : LoginResult
+    object TechnicalError : UnrecoverableLoginFailure
+    object UserNoGameOwnership : UnrecoverableLoginFailure
     data class UserBanned(
         val reason: String,
         val expiresAt: OffsetDateTime?,
-    ) : RejectedLogin
+    ) : UnrecoverableLoginFailure
 
     data class SuccessfulLogin(
-        override val userId: Int,
-        override val userName: String,
-    ) : RejectedLogin, LoginUserInfo
+        val userId: Int,
+        val userName: String,
+    ) : LoginResult
 }
 
 interface LoginService {
@@ -83,7 +74,7 @@ class LoginServiceImpl(
         val user = userRepository.findByUsernameOrEmail(usernameOrEmail)
         if (user == null || !passwordEncoder.matches(password, user.password)) {
             logFailedLogin(usernameOrEmail, ip)
-            return LoginResult.UserOrCredentialsMismatch
+            return LoginResult.RecoverableLoginOrCredentialsMismatch
         }
 
 
