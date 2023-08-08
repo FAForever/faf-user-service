@@ -9,7 +9,6 @@ import jakarta.enterprise.context.ApplicationScoped
 import jakarta.json.JsonString
 import org.eclipse.microprofile.jwt.JsonWebToken
 
-
 @ApplicationScoped
 class FafPermissionsAugmentor : SecurityIdentityAugmentor {
     override fun augment(identity: SecurityIdentity, context: AuthenticationRequestContext): Uni<SecurityIdentity> {

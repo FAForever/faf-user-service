@@ -21,5 +21,4 @@ class NoChallengeView : ErrorCard(), HasErrorParameter<NoChallengeException> {
     override fun setErrorParameter(event: BeforeEnterEvent?, parameter: ErrorParameter<NoChallengeException>?): Int {
         return HttpServletResponse.SC_FORBIDDEN
     }
-
 }

@@ -40,6 +40,4 @@ open class ErrorCard : CompactVerticalLayout() {
     fun setTitle(title: String) {
         errorTitle.text = title
     }
-
-
 }

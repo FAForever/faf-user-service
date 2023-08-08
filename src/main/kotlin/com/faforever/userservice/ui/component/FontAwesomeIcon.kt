@@ -12,16 +12,15 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 @Tag("i")
 open class FontAwesomeIcon : Component(), HasComponents {
 
-    fun setAriaLabel(label : String) {
+    fun setAriaLabel(label: String) {
         style.set("aria-label", label)
     }
-
 }
 
-class SocialIcon(link : String, label : String, type : String) : Anchor(link) {
+class SocialIcon(link: String, label: String, type: String) : Anchor(link) {
     init {
         val icon = FontAwesomeIcon()
-        icon.addClassNames("fab", "fa-${type}")
+        icon.addClassNames("fab", "fa-$type")
         icon.setAriaLabel(label)
 
         add(icon)

@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory
 @Path("/oauth2")
 @ApplicationScoped
 class OAuthController(
-    @RestClient private val hydraClient: HydraClient
+    @RestClient private val hydraClient: HydraClient,
 ) {
     companion object {
         val LOG: Logger = LoggerFactory.getLogger(OAuthController::class.java)
@@ -27,7 +27,7 @@ class OAuthController(
     @Path("/revokeTokens")
     @PermissionsAllowed("${FafRole.ADMIN_ACCOUNT_BAN}:${OAuthScope.ADMINISTRATIVE_ACTION}")
     fun revokeRefreshTokens(
-        revokeRefreshTokensRequest: RevokeRefreshTokensRequest
+        revokeRefreshTokensRequest: RevokeRefreshTokensRequest,
     ) {
         if (revokeRefreshTokensRequest.all == null && revokeRefreshTokensRequest.client == null) {
             throw BadRequestException("All and client cannot both be null")

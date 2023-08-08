@@ -39,5 +39,5 @@ data class GenericError(
     val errorHint: kotlin.String? = null,
     // /* Code represents the error status code (404, 403, 401, ...). */
     @JsonProperty("status_code")
-    val statusCode: kotlin.Long? = null
+    val statusCode: kotlin.Long? = null,
 )

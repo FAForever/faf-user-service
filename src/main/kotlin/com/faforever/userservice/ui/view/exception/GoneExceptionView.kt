@@ -21,5 +21,4 @@ class GoneExceptionView : ErrorCard(), HasErrorParameter<GoneException> {
     override fun setErrorParameter(event: BeforeEnterEvent?, parameter: ErrorParameter<GoneException>?): Int {
         return HttpServletResponse.SC_INTERNAL_SERVER_ERROR
     }
-
 }

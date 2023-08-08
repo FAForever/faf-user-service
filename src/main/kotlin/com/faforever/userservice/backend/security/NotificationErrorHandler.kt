@@ -12,7 +12,6 @@ import jakarta.enterprise.event.Observes
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-
 @ApplicationScoped
 class NotificationErrorHandler(val i18n: I18n) : ErrorHandler {
 

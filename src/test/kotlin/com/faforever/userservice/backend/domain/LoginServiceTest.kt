@@ -1,8 +1,5 @@
 package com.faforever.userservice.backend.domain
 
-import com.faforever.domain.Ban
-import com.faforever.domain.BanLevel
-import com.faforever.domain.BanRepository
 import com.faforever.userservice.backend.security.PasswordEncoder
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.mockito.InjectMock
@@ -86,8 +83,8 @@ class LoginServiceTest {
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
         whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
             listOf(
-                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, null, null, null, null)
-            )
+                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, null, null, null, null),
+            ),
         )
 
         val result = loginService.login(username, password, ipAddress, false)
@@ -100,8 +97,8 @@ class LoginServiceTest {
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
         whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
             listOf(
-                Ban(1, 1, 100, BanLevel.GLOBAL, "test", null, null, null, null, null)
-            )
+                Ban(1, 1, 100, BanLevel.GLOBAL, "test", null, null, null, null, null),
+            ),
         )
 
         val result = loginService.login(username, password, ipAddress, false)
@@ -185,6 +182,4 @@ class LoginServiceTest {
         val result = loginService.login(username, password, ipAddress, false)
         assertThat(result, instanceOf(LoginResult.SuccessfulLogin::class.java))
     }
-
-
 }

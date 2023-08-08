@@ -1,7 +1,5 @@
 package com.faforever.userservice.backend.domain
 
-import com.faforever.domain.Ban
-import com.faforever.domain.BanRepository
 import com.faforever.userservice.backend.security.PasswordEncoder
 import io.smallrye.config.ConfigMapping
 import jakarta.enterprise.context.ApplicationScoped
@@ -66,7 +64,8 @@ class LoginServiceImpl(
 
     override fun findUserBySubject(subject: String) = userRepository.findByUsernameOrEmail(subject)
 
-    override fun login(usernameOrEmail: String, password: String, ip: IpAddress, requiresGameOwnership: Boolean): LoginResult {
+    override fun login(usernameOrEmail: String, password: String, ip: IpAddress, requiresGameOwnership: Boolean):
+        LoginResult {
         if (throttlingRequired(ip)) {
             return LoginResult.ThrottlingActive
         }
@@ -76,7 +75,6 @@ class LoginServiceImpl(
             logFailedLogin(usernameOrEmail, ip)
             return LoginResult.RecoverableLoginOrCredentialsMismatch
         }
-
 
         logLogin(user, ip)
 
@@ -88,7 +86,10 @@ class LoginServiceImpl(
         }
 
         if (requiresGameOwnership && !accountLinkRepository.hasOwnershipLink(user.id)) {
-            LOG.debug("Lobby login blocked for user '{}' because of missing game ownership verification", usernameOrEmail)
+            LOG.debug(
+                "Lobby login blocked for user '{}' because of missing game ownership verification",
+                usernameOrEmail,
+            )
             return LoginResult.UserNoGameOwnership
         }
 

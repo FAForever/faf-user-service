@@ -4,7 +4,11 @@ import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntityBase
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepository
 import io.quarkus.runtime.annotations.RegisterForReflection
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
 import org.hibernate.annotations.CreationTimestamp
 import java.time.LocalDateTime
 
@@ -45,11 +49,11 @@ class LoginLogRepository : PanacheRepository<LoginLog> {
                             max(e.createTime)
                         ) FROM com.faforever.userservice.backend.domain.LoginLog e WHERE e.ip = :ip AND e.success = false AND e.createTime >= :date
                     """,
-            FailedAttemptsSummary::class.java
+            FailedAttemptsSummary::class.java,
         )
             .setParameter("ip", ip)
             .setParameter("date", date)
             .resultStream
             .findFirst()
-            .orElse(null) as? FailedAttemptsSummary
+            .orElse(null)
 }

@@ -25,7 +25,6 @@ sealed interface LoginResponse {
     data class RejectedLogin(val unrecoverableLoginFailure: LoginResult.UnrecoverableLoginFailure) : LoginResponse
     data class FailedLogin(val recoverableLoginFailure: LoginResult.RecoverableLoginFailure) : LoginResponse
     data class SuccessfulLogin(val redirectTo: RedirectTo) : LoginResponse
-
 }
 
 @JvmInline
@@ -33,7 +32,7 @@ value class RedirectTo(private val url: String) {
     val uri: URI get() = URI.create(url)
 }
 
-class HttpClientProducer {
+object HttpClientProducer {
     @Produces
     @ApplicationScoped
     fun httpClient(): HttpClient {
@@ -59,44 +58,56 @@ class HydraService(
     @Transactional
     fun login(challenge: String, usernameOrEmail: String, password: String, ip: IpAddress): LoginResponse {
         val loginRequest = hydraClient.getLoginRequest(challenge)
-        val requiresGameOwnership =
-            loginRequest.requestedScope.contains(OAuthScope.LOBBY) || (loginRequest.requestedScope.isEmpty() && loginRequest.client.scope?.contains(
-                OAuthScope.LOBBY
-            ) ?: false)
+        val lobbyRequested = loginRequest.requestedScope.contains(OAuthScope.LOBBY)
+        val lobbyDefault =
+            loginRequest.requestedScope.isEmpty() && loginRequest.client.scope?.contains(OAuthScope.LOBBY) ?: false
+        val requiresGameOwnership = lobbyRequested || lobbyDefault
 
         return when (val loginResult = loginService.login(usernameOrEmail, password, ip, requiresGameOwnership)) {
             is LoginResult.ThrottlingActive -> LoginResponse.FailedLogin(loginResult)
             is LoginResult.RecoverableLoginOrCredentialsMismatch -> LoginResponse.FailedLogin(loginResult)
             is LoginResult.UserNoGameOwnership -> {
                 rejectLoginRequest(
-                    challenge, GenericError(
+                    challenge,
+                    GenericError(
                         error = HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION,
                         errorDescription = "You must prove game ownership to play",
-                        statusCode = 403
-                    )
+                        statusCode = 403,
+                    ),
                 )
                 LoginResponse.RejectedLogin(loginResult)
             }
 
             is LoginResult.UserBanned -> {
-                rejectLoginRequest(challenge, GenericError(error = HYDRA_ERROR_USER_BANNED,
-                        errorDescription = "You are banned from FAF ${loginResult.expiresAt?.let { "until $it" } ?: "forever"}",
-                        statusCode = 403))
+                val errorDescription =
+                    "You are banned from FAF ${loginResult.expiresAt?.let { "until $it" } ?: "forever"}"
+                rejectLoginRequest(
+                    challenge,
+                    GenericError(
+                        error = HYDRA_ERROR_USER_BANNED,
+                        errorDescription = errorDescription,
+                        statusCode = 403,
+                    ),
+                )
                 LoginResponse.RejectedLogin(loginResult)
             }
 
             is LoginResult.TechnicalError -> {
-                rejectLoginRequest(challenge, GenericError(
-                    error = HYDRA_ERROR_TECHNICAL_ERROR,
-                    errorDescription = "Something went wrong while logging in. Please try again",
-                    statusCode = 500
-                ))
+                rejectLoginRequest(
+                    challenge,
+                    GenericError(
+                        error = HYDRA_ERROR_TECHNICAL_ERROR,
+                        errorDescription = "Something went wrong while logging in. Please try again",
+                        statusCode = 500,
+                    ),
+                )
                 LoginResponse.RejectedLogin(loginResult)
             }
 
             is LoginResult.SuccessfulLogin -> {
                 val redirectResponse = hydraClient.acceptLoginRequest(
-                    challenge, AcceptLoginRequest(subject = loginResult.userId.toString())
+                    challenge,
+                    AcceptLoginRequest(subject = loginResult.userId.toString()),
                 )
                 LoginResponse.SuccessfulLogin(RedirectTo(redirectResponse.redirectTo))
             }
@@ -105,13 +116,17 @@ class HydraService(
 
     fun rejectLoginRequest(challenge: String, error: GenericError) {
         val redirectResponse = hydraClient.rejectLoginRequest(
-            challenge, GenericError(
+            challenge,
+            GenericError(
                 error = HYDRA_ERROR_TECHNICAL_ERROR,
                 errorDescription = "Something went wrong while logging in. Please try again",
-                statusCode = 500
-            )
+                statusCode = 500,
+            ),
         )
-        httpClient.sendAsync(HttpRequest.newBuilder(URI.create(redirectResponse.redirectTo)).build(), BodyHandlers.discarding())
+        httpClient.sendAsync(
+            HttpRequest.newBuilder(URI.create(redirectResponse.redirectTo)).build(),
+            BodyHandlers.discarding(),
+        )
     }
 
     fun getConsentRequest(challenge: String): ConsentRequest = hydraClient.getConsentRequest(challenge)
@@ -128,13 +143,14 @@ class HydraService(
         val roles = listOf("USER") + permissions.map { it.technicalName }
 
         val redirectResponse = hydraClient.acceptConsentRequest(
-            challenge, AcceptConsentRequest(
+            challenge,
+            AcceptConsentRequest(
                 session = ConsentRequestSession(
                     accessToken = mapOf("username" to user.username, "roles" to roles),
                     idToken = mapOf("username" to user.username, "roles" to roles),
                 ),
                 grantScope = consentRequest.requestedScope,
-            )
+            ),
         )
 
         return RedirectTo(redirectResponse.redirectTo)
@@ -144,5 +160,4 @@ class HydraService(
         val redirectResponse = hydraClient.rejectConsentRequest(challenge, GenericError("scope_denied"))
         return RedirectTo(redirectResponse.redirectTo)
     }
-
 }

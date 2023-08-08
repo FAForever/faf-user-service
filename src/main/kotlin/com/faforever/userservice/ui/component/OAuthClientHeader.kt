@@ -18,7 +18,6 @@ class OAuthClientHeader : CompactVerticalLayout() {
     private val clientTos = Anchor()
     private val clientPolicy = Anchor()
 
-
     init {
         clientTos.text = getTranslation("consent.termsOfService")
         clientPolicy.text = getTranslation("consent.privacyStatement")
@@ -52,5 +51,4 @@ class OAuthClientHeader : CompactVerticalLayout() {
         clientPolicy.href = client.policyUri
         clientPolicy.isVisible = !clientPolicy.href.isNullOrBlank()
     }
-
 }

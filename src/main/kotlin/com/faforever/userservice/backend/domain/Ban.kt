@@ -1,9 +1,15 @@
-package com.faforever.domain
+package com.faforever.userservice.backend.domain
 
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntityBase
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
 import java.time.OffsetDateTime
 
 enum class BanLevel {
@@ -35,7 +41,6 @@ data class Ban(
     @Column(name = "revoke_author_id")
     val revokeAuthorId: Long?,
 ) : PanacheEntityBase {
-
 
     val isActive: Boolean
         get() {

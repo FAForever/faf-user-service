@@ -29,7 +29,6 @@ class ScopeWidget(private val scopeItemFactory: Instance<ScopeItem>) : CompactVe
             add(scopeItem)
         }
     }
-
 }
 
 @Dependent
@@ -50,7 +49,7 @@ class ScopeItem : HorizontalLayout() {
         span.text = if (translation.matches(Regex("!\\{.*}!"))) {
             getTranslation(
                 "oauth2.scope.textMissing",
-                scope
+                scope,
             )
         } else {
             translation
@@ -61,6 +60,5 @@ class ScopeItem : HorizontalLayout() {
         } else {
             infoTooltip.setTooltip(null)
         }
-
     }
 }

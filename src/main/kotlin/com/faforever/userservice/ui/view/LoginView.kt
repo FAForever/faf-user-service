@@ -28,7 +28,8 @@ import com.vaadin.flow.server.VaadinSession
 import java.time.format.DateTimeFormatter
 
 @Route("/oauth2/login", layout = OAuthCardLayout::class)
-class LoginView(private val hydraService: HydraService, private val fafProperties: FafProperties) : CompactVerticalLayout(), BeforeEnterObserver {
+class LoginView(private val hydraService: HydraService, private val fafProperties: FafProperties) :
+    CompactVerticalLayout(), BeforeEnterObserver {
 
     private val loginLayout = CompactVerticalLayout()
     private val footer = VerticalLayout()
@@ -79,9 +80,10 @@ class LoginView(private val hydraService: HydraService, private val fafPropertie
         val links = HorizontalLayout()
         links.addClassName("pipe-separated")
 
-        val passwordReset =
-            Anchor("https://faforever.com/account/password/reset", getTranslation("login.forgotPassword"))
-        val registerAccount = Anchor("https://faforever.com/account/register", getTranslation("login.registerAccount"))
+        val resetHref = "https://faforever.com/account/password/reset"
+        val passwordReset = Anchor(resetHref, getTranslation("login.forgotPassword"))
+        val registerHref = "https://faforever.com/account/register"
+        val registerAccount = Anchor(registerHref, getTranslation("login.registerAccount"))
 
         links.add(passwordReset, registerAccount)
         footer.add(links)
@@ -92,7 +94,7 @@ class LoginView(private val hydraService: HydraService, private val fafPropertie
     }
 
     fun login() {
-        val ipAddress = IpAddress(VaadinSession.getCurrent().browser.address);
+        val ipAddress = IpAddress(VaadinSession.getCurrent().browser.address)
         when (val loginResponse = hydraService.login(challenge, usernameOrEmail.value, password.value, ipAddress)) {
             is LoginResponse.FailedLogin -> displayErrorMessage(loginResponse.recoverableLoginFailure)
             is LoginResponse.RejectedLogin -> displayRejectedMessage(loginResponse.unrecoverableLoginFailure)
@@ -127,9 +129,11 @@ class LoginView(private val hydraService: HydraService, private val fafPropertie
             is LoginResult.UserBanned -> {
                 header.setTitle(getTranslation("ban.title"))
                 val expiration = loginError.expiresAt?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) ?: getTranslation(
-                    "ban.permanent"
+                    "ban.permanent",
                 )
-                errorMessage.text = "${getTranslation("ban.expiration")} $expiration. ${getTranslation("ban.reason")} ${loginError.reason}"
+                val expirationText = "${getTranslation("ban.expiration")} $expiration."
+                val reason = "${getTranslation("ban.reason")} ${loginError.reason}"
+                errorMessage.text = "$expirationText $reason"
             }
         }
     }

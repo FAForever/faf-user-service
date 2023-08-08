@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.allopen") version kotlinVersion
     kotlin("plugin.noarg") version kotlinVersion
+    id("com.diffplug.spotless") version "6.19.0"
     id("io.quarkus") version "3.1.2.Final"
     id("com.vaadin") version "24.1.2"
 }
@@ -26,8 +27,8 @@ repositories {
 
 dependencies {
     implementation("io.quarkus:quarkus-container-image-docker")
-    implementation(enforcedPlatform("com.vaadin:vaadin-bom:${vaadinVersion}"))
-    implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:${quarkusPlatformVersion}"))
+    implementation(enforcedPlatform("com.vaadin:vaadin-bom:$vaadinVersion"))
+    implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusPlatformVersion"))
 
     implementation("io.quarkus:quarkus-rest-client-reactive-jackson")
     implementation("io.quarkus:quarkus-config-yaml")
@@ -88,6 +89,18 @@ noArg {
     annotation("jakarta.persistence.Entity")
     annotation("jakarta.persistence.MappedSuperclass")
     annotation("jakarta.persistence.Embeddable")
+}
+
+spotless {
+    val ktlintVersion = "0.49.1"
+    kotlin {
+        ktlint(ktlintVersion)
+    }
+    kotlinGradle {
+        target("*.gradle.kts")
+
+        ktlint(ktlintVersion)
+    }
 }
 
 tasks.withType<Test> {

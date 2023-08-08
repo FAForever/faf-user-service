@@ -3,7 +3,11 @@ package com.faforever.userservice.backend.domain
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntityBase
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepositoryBase
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
@@ -20,12 +24,10 @@ data class User(
     val ip: String?,
 ) : PanacheEntityBase {
 
-
     override fun toString(): String =
         // Do NOT expose personal information here!!
         "User(id=$id, username='$username')"
 }
-
 
 @Entity(name = "service_links")
 data class AccountLink(
@@ -36,7 +38,6 @@ data class AccountLink(
     val userId: Long?,
     val ownership: Boolean,
 ) : PanacheEntityBase {
-
 
     override fun toString(): String =
         // Do NOT expose personal information here!!
@@ -70,13 +71,14 @@ class UserRepository : PanacheRepositoryBase<User, Int> {
             INNER JOIN group_permission_assignment gpa ON uga.group_id = gpa.group_id
             INNER JOIN group_permission ON gpa.permission_id = group_permission.id
             WHERE uga.user_id = :userId
-            """.trimIndent(), Permission::class.java
+            """.trimIndent(),
+            Permission::class.java,
         ).setParameter("userId", userId)
             .resultList as List<Permission>
 }
 
 @ApplicationScoped
-class AccountLinkRepository: PanacheRepositoryBase<AccountLink, String> {
+class AccountLinkRepository : PanacheRepositoryBase<AccountLink, String> {
     fun hasOwnershipLink(userId: Int): Boolean =
         find("userId = ?1 and ownership", userId).firstResult() != null
 }
