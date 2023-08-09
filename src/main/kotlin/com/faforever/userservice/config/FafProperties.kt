@@ -93,7 +93,13 @@ interface FafProperties {
             fun subject(): String
 
             @NotBlank
-            fun htmlFormat(): String
+            fun activationMailTemplatePath(): String
+
+            @NotBlank
+            fun welcomeSubject(): String
+
+            @NotBlank
+            fun welcomeMailTemplatePath(): String
 
             @NotBlank
             fun termsOfServiceUrl(): String
@@ -116,7 +122,7 @@ interface FafProperties {
             fun subject(): String
 
             @NotBlank
-            fun htmlFormat(): String
+            fun mailTemplatePath(): String
         }
 
         interface Username {
