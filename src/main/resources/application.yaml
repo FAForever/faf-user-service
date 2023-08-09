@@ -1,0 +1,51 @@
+faf:
+  environment: ${FAF_ENVIRONMENT}
+  real-ip-header: ${REAL_IP_HEADER:X-Real-Ip}
+  password-reset-url: ${PASSWORD_RESET_URL:https://faforever.com/account/password/reset}
+  register-account-url: ${REGISTER_ACCOUNT_URL:https://faforever.com/account/register}
+  account-link-url: ${ACCOUNT_LINK_URL:https://www.faforever.com/account/link}
+  hydra-base-url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
+
+security:
+  failed-login-account-threshold: ${FAILED_LOGIN_ACCOUNT_THRESHOLD:5}
+  failed-login-attempt-threshold: ${FAILED_LOGIN_ATTEMPT_THRESHOLD:10}
+  failed-login-throttling-minutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
+  failed-login-days-to-check: ${FAILED_LOGIN_DAYS_TO_CHECK:1}
+
+quarkus:
+  http.cors: true
+  log:
+    level: INFO
+  rest-client:
+    faf-ory-hydra:
+      url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
+  devservices:
+    enabled: false
+  datasource:
+    db-kind: mariadb
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:banana}
+    jdbc:
+      url: ${DB_URL:jdbc:mariadb://localhost:3306/faf?ssl=false}
+  application:
+    name: faf-user-service
+
+"%dev":
+  quarkus:
+    http:
+      cors:
+        origins: "/.*/"
+    log:
+      category:
+        "com.faforever":
+          level: DEBUG
+  faf:
+    environment: ${FAF_ENVIRONMENT:dev}
+
+mp:
+  jwt:
+    verify:
+      issuer: ${HYDRA_TOKEN_ISSUER:http://faf-ory-hydra:4444/}
+      key-format: JWKS
+      publickey:
+        location: ${HYDRA_JWKS_URL:http://localhost:4444/.well-known/jwks.json}

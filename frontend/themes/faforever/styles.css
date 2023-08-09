@@ -1,0 +1,178 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css');
+
+html {
+    --lumo-font-family: 'Source Sans Pro', sans-serif;
+    --lumo-primary-color: #ea2f10;
+    --lumo-primary-text-color: var(--lumo-primary-color);
+    --lumo-clickable-cursor: pointer;
+}
+
+.background {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: fixed !important;
+    padding: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    height: auto !important;
+}
+
+::part(input-field) {
+    background-color: white;
+}
+
+input {
+    outline: none;
+}
+
+.error {
+    text-align: center;
+    background-color: white;
+    border: 1px solid var(--lumo-primary-color);
+    font-weight: bold;
+    color: var(--lumo-primary-color);
+    padding: 0.5rem;
+    margin: 1rem 0;
+}
+
+.error-info {
+    font-weight: normal;
+}
+
+header {
+    background-color: #111111;
+    color: white;
+    padding: 0;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+}
+
+#leftheader {
+    flex-basis: 100%;
+    text-align: left;
+}
+
+#leftheader img {
+    position: relative;
+    height: 62px;
+    float: left;
+    border-radius: 50%;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
+    margin: 0 1rem -1rem 0;
+}
+
+#leftheader h1 {
+    color: white;
+    padding: 0;
+}
+
+#rightheader {
+    flex-basis: 50%;
+    text-align: right;
+}
+
+#rightheader p {
+    margin-right: 0.5rem;
+}
+
+.main-card {
+    border-radius: 2px;
+    max-width: 30rem;
+    margin: 3rem auto;
+    background-color: rgba(220, 220, 220, 0.8);
+    box-shadow: 3px 4px 5px 5px rgba(0, 0, 0, 0.2);
+    padding: 25px 50px;
+}
+
+#form-header {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+#form-header-left {
+    flex-basis: 35%;
+    align-self: center;
+    text-align: center;
+}
+
+#form-header img {
+    width: 100px;
+    height: 100px;
+}
+
+#form-header-right {
+    flex-basis: 65%;
+    font-weight: bolder;
+    font-size: 1.8rem;
+    text-align: left;
+    margin: auto 0;
+}
+
+a, a:visited {
+    color: black;
+}
+
+a:hover {
+    color: #d32a0e;
+}
+
+.oauth-scope {
+    width: 100%;
+    background-color: white;
+    border: 1px solid var(--lumo-primary-color);
+    border-left: 5px solid var(--lumo-primary-color);
+    padding: 0.5rem;
+    margin: 5px 0;
+    border-radius: 5px;
+}
+
+.pipe-separated li {
+    padding: 0 0.5rem;
+    border-left: 1px solid black;
+}
+
+.pipe-separated li:first-of-type {
+    border: 0;
+}
+
+#scope-header {
+    padding: 1rem 0 0 0 ;
+    margin: 0;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+/* Tooltip container */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    padding: 5px;
+    border-radius: 6px;
+
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+    top: 100%;
+    left: 50%;
+    margin-left: -60px;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
