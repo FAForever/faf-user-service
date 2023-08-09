@@ -52,7 +52,7 @@ quarkus:
   rest-client:
     faf-ory-hydra:
       url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
-    recaptch:
+    recaptcha:
       url: https://www.google.com/recaptcha/api
   mailer:
     host: ${MAIL_HOST:localhost}
