@@ -1,0 +1,7 @@
+faf:
+  account:
+    password-reset:
+      mail-template-path: src/test/resources/mail/password-reset.html
+    registration:
+      activation-mail-template-path: src/test/resources/mail/account-activation.html
+      welcome-mail-template-path: src/test/resources/mail/welcome-to-faf.html

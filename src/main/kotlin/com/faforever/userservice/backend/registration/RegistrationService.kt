@@ -5,7 +5,7 @@ import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.domain.NameRecordRepository
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
-import com.faforever.userservice.backend.email.MailSender
+import com.faforever.userservice.backend.email.EmailService
 import com.faforever.userservice.backend.metrics.MetricHelper
 import com.faforever.userservice.backend.security.FafTokenService
 import com.faforever.userservice.backend.security.FafTokenType
@@ -15,7 +15,6 @@ import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.text.MessageFormat
 import java.time.Duration
 import java.time.OffsetDateTime
 
@@ -40,7 +39,7 @@ class RegistrationService(
     private val passwordEncoder: PasswordEncoder,
     private val fafTokenService: FafTokenService,
     private val fafProperties: FafProperties,
-    private val mailSender: MailSender,
+    private val emailService: EmailService,
     private val metricHelper: MetricHelper,
 ) {
     companion object {
@@ -65,9 +64,8 @@ class RegistrationService(
                 KEY_USERNAME to username, KEY_EMAIL to email
             )
         )
-        val activationUrl = String.format(fafProperties.account().registration().activationUrlFormat(), token)
-        val content = String.format(fafProperties.account().registration().htmlFormat(), username, activationUrl)
-        mailSender.sendMail(email, fafProperties.account().registration().subject(), content)
+        val activationUrl = fafProperties.account().registration().activationUrlFormat().format(token)
+        emailService.sendActivationMail(username, email, activationUrl)
     }
 
     fun resetPassword(user: User) {
@@ -83,10 +81,8 @@ class RegistrationService(
                 KEY_USER_ID to user.id.toString()
             )
         )
-        val passwordResetUrl = String.format(fafProperties.account().passwordReset().passwordResetUrlFormat(), token)
-        val content =
-            MessageFormat.format(fafProperties.account().passwordReset().htmlFormat(), user.username, passwordResetUrl)
-        mailSender.sendMail(user.email, fafProperties.account().passwordReset().subject(), content)
+        val passwordResetUrl = fafProperties.account().passwordReset().passwordResetUrlFormat().format(token)
+        emailService.sendPasswordResetMail(user.username, user.email, passwordResetUrl)
     }
 
     @Transactional

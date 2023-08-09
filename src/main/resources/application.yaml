@@ -8,14 +8,16 @@ faf:
     registration:
       activation-url-format: ${ACTIVATION_URL_FORMAT:http://localhost:8080/register/activate?token=%s}
       subject: ${REGISTRATION_EMAIL_SUBJECT:FAF user registration}
-      html-format: ${REGISTRATION_EMAIL_BODY:"Registration email body for user %s with activation link %s"}
+      activation-mail-template-path: ${ACCOUNT_ACTIVATION_MAIL_TEMPLATE_PATH:/config/mail/account-activation.html}
+      welcome-subject: ${WELCOME_MAIL_SUBJECT:Welcome to FAF}
+      welcome-mail-template-path: ${WELCOME_MAIL_TEMPLATE_PATH:/config/mail/welcome-to-faf.html}
       terms-of-service-url: ${FAF_TERMS_OF_SERVICE:https://faforever.com/tos}
       privacy-statement-url: ${FAF_PRIVACY_STATEMENT:https://faforever.com/privacy}
       rules-url: ${FAF_RULES:https://faforever.com/rules}
     password-reset:
       password-reset-url-format: ${PASSWORD_RESET_URL_FORMAT:http://localhost:8080/account/password/confirmReset?token=%s}
       subject: ${PASSWORD_RESET_EMAIL_SUBJECT:FAF password reset}
-      html-format: ${PASSWORD_RESET_EMAIL_BODY:Registration email body}
+      mail-template-path: ${PASSWORD_RESET_MAIL_TEMPLATE_PATH:/config/mail/password-reset.html}
     username:
       minimum-days-between-username-change: ${MIN_DAYS_BETWEEN_NAME_CHANGE:30}
       username-reservation-time-in-months: ${NAME_RESERVATION_MONTHS:6}
@@ -84,7 +86,12 @@ quarkus:
           level: DEBUG
   faf:
     environment: ${FAF_ENVIRONMENT:dev}
-
+    account:
+      registration:
+        activation-mail-template-path: ${ACCOUNT_ACTIVATION_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-account-activation.html}
+        welcome-mail-template-path: ${WELCOME_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-welcome-to-faf.html}
+      password-reset:
+        mail-template-path: ${PASSWORD_RESET_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-password-reset.html}
 mp:
   jwt:
     verify:
