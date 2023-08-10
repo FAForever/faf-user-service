@@ -40,8 +40,9 @@ class MetricHelper(meterRegistry: MeterRegistry) {
         "steamLinkFailed",
     )
 
-    // Username Change Counters
+    // User Change Counters
     val userNameChangeCounter: Counter = meterRegistry.counter("user.name.change.count")
+    val userPasswordChangeCounter: Counter = meterRegistry.counter("user.password.change.count")
 
     // Password Reset Counters
     val userPasswordResetRequestCounter: Counter = meterRegistry.counter(
