@@ -118,9 +118,11 @@ class RegisterView(private val registrationService: RegistrationService, fafProp
                 getTranslation("register.username.taken"),
             ).bind("username")
 
-        binder.forField(email).withValidator(EmailValidator(getTranslation("register.email.invalid"))).withValidator(
-            { email -> registrationService.emailAvailable(email) == EmailStatus.EMAIL_AVAILABLE },
-            getTranslation("register.email.taken"),
+        binder.forField(email)
+            .withValidator(EmailValidator(getTranslation("register.email.invalid")))
+            .withValidator(
+                { email -> registrationService.emailAvailable(email) == EmailStatus.EMAIL_AVAILABLE },
+                getTranslation("register.email.taken"),
         ).bind("email")
 
         binder.forField(termsOfService).asRequired(getTranslation("register.acknowledge.terms")).bind("termsOfService")
