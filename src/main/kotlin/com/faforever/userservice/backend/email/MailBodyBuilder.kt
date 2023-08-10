@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 
-
 @Startup
 @Singleton
 class MailBodyBuilder(private val properties: FafProperties) {
@@ -22,7 +21,8 @@ class MailBodyBuilder(private val properties: FafProperties) {
     enum class Template(vararg variables: String) {
         ACCOUNT_ACTIVATION("username", "activationUrl"),
         WELCOME_TO_FAF("username"),
-        PASSWORD_RESET("username", "passwordResetUrl");
+        PASSWORD_RESET("username", "passwordResetUrl"),
+        ;
 
         val variables: Set<String>
 
@@ -102,25 +102,27 @@ class MailBodyBuilder(private val properties: FafProperties) {
 
     fun buildAccountActivationBody(username: String, activationUrl: String) =
         populate(
-            Template.ACCOUNT_ACTIVATION, mapOf(
+            Template.ACCOUNT_ACTIVATION,
+            mapOf(
                 "username" to username,
-                "activationUrl" to activationUrl
-            )
+                "activationUrl" to activationUrl,
+            ),
         )
 
     fun buildWelcomeToFafBody(username: String) =
         populate(
-            Template.WELCOME_TO_FAF, mapOf(
-                "username" to username
-            )
+            Template.WELCOME_TO_FAF,
+            mapOf(
+                "username" to username,
+            ),
         )
 
-    fun buildPasswordResetBody(username: String, passwordResetUrl: String)=
-         populate(
-            Template.PASSWORD_RESET, mapOf(
+    fun buildPasswordResetBody(username: String, passwordResetUrl: String) =
+        populate(
+            Template.PASSWORD_RESET,
+            mapOf(
                 "username" to username,
-                "passwordResetUrl" to passwordResetUrl
-            )
+                "passwordResetUrl" to passwordResetUrl,
+            ),
         )
 }
-

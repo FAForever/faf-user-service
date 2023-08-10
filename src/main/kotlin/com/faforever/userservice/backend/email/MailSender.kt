@@ -7,10 +7,10 @@ import jakarta.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class MailSender(
     private val mailer: Mailer,
-)  {
+) {
     fun sendMail(toEmail: String, subject: String, content: String) {
         mailer.send(
-            Mail.withText(toEmail, subject, content)
+            Mail.withText(toEmail, subject, content),
         )
     }
 }

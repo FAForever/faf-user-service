@@ -39,6 +39,6 @@ class NameRecordRepository : PanacheRepositoryBase<NameRecord, Int> {
         "previousName = ?1 and changeTime >= ?2 and userId != ?3",
         previousName,
         changeTime,
-        userId
+        userId,
     ) > 0
 }

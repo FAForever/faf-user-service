@@ -52,7 +52,9 @@ class FafTokenService(
 
     fun createToken(fafTokenType: FafTokenType, lifetime: TemporalAmount, attributes: Map<String, String>): String {
         if (attributes.containsKey(KEY_ACTION)) {
-           throw IllegalArgumentException(MessageFormat.format("'{0}' is a protected attributed and must not be used", KEY_ACTION))
+            throw IllegalArgumentException(
+                MessageFormat.format("'{0}' is a protected attributed and must not be used", KEY_ACTION),
+            )
         }
 
         val jwtBuilder = JWTClaimsSet.Builder()

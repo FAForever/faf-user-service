@@ -45,8 +45,10 @@ class InvalidRegistrationExceptionView : CompactVerticalLayout(), HasErrorParame
         add(errorLayout)
     }
 
-    override fun setErrorParameter(event: BeforeEnterEvent?, parameter: ErrorParameter<InvalidRegistrationException>?): Int {
+    override fun setErrorParameter(
+        event: BeforeEnterEvent?,
+        parameter: ErrorParameter<InvalidRegistrationException>?,
+    ): Int {
         return HttpServletResponse.SC_INTERNAL_SERVER_ERROR
     }
-
 }
