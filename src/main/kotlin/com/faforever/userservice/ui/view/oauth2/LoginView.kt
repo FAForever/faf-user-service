@@ -4,6 +4,7 @@ import com.faforever.userservice.backend.account.LoginResult
 import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.hydra.LoginResponse
 import com.faforever.userservice.backend.hydra.NoChallengeException
+import com.faforever.userservice.backend.security.LoginResult
 import com.faforever.userservice.backend.security.VaadinIpService
 import com.faforever.userservice.backend.tos.TosService
 import com.faforever.userservice.config.FafProperties

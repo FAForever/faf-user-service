@@ -4,6 +4,8 @@ import com.faforever.userservice.backend.account.LoginResult
 import com.faforever.userservice.backend.account.LoginService
 import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.domain.UserRepository
+import com.faforever.userservice.backend.security.LoginResult
+import com.faforever.userservice.backend.security.LoginService
 import com.faforever.userservice.backend.security.OAuthScope
 import io.quarkus.test.InjectMock
 import io.quarkus.test.junit.QuarkusTest
