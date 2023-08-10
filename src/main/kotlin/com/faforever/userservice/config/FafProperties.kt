@@ -22,6 +22,8 @@ interface FafProperties {
     @NotBlank
     fun hydraBaseUrl(): String
 
+    fun security(): Security
+
     fun account(): Account
 
     fun jwt(): Jwt
@@ -50,6 +52,23 @@ interface FafProperties {
         fun secret(): String
 
         fun tokenTtl(): Long
+    }
+
+    interface Security {
+        @WithDefault("6")
+        fun minimumPasswordLength(): Int
+
+        @NotNull
+        fun failedLoginAccountThreshold(): Int
+
+        @NotNull
+        fun failedLoginAttemptThreshold(): Int
+
+        @NotNull
+        fun failedLoginThrottlingMinutes(): Long
+
+        @NotNull
+        fun failedLoginDaysToCheck(): Long
     }
 
     interface Jwt {
