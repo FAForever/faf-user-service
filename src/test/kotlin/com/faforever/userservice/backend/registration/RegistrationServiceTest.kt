@@ -22,7 +22,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-
 @QuarkusTest
 class RegistrationServiceTest {
 
@@ -103,34 +102,42 @@ class RegistrationServiceTest {
     fun activateSuccess() {
         registrationService.activate(RegisteredUser(username, email), ipAddress, password)
 
-       verify(userRepository).persist(any<User>())
+        verify(userRepository).persist(any<User>())
     }
 
     @Test
     fun activateUsernameTaken() {
         whenever(userRepository.existsByUsername(anyString())).thenReturn(true)
 
-        assertThrows<IllegalArgumentException> { registrationService.activate(RegisteredUser(username, email), ipAddress, password) }
+        assertThrows<IllegalArgumentException> {
+            registrationService.activate(RegisteredUser(username, email), ipAddress, password)
+        }
     }
 
     @Test
     fun activateUsernameReserved() {
         whenever(nameRecordRepository.existsByPreviousNameAndChangeTimeAfter(anyString(), any())).thenReturn(true)
 
-        assertThrows<IllegalArgumentException> { registrationService.activate(RegisteredUser(username, email), ipAddress, password) }
+        assertThrows<IllegalArgumentException> {
+            registrationService.activate(RegisteredUser(username, email), ipAddress, password)
+        }
     }
 
     @Test
     fun activateEmailTaken() {
         whenever(userRepository.existsByEmail(anyString())).thenReturn(true)
 
-        assertThrows<IllegalArgumentException> { registrationService.activate(RegisteredUser(username, email), ipAddress, password) }
+        assertThrows<IllegalArgumentException> {
+            registrationService.activate(RegisteredUser(username, email), ipAddress, password)
+        }
     }
 
     @Test
     fun activateEmailBlacklisted() {
         whenever(domainBlacklistRepository.existsByDomain(anyString())).thenReturn(true)
 
-        assertThrows<IllegalArgumentException> { registrationService.activate(RegisteredUser(username, email), ipAddress, password) }
+        assertThrows<IllegalArgumentException> {
+            registrationService.activate(RegisteredUser(username, email), ipAddress, password)
+        }
     }
 }

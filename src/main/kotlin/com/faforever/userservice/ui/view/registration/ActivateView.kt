@@ -85,11 +85,12 @@ class ActivateView(private val registrationService: RegistrationService, fafProp
             .bind("password")
 
         binder.forField(confirmedPassword)
-            .withValidator({ confirmedPassword -> confirmedPassword == password.value }, getTranslation("register.password.match")
+            .withValidator(
+                { confirmedPassword -> confirmedPassword == password.value },
+                getTranslation("register.password.match"),
             ).bind("confirmedPassword")
 
         binder.addStatusChangeListener { submit.isEnabled = it.binder.isValid }
-
     }
 
     private fun activate() {
@@ -98,7 +99,7 @@ class ActivateView(private val registrationService: RegistrationService, fafProp
             return
         }
 
-        val ipAddress = IpAddress(VaadinSession.getCurrent().browser.address);
+        val ipAddress = IpAddress(VaadinSession.getCurrent().browser.address)
 
         registrationService.activate(registeredUser, ipAddress, password.value)
 

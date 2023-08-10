@@ -28,7 +28,7 @@ enum class EmailStatus {
 
 data class RegisteredUser(
     val username: String,
-    val email: String
+    val email: String,
 )
 
 @ApplicationScoped
@@ -61,8 +61,9 @@ class RegistrationService(
             FafTokenType.REGISTRATION,
             Duration.ofSeconds(fafProperties.account().registration().linkExpirationSeconds()),
             mapOf(
-                KEY_USERNAME to username, KEY_EMAIL to email
-            )
+                KEY_USERNAME to username,
+                KEY_EMAIL to email,
+            ),
         )
         val activationUrl = fafProperties.account().registration().activationUrlFormat().format(token)
         emailService.sendActivationMail(username, email, activationUrl)
@@ -78,8 +79,8 @@ class RegistrationService(
             FafTokenType.REGISTRATION,
             Duration.ofSeconds(fafProperties.account().passwordReset().linkExpirationSeconds()),
             mapOf(
-                KEY_USER_ID to user.id.toString()
-            )
+                KEY_USER_ID to user.id.toString(),
+            ),
         )
         val passwordResetUrl = fafProperties.account().passwordReset().passwordResetUrlFormat().format(token)
         emailService.sendPasswordResetMail(user.username, user.email, passwordResetUrl)
@@ -94,7 +95,7 @@ class RegistrationService(
 
         val reserved = nameRecordRepository.existsByPreviousNameAndChangeTimeAfter(
             username,
-            OffsetDateTime.now().minusMonths(fafProperties.account().username().usernameReservationTimeInMonths())
+            OffsetDateTime.now().minusMonths(fafProperties.account().username().usernameReservationTimeInMonths()),
         )
 
         return if (reserved) UsernameStatus.USERNAME_RESERVED else UsernameStatus.USERNAME_AVAILABLE
@@ -115,7 +116,7 @@ class RegistrationService(
         val claims: Map<String, String>
         try {
             claims = fafTokenService.getTokenClaims(FafTokenType.REGISTRATION, registrationToken)
-        } catch (exception : Exception) {
+        } catch (exception: Exception) {
             LOG.error("Unable to extract claims", exception)
             throw InvalidRegistrationException()
         }

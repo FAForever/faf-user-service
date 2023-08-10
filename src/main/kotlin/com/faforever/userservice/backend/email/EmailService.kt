@@ -4,14 +4,11 @@ import com.faforever.userservice.backend.domain.DomainBlacklistRepository
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.config.FafProperties
-import io.quarkus.mailer.Mail
-import io.quarkus.mailer.Mailer
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.regex.Pattern
-
 
 @ApplicationScoped
 class EmailService(
@@ -30,7 +27,7 @@ class EmailService(
     enum class ValidationResult {
         VALID,
         INVALID,
-        BLACKLISTED
+        BLACKLISTED,
     }
 
     fun changeUserEmail(newEmail: String, user: User) {
@@ -49,7 +46,7 @@ class EmailService(
         !EMAIL_PATTERN.matcher(email).matches() -> ValidationResult.INVALID
 
         domainBlacklistRepository.existsByDomain(
-            email.substring(email.lastIndexOf('@') + 1)
+            email.substring(email.lastIndexOf('@') + 1),
         ) -> ValidationResult.BLACKLISTED
 
         else -> ValidationResult.VALID
@@ -76,4 +73,3 @@ class EmailService(
         )
     }
 }
-

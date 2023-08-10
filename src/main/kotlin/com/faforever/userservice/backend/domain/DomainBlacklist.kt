@@ -8,7 +8,7 @@ import jakarta.persistence.Id
 @Entity(name = "email_domain_blacklist")
 data class DomainBlacklist(
     @Id
-    val domain: String
+    val domain: String,
 )
 
 @ApplicationScoped

@@ -68,19 +68,24 @@ class RegisterView(private val registrationService: RegistrationService, fafProp
 
         val readAndAgree = getTranslation("register.readAndAgree") + " "
         val termsOfServiceLayout = HorizontalLayout(
-            termsOfService, Text(readAndAgree), Anchor(
-                fafProperties.account().registration().termsOfServiceUrl(), getTranslation("register.termsOfService")
-            )
+            termsOfService,
+            Text(readAndAgree),
+            Anchor(
+                fafProperties.account().registration().termsOfServiceUrl(),
+                getTranslation("register.termsOfService"),
+            ),
         )
         val privacyPolicyLayout = HorizontalLayout(
-            privacyPolicy, Text(
-                readAndAgree
-            ), Anchor(fafProperties.account().registration().privacyStatementUrl(), getTranslation("register.privacy"))
+            privacyPolicy,
+            Text(
+                readAndAgree,
+            ),
+            Anchor(fafProperties.account().registration().privacyStatementUrl(), getTranslation("register.privacy")),
         )
         val rulesLayout = HorizontalLayout(
             rules,
             Text(readAndAgree),
-            Anchor(fafProperties.account().registration().rulesUrl(), getTranslation("register.rules"))
+            Anchor(fafProperties.account().registration().rulesUrl(), getTranslation("register.rules")),
         )
 
         add(username, email, termsOfServiceLayout, privacyPolicyLayout, rulesLayout, submit)
@@ -97,15 +102,17 @@ class RegisterView(private val registrationService: RegistrationService, fafProp
             .withValidator({ username -> username.length in 3..15 }, getTranslation("register.username.size"))
             .withValidator(
                 { username -> !Regex("[^A-Za-z0-9_-]").containsMatchIn(username) },
-                getTranslation("register.username.alphanumeric")
+                getTranslation("register.username.alphanumeric"),
             ).withValidator(
                 { username -> registrationService.usernameAvailable(username) == UsernameStatus.USERNAME_AVAILABLE },
-                getTranslation("register.username.taken")
+                getTranslation("register.username.taken"),
             ).bind("username")
 
         binder.forField(email)
             .withValidator(EmailValidator(getTranslation("register.email.invalid")))
-            .withValidator({ email -> registrationService.emailAvailable(email) == EmailStatus.EMAIL_AVAILABLE }, getTranslation("register.email.taken")
+            .withValidator(
+                { email -> registrationService.emailAvailable(email) == EmailStatus.EMAIL_AVAILABLE },
+                getTranslation("register.email.taken"),
             ).bind("email")
 
         binder.forField(termsOfService).asRequired(getTranslation("register.acknowledge.terms")).bind("termsOfService")
@@ -115,7 +122,6 @@ class RegisterView(private val registrationService: RegistrationService, fafProp
         binder.forField(rules).asRequired(getTranslation("register.acknowledge.rules")).bind("rules")
 
         binder.addStatusChangeListener { submit.isEnabled = it.binder.isValid }
-
     }
 
     private fun register() {

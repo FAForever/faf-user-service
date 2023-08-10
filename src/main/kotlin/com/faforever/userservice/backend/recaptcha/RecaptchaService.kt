@@ -18,8 +18,10 @@ interface RecaptchaClient {
 
     @POST
     @Path("/siteverify")
-    fun validateResponse(@QueryParam("secret") secret: String, @QueryParam("response") response: String?): VerifyResponse
-
+    fun validateResponse(
+        @QueryParam("secret") secret: String,
+        @QueryParam("response") response: String?,
+    ): VerifyResponse
 }
 
 @ApplicationScoped
@@ -54,5 +56,5 @@ data class VerifyResponse(
     val success: Boolean,
     val challengeTs: OffsetDateTime?,
     val hostname: String,
-    @JsonProperty("error-codes") val errorCodes: List<String>?
+    @JsonProperty("error-codes") val errorCodes: List<String>?,
 )

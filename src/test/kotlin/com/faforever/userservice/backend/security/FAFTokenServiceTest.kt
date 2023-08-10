@@ -30,7 +30,7 @@ class FAFTokenServiceTest {
         assertThrows<IllegalArgumentException> {
             fafTokenService.getTokenClaims(
                 FafTokenType.LINK_TO_STEAM,
-                token
+                token,
             )
         }
     }
@@ -42,7 +42,7 @@ class FAFTokenServiceTest {
         assertThrows<IllegalArgumentException> {
             fafTokenService.getTokenClaims(
                 FafTokenType.REGISTRATION,
-                token
+                token,
             )
         }
     }
@@ -54,5 +54,4 @@ class FAFTokenServiceTest {
             fafTokenService.createToken(FafTokenType.REGISTRATION, Duration.ofSeconds(60), attributes)
         }
     }
-
 }
