@@ -15,8 +15,8 @@ class EmailService(
     private val userRepository: UserRepository,
     private val domainBlacklistRepository: DomainBlacklistRepository,
     private val properties: FafProperties,
-    private val mailer: Mailer,
-    private val mailBodyBuilder: MailBodyBuilder
+    private val mailSender: MailSender,
+    private val mailBodyBuilder: MailBodyBuilder,
 ) {
 
     companion object {
@@ -54,22 +54,16 @@ class EmailService(
 
     fun sendActivationMail(username: String, email: String, activationUrl: String) {
         val mailBody = mailBodyBuilder.buildAccountActivationBody(username, activationUrl)
-        mailer.send(
-            Mail.withHtml(email, properties.account().registration().subject(), mailBody)
-        )
+        mailSender.sendMail(email, properties.account().registration().subject(), mailBody)
     }
 
     fun sendWelcomeToFafMail(username: String, email: String) {
         val mailBody = mailBodyBuilder.buildWelcomeToFafBody(username)
-        mailer.send(
-            Mail.withHtml(email, properties.account().registration().welcomeSubject(), mailBody)
-        )
+        mailSender.sendMail(email, properties.account().registration().welcomeSubject(), mailBody)
     }
 
     fun sendPasswordResetMail(username: String, email: String, passwordResetUrl: String) {
         val mailBody = mailBodyBuilder.buildPasswordResetBody(username, passwordResetUrl)
-        mailer.send(
-            Mail.withHtml(email, properties.account().passwordReset().subject(), mailBody)
-        )
+        mailSender.sendMail(email, properties.account().passwordReset().subject(), mailBody)
     }
 }
