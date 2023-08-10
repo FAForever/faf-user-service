@@ -5,7 +5,7 @@ plugins {
     kotlin("plugin.allopen") version kotlinVersion
     kotlin("plugin.noarg") version kotlinVersion
     id("com.diffplug.spotless") version "6.19.0"
-    id("io.quarkus") version "3.1.2.Final"
+    id("io.quarkus") version "3.2.3.Final"
     id("com.vaadin") version "24.1.4"
 }
 
@@ -39,7 +39,6 @@ dependencies {
     implementation("io.quarkus:quarkus-hibernate-orm-panache-kotlin")
     implementation("io.quarkus:quarkus-jdbc-mariadb")
     implementation("io.quarkus:quarkus-kotlin")
-    implementation("io.quarkus:quarkus-container-image-jib")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-hibernate-orm")
