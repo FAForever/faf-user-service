@@ -8,9 +8,9 @@ import com.faforever.userservice.web.OAuthController
 import io.quarkus.arc.Unremovable
 import io.quarkus.security.identity.SecurityIdentity
 import io.quarkus.security.runtime.QuarkusSecurityIdentity
+import io.quarkus.test.InjectMock
 import io.quarkus.test.common.http.TestHTTPEndpoint
 import io.quarkus.test.junit.QuarkusTest
-import io.quarkus.test.junit.mockito.InjectMock
 import io.quarkus.test.security.TestSecurity
 import io.quarkus.test.security.TestSecurityIdentityAugmentor
 import io.restassured.RestAssured
