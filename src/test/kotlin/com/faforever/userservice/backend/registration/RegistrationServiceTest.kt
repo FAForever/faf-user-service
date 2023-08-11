@@ -8,8 +8,8 @@ import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.security.FafTokenService
 import com.faforever.userservice.config.FafProperties
 import io.quarkus.mailer.MockMailbox
+import io.quarkus.test.InjectMock
 import io.quarkus.test.junit.QuarkusTest
-import io.quarkus.test.junit.mockito.InjectMock
 import jakarta.inject.Inject
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasSize
