@@ -38,33 +38,41 @@ class RegisterView(private val registrationService: RegistrationService, fafProp
         }
     }
 
-    private val username = TextField(null, getTranslation("register.username"))
-    private val email = TextField(null, getTranslation("register.email"))
-    private val termsOfService = Checkbox(false)
-    private val privacyPolicy = Checkbox(false)
-    private val rules = Checkbox(false)
-    private val submit = Button(getTranslation("register.action")) { register() }
+    private val username = TextField(null, getTranslation("register.username")).apply {
+        setWidthFull()
+    }
+    private val email = TextField(null, getTranslation("register.email")).apply {
+        setWidthFull()
+    }
+    private val termsOfService = Checkbox(false).apply {
+        setWidthFull()
+    }
+    private val privacyPolicy = Checkbox(false).apply {
+        setWidthFull()
+    }
+    private val rules = Checkbox(false).apply {
+        setWidthFull()
+    }
+    private val submit = Button(getTranslation("register.action")) { register() }.apply {
+        isEnabled = false
+        addThemeVariants(ButtonVariant.LUMO_PRIMARY)
+        setWidthFull()
+    }
 
     private val binder = Binder(RegistrationInfo::class.java)
 
     init {
-        val formHeader = HorizontalLayout()
 
         val formHeaderLeft = FafLogo()
         val formHeaderRight = H2(getTranslation("register.action"))
-        formHeader.justifyContentMode = FlexComponent.JustifyContentMode.CENTER
-        formHeader.add(formHeaderLeft, formHeaderRight)
-        formHeader.alignItems = FlexComponent.Alignment.CENTER
-        formHeader.setId("form-header")
-        formHeader.setWidthFull()
+        val formHeader = HorizontalLayout(formHeaderLeft, formHeaderRight).apply {
+            justifyContentMode = FlexComponent.JustifyContentMode.CENTER
+            alignItems = FlexComponent.Alignment.CENTER
+            setId("form-header")
+            setWidthFull()
+        }
 
         add(formHeader)
-
-        username.setWidthFull()
-        email.setWidthFull()
-        submit.isEnabled = false
-        submit.setWidthFull()
-        submit.addThemeVariants(ButtonVariant.LUMO_PRIMARY)
 
         val readAndAgree = getTranslation("register.readAndAgree") + " "
         val termsOfServiceLayout = HorizontalLayout(
@@ -90,9 +98,9 @@ class RegisterView(private val registrationService: RegistrationService, fafProp
 
         add(username, email, termsOfServiceLayout, privacyPolicyLayout, rulesLayout, submit)
 
-        val footer = VerticalLayout()
-        footer.add(SocialIcons())
-        footer.alignItems = FlexComponent.Alignment.CENTER
+        val footer = VerticalLayout(SocialIcons()).apply {
+            alignItems = FlexComponent.Alignment.CENTER
+        }
 
         add(footer)
 

@@ -22,7 +22,10 @@ class ConsentView(
     private val scopeWidget: ScopeWidget,
     private val hydraService: HydraService,
 ) : CompactVerticalLayout(), BeforeEnterObserver {
-    private val authorize = Button(getTranslation("consent.authorize")) { authorize() }
+
+    private val authorize = Button(getTranslation("consent.authorize")) { authorize() }.apply {
+        addThemeVariants(ButtonVariant.LUMO_PRIMARY)
+    }
     private val deny = Button(getTranslation("consent.deny")) { deny() }
 
     private lateinit var challenge: String
@@ -31,16 +34,17 @@ class ConsentView(
         add(oAuthClientHeader)
         add(scopeWidget)
 
-        authorize.addThemeVariants(ButtonVariant.LUMO_PRIMARY)
+        val buttonLayout = HorizontalLayout(deny, authorize).apply {
+            alignItems = FlexComponent.Alignment.STRETCH
+            setFlexGrow(1.0, deny, authorize)
+            setWidthFull()
+        }
 
-        val buttonLayout = HorizontalLayout(deny, authorize)
-        buttonLayout.setFlexGrow(1.0, deny, authorize)
-        buttonLayout.setWidthFull()
-        buttonLayout.alignItems = FlexComponent.Alignment.STRETCH
         add(buttonLayout)
 
-        val socialIcons = SocialIcons()
-        socialIcons.setWidthFull()
+        val socialIcons = SocialIcons().apply {
+            setWidthFull()
+        }
         add(socialIcons)
     }
 
@@ -68,7 +72,7 @@ class ConsentView(
         val possibleChallenge = event?.location?.queryParameters?.parameters?.get("consent_challenge")?.get(0)
         if (possibleChallenge != null) {
             challenge = possibleChallenge
-            setDetailsFromRequest(hydraService.getConsentRequest(possibleChallenge))
+            setDetailsFromRequest(hydraService.getConsentRequest(challenge))
         } else {
             throw NoChallengeException()
         }

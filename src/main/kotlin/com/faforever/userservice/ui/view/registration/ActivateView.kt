@@ -4,7 +4,6 @@ import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.registration.InvalidRegistrationException
 import com.faforever.userservice.backend.registration.RegisteredUser
 import com.faforever.userservice.backend.registration.RegistrationService
-import com.faforever.userservice.config.FafProperties
 import com.faforever.userservice.ui.component.FafLogo
 import com.faforever.userservice.ui.component.SocialIcons
 import com.faforever.userservice.ui.layout.CardLayout
@@ -26,7 +25,7 @@ import com.vaadin.flow.router.Route
 import com.vaadin.flow.server.VaadinSession
 
 @Route("/register/activate", layout = CardLayout::class)
-class ActivateView(private val registrationService: RegistrationService, fafProperties: FafProperties) :
+class ActivateView(private val registrationService: RegistrationService) :
     CompactVerticalLayout(), BeforeEnterObserver {
 
     companion object {
@@ -36,46 +35,48 @@ class ActivateView(private val registrationService: RegistrationService, fafProp
         }
     }
 
-    private val username = TextField(null, getTranslation("register.username"))
-    private val email = TextField(null, getTranslation("register.email"))
-    private val password = PasswordField(null, getTranslation("register.password"))
-    private val confirmedPassword = PasswordField(null, getTranslation("register.password.confirm"))
-    private val submit = Button(getTranslation("register.activate")) { activate() }
+    private val username = TextField(null, getTranslation("register.username")).apply {
+        isReadOnly = true
+        setWidthFull()
+    }
+    private val email = TextField(null, getTranslation("register.email")).apply {
+        isReadOnly = true
+        setWidthFull()
+    }
+    private val password = PasswordField(null, getTranslation("register.password")).apply {
+        setWidthFull()
+    }
+    private val confirmedPassword = PasswordField(null, getTranslation("register.password.confirm")).apply {
+        setWidthFull()
+    }
+    private val submit = Button(getTranslation("register.activate")) { activate() }.apply {
+        isEnabled = false
+        setWidthFull()
+        addThemeVariants(ButtonVariant.LUMO_PRIMARY)
+    }
 
     private val binder = Binder(PasswordConfirmation::class.java)
 
     private lateinit var registeredUser: RegisteredUser
 
     init {
-        val formHeader = HorizontalLayout()
 
         val formHeaderLeft = FafLogo()
         val formHeaderRight = H2(getTranslation("register.activate"))
-        formHeader.justifyContentMode = FlexComponent.JustifyContentMode.CENTER
-        formHeader.add(formHeaderLeft, formHeaderRight)
-        formHeader.alignItems = FlexComponent.Alignment.CENTER
-        formHeader.setId("form-header")
-        formHeader.setWidthFull()
+        val formHeader = HorizontalLayout(formHeaderLeft, formHeaderRight).apply {
+            justifyContentMode = FlexComponent.JustifyContentMode.CENTER
+            alignItems = FlexComponent.Alignment.CENTER
+            setId("form-header")
+            setWidthFull()
+        }
 
         add(formHeader)
 
-        username.setWidthFull()
-        username.isReadOnly = true
-
-        email.setWidthFull()
-        email.isReadOnly = true
-
-        password.setWidthFull()
-        confirmedPassword.setWidthFull()
-        submit.isEnabled = false
-        submit.setWidthFull()
-        submit.addThemeVariants(ButtonVariant.LUMO_PRIMARY)
-
         add(username, email, password, confirmedPassword, submit)
 
-        val footer = VerticalLayout()
-        footer.add(SocialIcons())
-        footer.alignItems = FlexComponent.Alignment.CENTER
+        val footer = VerticalLayout(SocialIcons()).apply {
+            alignItems = FlexComponent.Alignment.CENTER
+        }
 
         add(footer)
 
