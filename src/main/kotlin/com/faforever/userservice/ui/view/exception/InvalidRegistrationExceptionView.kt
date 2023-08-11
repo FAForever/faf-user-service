@@ -18,30 +18,28 @@ import jakarta.servlet.http.HttpServletResponse
 @ParentLayout(CardLayout::class)
 class InvalidRegistrationExceptionView : CompactVerticalLayout(), HasErrorParameter<InvalidRegistrationException> {
 
-    private val errorLayout = HorizontalLayout()
-    private val errorMessage = Span()
+    private val errorMessage = Span().apply {
+        text = getTranslation("register.technicalError")
+    }
+    private val errorLayout = HorizontalLayout(errorMessage).apply {
+        alignItems = FlexComponent.Alignment.CENTER
+        setWidthFull()
+        addClassNames("error", "error-info")
+        setVerticalComponentAlignment(FlexComponent.Alignment.CENTER)
+    }
 
     init {
-        val formHeader = HorizontalLayout()
-
         val formHeaderLeft = FafLogo()
         val formHeaderRight = H2(getTranslation("title.technicalError"))
-        formHeader.add(formHeaderLeft, formHeaderRight)
-        formHeader.alignItems = FlexComponent.Alignment.CENTER
-        formHeader.justifyContentMode = FlexComponent.JustifyContentMode.CENTER
-        formHeader.setId("form-header")
-        formHeader.setWidthFull()
+
+        val formHeader = HorizontalLayout(formHeaderLeft, formHeaderRight).apply {
+            alignItems = FlexComponent.Alignment.CENTER
+            justifyContentMode = FlexComponent.JustifyContentMode.CENTER
+            setWidthFull()
+            setId("form-header")
+        }
 
         add(formHeader)
-
-        errorMessage.text = getTranslation("register.technicalError")
-
-        errorLayout.setWidthFull()
-        errorLayout.addClassNames("error", "error-info")
-        errorLayout.add(errorMessage)
-        errorLayout.alignItems = FlexComponent.Alignment.CENTER
-        errorLayout.setVerticalComponentAlignment(FlexComponent.Alignment.CENTER)
-
         add(errorLayout)
     }
 

@@ -31,65 +31,59 @@ import java.time.format.DateTimeFormatter
 class LoginView(private val hydraService: HydraService, private val fafProperties: FafProperties) :
     CompactVerticalLayout(), BeforeEnterObserver {
 
-    private val loginLayout = CompactVerticalLayout()
-    private val footer = VerticalLayout()
-    private val header = LogoHeader()
-
-    private val errorLayout = HorizontalLayout()
-    private val errorMessage = Span()
-
-    private val usernameOrEmail = TextField(null, getTranslation("login.usernameOrEmail"))
-    private val password = PasswordField(null, getTranslation("login.password"))
-
-    private val submit = Button(getTranslation("login.loginAction")) { login() }
-
-    private lateinit var challenge: String
-
-    init {
-        header.setTitle(getTranslation("login.welcomeBack"))
-        add(header)
-
-        errorLayout.setWidthFull()
-        errorLayout.addClassName("error")
-        val errorIcon = FontAwesomeIcon()
-        errorIcon.addClassNames("fas fa-exclamation-triangle")
-        errorLayout.add(errorIcon)
-        errorLayout.add(errorMessage)
-        errorLayout.isVisible = false
-        errorLayout.alignItems = FlexComponent.Alignment.CENTER
-        errorLayout.setVerticalComponentAlignment(FlexComponent.Alignment.CENTER)
-
-        add(errorLayout)
-
-        password.addKeyUpListener {
-            if (it.key.equals(Key.ENTER)) {
-                login()
-            }
-        }
-
-        usernameOrEmail.setWidthFull()
-        password.setWidthFull()
-        submit.setWidthFull()
-        submit.addThemeVariants(ButtonVariant.LUMO_PRIMARY)
-
-        loginLayout.add(usernameOrEmail, password, submit)
-        add(loginLayout)
-
-        val footer = footer
-
-        val links = HorizontalLayout()
-        links.addClassName("pipe-separated")
-
+    private val footer = VerticalLayout().apply {
         val resetHref = "https://faforever.com/account/password/reset"
         val passwordReset = Anchor(resetHref, getTranslation("login.forgotPassword"))
         val registerHref = "https://faforever.com/account/register"
         val registerAccount = Anchor(registerHref, getTranslation("login.registerAccount"))
 
-        links.add(passwordReset, registerAccount)
-        footer.add(links)
-        footer.add(SocialIcons())
-        footer.alignItems = FlexComponent.Alignment.CENTER
+        val links = HorizontalLayout(passwordReset, registerAccount).apply {
+            addClassNames("pipe-separated")
+        }
 
+        add(links)
+        add(SocialIcons())
+        alignItems = FlexComponent.Alignment.CENTER
+    }
+    private val header = LogoHeader().apply {
+        setTitle(getTranslation("login.welcomeBack"))
+    }
+
+    private val errorMessage = Span()
+    private val errorLayout = HorizontalLayout().apply {
+        isVisible = false
+        alignItems = FlexComponent.Alignment.CENTER
+        setVerticalComponentAlignment(FlexComponent.Alignment.CENTER)
+        setWidthFull()
+        addClassName("error")
+        add(FontAwesomeIcon().apply { addClassNames("fas fa-exclamation-triangle") })
+        add(errorMessage)
+    }
+
+    private val usernameOrEmail = TextField(null, getTranslation("login.usernameOrEmail")).apply {
+        setWidthFull()
+    }
+    private val password = PasswordField(null, getTranslation("login.password")).apply {
+        setWidthFull()
+        addKeyUpListener {
+            if (it.key.equals(Key.ENTER)) {
+                login()
+            }
+        }
+    }
+
+    private val submit = Button(getTranslation("login.loginAction")) { login() }.apply {
+        setWidthFull()
+        addThemeVariants(ButtonVariant.LUMO_PRIMARY)
+    }
+    private val loginLayout = CompactVerticalLayout(usernameOrEmail, password, submit)
+
+    private lateinit var challenge: String
+
+    init {
+        add(header)
+        add(errorLayout)
+        add(loginLayout)
         add(footer)
     }
 
@@ -121,7 +115,7 @@ class LoginView(private val hydraService: HydraService, private val fafPropertie
             is LoginResult.UserNoGameOwnership -> {
                 header.setTitle(getTranslation("verification.title"))
                 errorMessage.text = getTranslation("verification.reason") + " " +
-                    fafProperties.account().accountLinkUrl()
+                        fafProperties.account().accountLinkUrl()
             }
 
             is LoginResult.TechnicalError -> {
