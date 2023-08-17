@@ -19,6 +19,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.component.textfield.PasswordField
 import com.vaadin.flow.component.textfield.TextField
 import com.vaadin.flow.data.binder.Binder
+import com.vaadin.flow.data.value.ValueChangeMode
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
@@ -45,9 +46,11 @@ class ActivateView(private val registrationService: RegistrationService) :
     }
     private val password = PasswordField(null, getTranslation("register.password")).apply {
         setWidthFull()
+        valueChangeMode = ValueChangeMode.LAZY
     }
     private val confirmedPassword = PasswordField(null, getTranslation("register.password.confirm")).apply {
         setWidthFull()
+        valueChangeMode = ValueChangeMode.LAZY
     }
     private val submit = Button(getTranslation("register.activate")) { activate() }.apply {
         isEnabled = false
