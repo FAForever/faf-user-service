@@ -5,6 +5,7 @@ html {
     --lumo-primary-color: #ea2f10;
     --lumo-primary-text-color: var(--lumo-primary-color);
     --lumo-clickable-cursor: pointer;
+    --lumo-contrast-20pct: #b8b8be
 }
 
 .background {
@@ -169,4 +170,8 @@ a:hover {
 /* Show the tooltip text when you mouse over the tooltip container */
 .tooltip:hover .tooltiptext {
     visibility: visible;
+}
+
+.policy-link {
+    padding-left: 5px;
 }
