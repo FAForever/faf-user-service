@@ -55,7 +55,7 @@ class ScopeItem : HorizontalLayout() {
             translation
         }
         val descriptionTranslation = getTranslation("oauth2.scope.$scope.description")
-        if (!descriptionTranslation.matches(Regex("!\\{.*}!"))) {
+        if (!descriptionTranslation.isNullOrBlank() && !descriptionTranslation.matches(Regex("!\\{.*}!"))) {
             infoTooltip.setTooltip(descriptionTranslation)
         } else {
             infoTooltip.setTooltip(null)
