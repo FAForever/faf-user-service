@@ -24,7 +24,7 @@ import com.vaadin.flow.component.textfield.TextField
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
-import com.vaadin.flow.server.VaadinSession
+import com.vaadin.flow.server.VaadinRequest
 import java.time.format.DateTimeFormatter
 
 @Route("/oauth2/login", layout = OAuthCardLayout::class)
@@ -94,7 +94,9 @@ class LoginView(private val hydraService: HydraService, private val fafPropertie
     }
 
     fun login() {
-        val ipAddress = IpAddress(VaadinSession.getCurrent().browser.address)
+        val currentRequest = VaadinRequest.getCurrent()
+        val realIp = currentRequest.getHeader(fafProperties.realIpHeader()) ?: currentRequest.remoteAddr
+        val ipAddress = IpAddress(realIp)
         when (val loginResponse = hydraService.login(challenge, usernameOrEmail.value, password.value, ipAddress)) {
             is LoginResponse.FailedLogin -> displayErrorMessage(loginResponse.recoverableLoginFailure)
             is LoginResponse.RejectedLogin -> displayRejectedMessage(loginResponse.unrecoverableLoginFailure)
