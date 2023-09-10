@@ -89,7 +89,7 @@ class RegisterView(private val registrationService: RegistrationService, fafProp
             ),
             Anchor(
                 fafProperties.account().registration().privacyStatementUrl(),
-                getTranslation("register.privacy")
+                getTranslation("register.privacy"),
             ).apply { addClassName("policy-link") },
         )
         val rulesLayout = CompactHorizontalLayout(
@@ -97,7 +97,7 @@ class RegisterView(private val registrationService: RegistrationService, fafProp
             Text(readAndAgree),
             Anchor(
                 fafProperties.account().registration().rulesUrl(),
-                getTranslation("register.rules")
+                getTranslation("register.rules"),
             ).apply { addClassName("policy-link") },
         )
 
@@ -121,9 +121,9 @@ class RegisterView(private val registrationService: RegistrationService, fafProp
             ).bind("username")
 
         binder.forField(email).withValidator(EmailValidator(getTranslation("register.email.invalid"))).withValidator(
-                { email -> registrationService.emailAvailable(email) == EmailStatus.EMAIL_AVAILABLE },
-                getTranslation("register.email.taken"),
-            ).bind("email")
+            { email -> registrationService.emailAvailable(email) == EmailStatus.EMAIL_AVAILABLE },
+            getTranslation("register.email.taken"),
+        ).bind("email")
 
         binder.forField(termsOfService).asRequired(getTranslation("register.acknowledge.terms")).bind("termsOfService")
 
