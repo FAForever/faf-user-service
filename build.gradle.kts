@@ -6,7 +6,7 @@ plugins {
     kotlin("plugin.noarg") version kotlinVersion
     id("com.diffplug.spotless") version "6.20.0"
     id("io.quarkus") version "3.2.3.Final"
-    id("com.vaadin") version "24.1.4"
+    id("com.vaadin") version "24.1.9"
 }
 
 defaultTasks("build")
