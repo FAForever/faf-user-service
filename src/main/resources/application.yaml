@@ -74,6 +74,10 @@ quarkus:
     enabled: true
   csrf-reactive:
     enable: false
+  security:
+    deny-unannotated-members: false
+    jaxrs:
+      deny-unannotated-endpoints: false
 
 "%dev":
   quarkus:
