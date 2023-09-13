@@ -39,8 +39,6 @@ security:
   failed-login-days-to-check: ${FAILED_LOGIN_DAYS_TO_CHECK:1}
 
 quarkus:
-  http:
-    cors: true
   log:
     level: INFO
   rest-client:
