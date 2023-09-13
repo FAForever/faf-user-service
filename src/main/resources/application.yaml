@@ -72,6 +72,8 @@ quarkus:
     name: faf-user-service
   management:
     enabled: true
+  csrf-reactive:
+    enable: false
 
 "%dev":
   quarkus:
