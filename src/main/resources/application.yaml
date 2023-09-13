@@ -40,6 +40,8 @@ security:
 
 quarkus:
   http:
+    auth:
+      proactive: false
     cors: true
   log:
     level: INFO
