@@ -26,6 +26,7 @@ repositories {
 }
 
 dependencies {
+    implementation("io.quarkus:quarkus-smallrye-health")
     implementation("io.quarkus:quarkus-container-image-docker")
     implementation(enforcedPlatform("com.vaadin:vaadin-bom:$vaadinVersion"))
     implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusPlatformVersion"))
