@@ -45,6 +45,9 @@ quarkus:
           level: DEBUG
   faf:
     environment: ${FAF_ENVIRONMENT:dev}
+    irc:
+      fixed-users:
+        test-user: banana
 
 mp:
   jwt:
