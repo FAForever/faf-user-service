@@ -49,24 +49,25 @@ class ErgochatController(
                         accountName = loginData.accountName,
                         error = "Invalid token",
                     )
-                } else if ((tokenIntrospection.ext as Map<*, *>)["username"] != loginData.accountName) {
-                    LoginResponse(
-                        success = false,
-                        accountName = loginData.accountName,
-                        error = "Token does not match requested account",
-                    )
-                } else {
-                    LoginResponse(
-                        success = true,
-                        accountName = loginData.accountName,
-                    )
                 }
+
+                val success = (tokenIntrospection.ext as Map<*, *>?)?.get("username") == loginData.accountName
+                LoginResponse(
+                    success = success,
+                    accountName = loginData.accountName,
+                    error = if (success) {
+                        null
+                    } else {
+                        "Invalid token for user ${loginData.accountName}"
+                    },
+                )
             }
+
             "static" -> {
                 val success = properties.irc().fixedUsers()
                     .any { (user, password) ->
                         user.equals(loginData.accountName, ignoreCase = true) &&
-                            password == authenticationValue
+                                password == authenticationValue
                     }
 
                 LoginResponse(
@@ -79,10 +80,11 @@ class ErgochatController(
                     },
                 )
             }
+
             else -> LoginResponse(
                 success = false,
                 accountName = loginData.accountName,
-                error = "Unknown authentication typ $authenticationType",
+                error = "Unknown authentication type $authenticationType",
             )
         }
     }
