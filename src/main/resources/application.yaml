@@ -5,6 +5,10 @@ faf:
   register-account-url: ${REGISTER_ACCOUNT_URL:https://faforever.com/account/register}
   account-link-url: ${ACCOUNT_LINK_URL:https://www.faforever.com/account/link}
   hydra-base-url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
+  lobby:
+    secret: ${LOBBY_SECRET:banana}
+    access-uri: ${LOBBY_URL:ws://localhost:8003}
+    access-param: ${LOBBY_PARAM:verify}
 
 security:
   failed-login-account-threshold: ${FAILED_LOGIN_ACCOUNT_THRESHOLD:5}

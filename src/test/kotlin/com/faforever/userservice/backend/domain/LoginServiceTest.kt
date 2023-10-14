@@ -1,8 +1,8 @@
 package com.faforever.userservice.backend.domain
 
 import com.faforever.userservice.backend.security.PasswordEncoder
+import io.quarkus.test.InjectMock
 import io.quarkus.test.junit.QuarkusTest
-import io.quarkus.test.junit.mockito.InjectMock
 import jakarta.inject.Inject
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.instanceOf
@@ -18,12 +18,12 @@ import java.time.OffsetDateTime
 class LoginServiceTest {
 
     companion object {
-        private const val username = "someUsername"
-        private const val email = "some@email.com"
-        private const val password = "somePassword"
-        private val ipAddress = IpAddress("127.0.0.1")
+        private const val USERNAME = "someUsername"
+        private const val EMAIL = "some@email.com"
+        private const val PASSWORD = "somePassword"
+        private val IP_ADDRESS = IpAddress("127.0.0.1")
 
-        private val user = User(1, username, password, email, null)
+        private val USER = User(1, USERNAME, PASSWORD, EMAIL, null)
     }
 
     @Inject
@@ -49,7 +49,7 @@ class LoginServiceTest {
 
     @Test
     fun loginWithUnknownUser() {
-        val result = loginService.login(username, password, ipAddress, false)
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)
         assertThat(result, instanceOf(LoginResult.RecoverableLoginOrCredentialsMismatch::class.java))
     }
 
@@ -64,22 +64,22 @@ class LoginServiceTest {
             ),
         )
 
-        val result = loginService.login(username, password, ipAddress, false)
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)
         assertThat(result, instanceOf(LoginResult.ThrottlingActive::class.java))
     }
 
     @Test
     fun loginWithInvalidPassword() {
-        whenever(userRepository.findByUsernameOrEmail(any())).thenReturn(user)
+        whenever(userRepository.findByUsernameOrEmail(any())).thenReturn(USER)
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(false)
 
-        val result = loginService.login(username, password, ipAddress, false)
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)
         assertThat(result, instanceOf(LoginResult.RecoverableLoginOrCredentialsMismatch::class.java))
     }
 
     @Test
     fun loginWithBannedUser() {
-        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(user)
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
         whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
             listOf(
@@ -87,13 +87,13 @@ class LoginServiceTest {
             ),
         )
 
-        val result = loginService.login(username, password, ipAddress, false)
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)
         assertThat(result, instanceOf(LoginResult.UserBanned::class.java))
     }
 
     @Test
     fun loginWithPermaBannedUser() {
-        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(user)
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
         whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
             listOf(
@@ -101,35 +101,35 @@ class LoginServiceTest {
             ),
         )
 
-        val result = loginService.login(username, password, ipAddress, false)
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)
         assertThat(result, instanceOf(LoginResult.UserBanned::class.java))
     }
 
     @Test
     fun loginWithLinkedUserRequireOwnership() {
-        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(user)
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
         whenever(accountLinkRepository.hasOwnershipLink(anyInt())).thenReturn(true)
 
-        val result = loginService.login(username, password, ipAddress, true)
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, true)
         assertThat(result, instanceOf(LoginResult.SuccessfulLogin::class.java))
     }
 
     @Test
     fun loginWithNonLinkedUserRequireOwnership() {
-        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(user)
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
 
-        val result = loginService.login(username, password, ipAddress, true)
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, true)
         assertThat(result, instanceOf(LoginResult.UserNoGameOwnership::class.java))
     }
 
     @Test
     fun loginWithNonLinkedUser() {
-        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(user)
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
 
-        val result = loginService.login(username, password, ipAddress, false)
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)
         assertThat(result, instanceOf(LoginResult.SuccessfulLogin::class.java))
     }
 
@@ -151,10 +151,10 @@ class LoginServiceTest {
                 ),
             ),
         )
-        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(user)
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
 
-        val result = loginService.login(username, password, ipAddress, false)
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)
         assertThat(result, instanceOf(LoginResult.SuccessfulLogin::class.java))
     }
 
@@ -176,10 +176,10 @@ class LoginServiceTest {
                 ),
             ),
         )
-        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(user)
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
 
-        val result = loginService.login(username, password, ipAddress, false)
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)
         assertThat(result, instanceOf(LoginResult.SuccessfulLogin::class.java))
     }
 }
