@@ -1,14 +1,17 @@
 package com.faforever.userservice.web
 
+import com.faforever.userservice.backend.hydra.HydraClient
 import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.POST
 import jakarta.ws.rs.Path
+import org.eclipse.microprofile.rest.client.inject.RestClient
 
 @Path("/irc/ergochat")
 @ApplicationScoped
 class ErgochatController(
     private val properties: FafProperties,
+    @RestClient private val hydraClient: HydraClient,
 ) {
     data class LoginRequest(
         val accountName: String,
@@ -24,7 +27,7 @@ class ErgochatController(
 
     @POST
     @Path("/login")
-    fun revokeRefreshTokens(loginData: LoginRequest): LoginResponse {
+    fun authenticateChatUser(loginData: LoginRequest): LoginResponse {
         val (authenticationType, authenticationValue) = loginData.passphrase.split(":").let {
             if (it.size != 2) {
                 // This will show up in the ergochat logs
@@ -38,11 +41,27 @@ class ErgochatController(
         }
 
         return when (authenticationType) {
-            "oauth" -> LoginResponse(
-                success = false,
-                accountName = loginData.accountName,
-                error = "Not implemented yet",
-            )
+            "oauth" -> {
+                val tokenIntrospection = hydraClient.introspectToken(authenticationValue, null)
+                if (!tokenIntrospection.active) {
+                    LoginResponse(
+                        success = false,
+                        accountName = loginData.accountName,
+                        error = "Invalid token",
+                    )
+                } else if ((tokenIntrospection.ext as Map<*, *>)["username"] != loginData.accountName) {
+                    LoginResponse(
+                        success = false,
+                        accountName = loginData.accountName,
+                        error = "Token does not match requested account",
+                    )
+                } else {
+                    LoginResponse(
+                        success = true,
+                        accountName = loginData.accountName,
+                    )
+                }
+            }
             "static" -> {
                 val success = properties.irc().fixedUsers()
                     .any { (user, password) ->
