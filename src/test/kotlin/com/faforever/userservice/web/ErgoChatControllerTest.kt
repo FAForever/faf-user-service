@@ -31,8 +31,10 @@ class ErgoChatControllerTest {
 
     @Test
     fun authenticateUnknownType() {
+        val loginRequest =
+            ErgochatController.LoginRequest(accountName = "test-user", passphrase = "test:test", ip = "127.0.0.1")
         RestAssured.given()
-            .body(ErgochatController.LoginRequest(accountName = "test-user", passphrase = "test:test", ip = "127.0.0.1"))
+            .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
             .then()
@@ -44,8 +46,10 @@ class ErgoChatControllerTest {
 
     @Test
     fun authenticateStatic() {
+        val loginRequest =
+            ErgochatController.LoginRequest(accountName = "test-user", passphrase = "static:banana", ip = "127.0.0.1")
         RestAssured.given()
-            .body(ErgochatController.LoginRequest(accountName = "test-user", passphrase = "static:banana", ip = "127.0.0.1"))
+            .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
             .then()
@@ -57,8 +61,10 @@ class ErgoChatControllerTest {
 
     @Test
     fun authenticateStaticUnknownUser() {
+        val loginRequest =
+            ErgochatController.LoginRequest(accountName = "test", passphrase = "static:banana", ip = "127.0.0.1")
         RestAssured.given()
-            .body(ErgochatController.LoginRequest(accountName = "test", passphrase = "static:banana", ip = "127.0.0.1"))
+            .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
             .then()
@@ -70,8 +76,10 @@ class ErgoChatControllerTest {
 
     @Test
     fun authenticateStaticBadPassword() {
+        val loginRequest =
+            ErgochatController.LoginRequest(accountName = "test-user", passphrase = "static:ban", ip = "127.0.0.1")
         RestAssured.given()
-            .body(ErgochatController.LoginRequest(accountName = "test-user", passphrase = "static:ban", ip = "127.0.0.1"))
+            .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
             .then()
@@ -84,8 +92,10 @@ class ErgoChatControllerTest {
     @Test
     fun authenticateOAuth() {
         whenever(hydraClient.introspectToken(any(), anyOrNull())).thenReturn(createActiveTokenForUsername("test-user"))
+        val loginRequest =
+            ErgochatController.LoginRequest(accountName = "test-user", passphrase = "oauth:token", ip = "127.0.0.1")
         RestAssured.given()
-            .body(ErgochatController.LoginRequest(accountName = "test-user", passphrase = "oauth:token", ip = "127.0.0.1"))
+            .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
             .then()
@@ -98,8 +108,10 @@ class ErgoChatControllerTest {
     @Test
     fun authenticateOAuthInactive() {
         whenever(hydraClient.introspectToken(any(), anyOrNull())).thenReturn(createInactiveToken())
+        val loginRequest =
+            ErgochatController.LoginRequest(accountName = "test-user", passphrase = "oauth:token", ip = "127.0.0.1")
         RestAssured.given()
-            .body(ErgochatController.LoginRequest(accountName = "test-user", passphrase = "oauth:token", ip = "127.0.0.1"))
+            .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
             .then()
@@ -112,8 +124,10 @@ class ErgoChatControllerTest {
     @Test
     fun authenticateOAuthUserMismatch() {
         whenever(hydraClient.introspectToken(any(), anyOrNull())).thenReturn(createActiveTokenForUsername("test"))
+        val loginRequest =
+            ErgochatController.LoginRequest(accountName = "test-user", passphrase = "oauth:token", ip = "127.0.0.1")
         RestAssured.given()
-            .body(ErgochatController.LoginRequest(accountName = "test-user", passphrase = "oauth:token", ip = "127.0.0.1"))
+            .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
             .then()

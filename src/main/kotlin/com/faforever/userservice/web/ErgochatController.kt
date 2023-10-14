@@ -67,7 +67,7 @@ class ErgochatController(
                 val success = properties.irc().fixedUsers()
                     .any { (user, password) ->
                         user.equals(loginData.accountName, ignoreCase = true) &&
-                                password == authenticationValue
+                            password == authenticationValue
                     }
 
                 LoginResponse(
