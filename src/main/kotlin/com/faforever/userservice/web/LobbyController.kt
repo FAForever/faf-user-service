@@ -18,6 +18,10 @@ class LobbyController(
     val fafProperties: FafProperties,
 ) {
 
+    data class LobbyAccess(
+        val accessUrl: URI,
+    )
+
     @GET
     @Path("/access")
     @PermissionsAllowed("${FafRole.USER}:${OAuthScope.LOBBY}")
@@ -34,7 +38,3 @@ class LobbyController(
         return LobbyAccess(accessUrl)
     }
 }
-
-data class LobbyAccess(
-    val accessUrl: URI,
-)
