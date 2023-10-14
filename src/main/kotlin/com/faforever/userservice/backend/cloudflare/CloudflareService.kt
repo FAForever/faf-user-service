@@ -40,9 +40,8 @@ class CloudflareService {
         val macMessage = (uri.getPath() + timeStamp).toByteArray(StandardCharsets.UTF_8)
         val hmacEncoded = URLEncoder.encode(
             String(Base64.getEncoder().encode(mac.doFinal(macMessage)), StandardCharsets.UTF_8),
-            StandardCharsets.UTF_8
+            StandardCharsets.UTF_8,
         )
-        return "${timeStamp}-${hmacEncoded}"
+        return "$timeStamp-$hmacEncoded"
     }
-
 }

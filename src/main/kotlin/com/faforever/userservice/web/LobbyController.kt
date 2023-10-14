@@ -14,7 +14,8 @@ import java.net.URI
 @Path("/lobby")
 @ApplicationScoped
 class LobbyController(
-    val cloudflareService: CloudflareService, val fafProperties: FafProperties
+    val cloudflareService: CloudflareService,
+    val fafProperties: FafProperties,
 ) {
 
     @GET
@@ -24,7 +25,8 @@ class LobbyController(
         val lobby = fafProperties.lobby()
         val accessUri = lobby.accessUri()
         val token = cloudflareService.generateCloudFlareHmacToken(
-            accessUri, lobby.secret()
+            accessUri,
+            lobby.secret(),
         )
 
         val accessUrl = UriBuilder.fromUri(accessUri).queryParam(lobby.accessParam(), token).build()
@@ -34,5 +36,5 @@ class LobbyController(
 }
 
 data class LobbyAccess(
-    val accessUrl: URI
+    val accessUrl: URI,
 )

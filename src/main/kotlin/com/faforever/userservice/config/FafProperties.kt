@@ -34,8 +34,10 @@ interface FafProperties {
     interface Lobby {
         @NotBlank
         fun secret(): String
+
         @NotBlank
         fun accessParam(): String
+
         @NotNull
         fun accessUri(): URI
     }
