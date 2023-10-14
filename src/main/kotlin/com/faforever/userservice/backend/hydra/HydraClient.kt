@@ -3,11 +3,15 @@ package com.faforever.userservice.backend.hydra
 import io.quarkus.rest.client.reactive.ClientExceptionMapper
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.validation.constraints.NotBlank
+import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.DELETE
+import jakarta.ws.rs.FormParam
 import jakarta.ws.rs.GET
+import jakarta.ws.rs.POST
 import jakarta.ws.rs.PUT
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.QueryParam
+import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient
 import sh.ory.hydra.model.AcceptConsentRequest
@@ -15,6 +19,7 @@ import sh.ory.hydra.model.AcceptLoginRequest
 import sh.ory.hydra.model.ConsentRequest
 import sh.ory.hydra.model.GenericError
 import sh.ory.hydra.model.LoginRequest
+import sh.ory.hydra.model.OAuth2TokenIntrospection
 
 @Path("/")
 @ApplicationScoped
@@ -80,6 +85,14 @@ interface HydraClient {
         @QueryParam("all") all: Boolean?,
         @QueryParam("client") client: String?,
     ): Response
+
+    @POST
+    @Path("/oauth2/introspect")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    fun introspectToken(
+        @FormParam("token") @NotBlank token: String,
+        @FormParam("scope") scope: String?,
+    ): OAuth2TokenIntrospection
 }
 
 class GoneException(override val message: String?) : RuntimeException(message)

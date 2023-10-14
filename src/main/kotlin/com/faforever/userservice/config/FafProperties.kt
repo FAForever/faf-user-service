@@ -41,4 +41,12 @@ interface FafProperties {
         @NotNull
         fun accessUri(): URI
     }
+
+    fun irc(): Irc
+
+    interface Irc {
+        fun fixedUsers(): Map<String, String>
+
+        interface UserCredentials
+    }
 }
