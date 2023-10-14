@@ -3,6 +3,7 @@ package com.faforever.userservice.backend.security
 object FafRole {
     const val ROLE_PREFIX = "ROLE_"
 
+    const val USER = "USER"
     const val READ_AUDIT_LOG = "READ_AUDIT_LOG"
     const val READ_TEAMKILL_REPORT = "READ_TEAMKILL_REPORT"
     const val READ_ACCOUNT_PRIVATE_DETAILS = "READ_ACCOUNT_PRIVATE_DETAILS"

@@ -2,6 +2,8 @@ package com.faforever.userservice.config
 
 import io.smallrye.config.ConfigMapping
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import java.net.URI
 import java.util.*
 
 @ConfigMapping(prefix = "faf")
@@ -26,4 +28,17 @@ interface FafProperties {
 
     @NotBlank
     fun accountLinkUrl(): String
+
+    fun lobby(): Lobby
+
+    interface Lobby {
+        @NotBlank
+        fun secret(): String
+
+        @NotBlank
+        fun accessParam(): String
+
+        @NotNull
+        fun accessUri(): URI
+    }
 }
