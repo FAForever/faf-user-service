@@ -37,7 +37,8 @@ class CloudflareService {
         mac.init(SecretKeySpec(secret.toByteArray(StandardCharsets.UTF_8), HMAC_SHA256))
 
         val timeStamp = Instant.now().epochSecond
-        val macMessage = (uri.getPath() + timeStamp).toByteArray(StandardCharsets.UTF_8)
+        val path = if (uri.path.startsWith("/")) uri.path else "/" + uri.path
+        val macMessage = (path + timeStamp).toByteArray(StandardCharsets.UTF_8)
         val hmacEncoded = URLEncoder.encode(
             String(Base64.getEncoder().encode(mac.doFinal(macMessage)), StandardCharsets.UTF_8),
             StandardCharsets.UTF_8,
