@@ -1,6 +1,7 @@
 package com.faforever.userservice.config
 
 import io.smallrye.config.ConfigMapping
+import io.smallrye.config.WithName
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.net.URI
@@ -45,6 +46,7 @@ interface FafProperties {
     fun irc(): Irc
 
     interface Irc {
+        @WithName("fixed.users")
         fun fixedUsers(): Map<String, String>
 
         interface UserCredentials
