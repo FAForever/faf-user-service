@@ -1,4 +1,5 @@
 faf:
   irc:
-    fixed-users:
-      test-user: banana
+    fixed:
+      users:
+        test-user: banana
