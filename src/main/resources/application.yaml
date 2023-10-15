@@ -9,6 +9,9 @@ faf:
     secret: ${LOBBY_SECRET:banana}
     access-uri: ${LOBBY_URL:ws://localhost:8003}
     access-param: ${LOBBY_PARAM:verify}
+  irc:
+    secret: ${IRC_SECRET:banana}
+    token-ttl: ${IRC_TOKEN_TTL:300}
 
 security:
   failed-login-account-threshold: ${FAILED_LOGIN_ACCOUNT_THRESHOLD:5}

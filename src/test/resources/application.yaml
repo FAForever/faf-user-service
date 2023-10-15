@@ -3,3 +3,4 @@ faf:
     fixed:
       users:
         test-user: banana
+    token-ttl: 1

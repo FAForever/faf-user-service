@@ -1,33 +1,30 @@
 package com.faforever.userservice.web
 
-import com.faforever.userservice.backend.hydra.HydraClient
+import com.faforever.userservice.backend.security.FafRole
+import com.faforever.userservice.backend.security.HmacService
 import com.faforever.userservice.config.FafProperties
-import io.quarkus.test.InjectMock
+import com.faforever.userservice.web.util.FafRoleTest
 import io.quarkus.test.common.http.TestHTTPEndpoint
 import io.quarkus.test.junit.QuarkusTest
+import io.quarkus.test.security.TestSecurity
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import jakarta.inject.Inject
-import org.eclipse.microprofile.rest.client.inject.RestClient
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.matchesRegex
 import org.hamcrest.Matchers.notNullValue
 import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.whenever
-import sh.ory.hydra.model.OAuth2TokenIntrospection
 
 @QuarkusTest
 @TestHTTPEndpoint(ErgochatController::class)
 class ErgoChatControllerTest {
 
-    @InjectMock
-    @RestClient
-    private lateinit var hydraClient: HydraClient
-
     @Inject
     private lateinit var properties: FafProperties
+
+    @Inject
+    private lateinit var hmacService: HmacService
 
     @Test
     fun authenticateUnknownType() {
@@ -90,10 +87,30 @@ class ErgoChatControllerTest {
     }
 
     @Test
-    fun authenticateOAuth() {
-        whenever(hydraClient.introspectToken(any(), anyOrNull())).thenReturn(createActiveTokenForUsername("test-user"))
+    @TestSecurity(user = "test-user")
+    fun requestTokenWithoutRoleFails() {
+        RestAssured.given()
+            .get("/token")
+            .then()
+            .statusCode(403)
+    }
+
+    @Test
+    @TestSecurity(user = "test-user")
+    @FafRoleTest([FafRole.USER])
+    fun requestAndAuthenticateIrcToken() {
+        val token: String = RestAssured.given()
+            .get("/token")
+            .then()
+            .statusCode(200)
+            .body("value", matchesRegex("\\d{10}-.{43,}"))
+            .extract()
+            .body()
+            .path("value")
+
         val loginRequest =
-            ErgochatController.LoginRequest(accountName = "test-user", passphrase = "oauth:token", ip = "127.0.0.1")
+            ErgochatController.LoginRequest(accountName = "test-user", passphrase = "token:$token", ip = "127.0.0.1")
+
         RestAssured.given()
             .body(loginRequest)
             .contentType(ContentType.JSON)
@@ -106,10 +123,23 @@ class ErgoChatControllerTest {
     }
 
     @Test
-    fun authenticateOAuthInactive() {
-        whenever(hydraClient.introspectToken(any(), anyOrNull())).thenReturn(createInactiveToken())
+    @TestSecurity(user = "test-user")
+    @FafRoleTest([FafRole.USER])
+    fun requestAndAuthenticateIrcTokenExpired() {
+        val token: String = RestAssured.given()
+            .get("/token")
+            .then()
+            .statusCode(200)
+            .body("value", matchesRegex("\\d{10}-.{43,}"))
+            .extract()
+            .body()
+            .path("value")
+
+        Thread.sleep(1000)
+
         val loginRequest =
-            ErgochatController.LoginRequest(accountName = "test-user", passphrase = "oauth:token", ip = "127.0.0.1")
+            ErgochatController.LoginRequest(accountName = "test-user", passphrase = "token:$token", ip = "127.0.0.1")
+
         RestAssured.given()
             .body(loginRequest)
             .contentType(ContentType.JSON)
@@ -122,10 +152,21 @@ class ErgoChatControllerTest {
     }
 
     @Test
-    fun authenticateOAuthUserMismatch() {
-        whenever(hydraClient.introspectToken(any(), anyOrNull())).thenReturn(createActiveTokenForUsername("test"))
+    @TestSecurity(user = "test-user")
+    @FafRoleTest([FafRole.USER])
+    fun requestAndAuthenticateIrcTokenUserMismatch() {
+        val token: String = RestAssured.given()
+            .get("/token")
+            .then()
+            .statusCode(200)
+            .body("value", matchesRegex("\\d{10}-.{43,}"))
+            .extract()
+            .body()
+            .path("value")
+
         val loginRequest =
-            ErgochatController.LoginRequest(accountName = "test-user", passphrase = "oauth:token", ip = "127.0.0.1")
+            ErgochatController.LoginRequest(accountName = "test", passphrase = "token:$token", ip = "127.0.0.1")
+
         RestAssured.given()
             .body(loginRequest)
             .contentType(ContentType.JSON)
@@ -133,13 +174,7 @@ class ErgoChatControllerTest {
             .then()
             .statusCode(200)
             .body("success", equalTo(false))
-            .body("accountName", equalTo("test-user"))
+            .body("accountName", equalTo("test"))
             .body("error", notNullValue())
     }
-
-    private fun createActiveTokenForUsername(username: String): OAuth2TokenIntrospection =
-        OAuth2TokenIntrospection(active = true, ext = mapOf("username" to username))
-
-    private fun createInactiveToken(): OAuth2TokenIntrospection =
-        OAuth2TokenIntrospection(active = false)
 }

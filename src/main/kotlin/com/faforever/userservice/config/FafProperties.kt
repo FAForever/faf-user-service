@@ -49,6 +49,8 @@ interface FafProperties {
         @WithName("fixed.users")
         fun fixedUsers(): Map<String, String>
 
-        interface UserCredentials
+        fun secret(): String
+
+        fun tokenTtl(): Long
     }
 }
