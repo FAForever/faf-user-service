@@ -38,6 +38,8 @@ class FafPermissionsAugmentor : SecurityIdentityAugmentor {
                         val hasScopes = requiredPermission.actions.split(",").all { scopes.contains(it) }
                         Uni.createFrom().item(hasRole && hasScopes)
                     }
+
+                    builder.addRoles(roles)
                 }
             }
             builder.build()
