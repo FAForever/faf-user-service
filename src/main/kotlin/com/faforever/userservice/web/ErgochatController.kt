@@ -111,9 +111,7 @@ class ErgochatController(
         return when (val principal = context.userPrincipal) {
             is JsonWebToken -> {
                 return principal.claim<Map<String, Any>>("ext")
-                    .map { it["username"] as JsonString }
-                    .map { it.string }
-                    .map { it.lowercase(Locale.ROOT) }
+                    .map { (it["username"] as JsonString).string.lowercase(Locale.ROOT) }
                     .map { hmacService.generateHmacToken(it, properties.irc().secret()) }
                     .map { Response.ok(IrcToken(it)).build() }
                     .orElse(Response.status(Response.Status.UNAUTHORIZED).build())
