@@ -6,7 +6,7 @@ plugins {
     kotlin("plugin.noarg") version kotlinVersion
     id("com.diffplug.spotless") version "6.22.0"
     id("io.quarkus") version "3.2.3.Final"
-    id("com.vaadin") version "24.1.12"
+    id("com.vaadin") version "24.2.1"
     id("com.adarshr.test-logger") version "4.0.0"
 }
 
