@@ -11,13 +11,7 @@ html {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    position: fixed !important;
-    padding: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    top: 0;
-    height: auto !important;
+    min-height: 100vh;
 }
 
 ::part(input-field) {

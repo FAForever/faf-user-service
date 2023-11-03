@@ -26,8 +26,8 @@ class OAuthLayout(oAuthHeader: OAuthHeader) : VerticalLayout(), RouterLayout {
     }
 
     init {
-        setHeightFull()
-        setWidthFull()
+        isPadding = false
+        isSpacing = false
         addClassName("background")
         style.set("background-image", "url(${BACKGROUND_IMAGES.random()})")
 
