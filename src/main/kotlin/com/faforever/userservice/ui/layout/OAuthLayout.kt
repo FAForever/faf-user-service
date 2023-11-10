@@ -13,7 +13,7 @@ import com.vaadin.flow.router.RouterLayout
 import jakarta.enterprise.context.Dependent
 
 @Dependent
-class OAuthLayout(oAuthHeader: OAuthHeader) : VerticalLayout(), RouterLayout {
+class OAuthLayout(oAuthHeader: OAuthHeader) : CompactVerticalLayout(), RouterLayout {
 
     companion object {
         val BACKGROUND_IMAGES = arrayOf(
@@ -26,8 +26,6 @@ class OAuthLayout(oAuthHeader: OAuthHeader) : VerticalLayout(), RouterLayout {
     }
 
     init {
-        isPadding = false
-        isSpacing = false
         addClassName("background")
         style.set("background-image", "url(${BACKGROUND_IMAGES.random()})")
 
