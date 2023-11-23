@@ -7,11 +7,6 @@ import com.faforever.userservice.backend.security.OAuthScope
 import com.faforever.userservice.web.util.FafRoleTest
 import com.faforever.userservice.web.util.FafScopeTest
 import io.quarkus.test.InjectMock
-import com.faforever.userservice.web.OAuthController
-import io.quarkus.arc.Unremovable
-import io.quarkus.security.identity.SecurityIdentity
-import io.quarkus.security.runtime.QuarkusSecurityIdentity
-import io.quarkus.test.InjectMock
 import io.quarkus.test.common.http.TestHTTPEndpoint
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.security.TestSecurity
