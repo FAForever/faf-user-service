@@ -30,14 +30,12 @@ import com.vaadin.flow.router.Route
 class RegisterView(private val registrationService: RegistrationService, fafProperties: FafProperties) :
     CompactVerticalLayout() {
 
-    companion object {
-        class RegistrationInfo {
-            var username: String = ""
-            var email: String = ""
-            var termsOfService: Boolean = false
-            var privacyPolicy: Boolean = false
-            var rules: Boolean = false
-        }
+    class RegistrationInfo {
+        var username: String = ""
+        var email: String = ""
+        var termsOfService: Boolean = false
+        var privacyPolicy: Boolean = false
+        var rules: Boolean = false
     }
 
     private val username = TextField(null, getTranslation("register.username")).apply {

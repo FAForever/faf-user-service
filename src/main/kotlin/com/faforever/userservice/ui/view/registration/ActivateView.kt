@@ -29,11 +29,9 @@ import com.vaadin.flow.server.VaadinSession
 class ActivateView(private val registrationService: RegistrationService) :
     CompactVerticalLayout(), BeforeEnterObserver {
 
-    companion object {
-        class PasswordConfirmation {
-            var password: String = ""
-            var confirmedPassword: String = ""
-        }
+    class PasswordConfirmation {
+        var password: String = ""
+        var confirmedPassword: String = ""
     }
 
     private val username = TextField(null, getTranslation("register.username")).apply {
