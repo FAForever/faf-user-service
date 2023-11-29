@@ -1,9 +1,9 @@
 package com.faforever.userservice.ui.view.registration
 
-import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.registration.InvalidRegistrationException
 import com.faforever.userservice.backend.registration.RegisteredUser
 import com.faforever.userservice.backend.registration.RegistrationService
+import com.faforever.userservice.backend.security.VaadinIpService
 import com.faforever.userservice.ui.component.FafLogo
 import com.faforever.userservice.ui.component.SocialIcons
 import com.faforever.userservice.ui.layout.CardLayout
@@ -23,10 +23,9 @@ import com.vaadin.flow.data.value.ValueChangeMode
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
-import com.vaadin.flow.server.VaadinSession
 
 @Route("/register/activate", layout = CardLayout::class)
-class ActivateView(private val registrationService: RegistrationService) :
+class ActivateView(private val registrationService: RegistrationService, private val vaadinIpService: VaadinIpService) :
     CompactVerticalLayout(), BeforeEnterObserver {
 
     class PasswordConfirmation {
@@ -101,7 +100,7 @@ class ActivateView(private val registrationService: RegistrationService) :
             return
         }
 
-        val ipAddress = IpAddress(VaadinSession.getCurrent().browser.address)
+        val ipAddress = vaadinIpService.getRealIp()
 
         registrationService.activate(registeredUser, ipAddress, password.value)
 

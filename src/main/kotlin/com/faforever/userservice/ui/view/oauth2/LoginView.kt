@@ -1,10 +1,10 @@
 package com.faforever.userservice.ui.view.oauth2
 
-import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.hydra.LoginResponse
 import com.faforever.userservice.backend.hydra.NoChallengeException
 import com.faforever.userservice.backend.login.LoginResult
+import com.faforever.userservice.backend.security.VaadinIpService
 import com.faforever.userservice.config.FafProperties
 import com.faforever.userservice.ui.component.FontAwesomeIcon
 import com.faforever.userservice.ui.component.LogoHeader
@@ -24,11 +24,10 @@ import com.vaadin.flow.component.textfield.TextField
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
-import com.vaadin.flow.server.VaadinRequest
 import java.time.format.DateTimeFormatter
 
 @Route("/oauth2/login", layout = CardLayout::class)
-class LoginView(private val hydraService: HydraService, private val fafProperties: FafProperties) :
+class LoginView(private val hydraService: HydraService, private val vaadinIpService: VaadinIpService, private val fafProperties: FafProperties) :
     CompactVerticalLayout(), BeforeEnterObserver {
 
     private val footer = VerticalLayout().apply {
@@ -88,9 +87,7 @@ class LoginView(private val hydraService: HydraService, private val fafPropertie
     }
 
     fun login() {
-        val currentRequest = VaadinRequest.getCurrent()
-        val realIp = currentRequest.getHeader(fafProperties.realIpHeader()) ?: currentRequest.remoteAddr
-        val ipAddress = IpAddress(realIp)
+        val ipAddress = vaadinIpService.getRealIp()
         when (val loginResponse = hydraService.login(challenge, usernameOrEmail.value, password.value, ipAddress)) {
             is LoginResponse.FailedLogin -> displayErrorMessage(loginResponse.recoverableLoginFailure)
             is LoginResponse.RejectedLogin -> displayRejectedMessage(loginResponse.unrecoverableLoginFailure)
