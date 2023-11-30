@@ -1,0 +1,36 @@
+<mj-section background-color="#000000" padding="2px" css-class="footer">
+  <mj-column>
+    <mj-text color="white" align="center" padding="2px">
+      <ul>
+        <li>
+          <a target="_blank" href="https://discord.com/invite/hgvj6Af">
+            <img src="https://content.faforever.com/images/icons/discord-white-20px.png" alt="Discord"/>
+          </a>
+        </li>
+        <li>
+          <a target="_blank" href="https://www.youtube.com/c/ForgedAllianceForever">
+            <img src="https://content.faforever.com/images/icons/youtube-white-20px.png" alt="Youtube"/>
+          </a>
+        </li>
+        <li>
+          <a target="_blank" href="https://www.facebook.com/ForgedAllianceForever">
+            <img src="https://content.faforever.com/images/icons/facebook-white-20px.png" alt="Facebook"/>
+          </a>
+        </li>
+        <li>
+          <a target="_blank" href="https://github.com/FAForever/">
+            <img src="https://content.faforever.com/images/icons/github-white-20px.png" alt="Github"/>
+          </a>
+        </li>
+        <li>
+          <a target="_blank" href="https://www.patreon.com/faf">
+            <img src="https://content.faforever.com/images/icons/patreon-white-20px.png" alt="Patreon"/>
+          </a>
+        </li>
+      </ul>
+      <p>
+        <a href="https://wwww.faforever.com">www.faforever.com</a>
+      </p>
+    </mj-text>
+  </mj-column>
+</mj-section>
