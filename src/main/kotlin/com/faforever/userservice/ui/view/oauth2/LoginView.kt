@@ -27,7 +27,11 @@ import com.vaadin.flow.router.Route
 import java.time.format.DateTimeFormatter
 
 @Route("/oauth2/login", layout = CardLayout::class)
-class LoginView(private val hydraService: HydraService, private val vaadinIpService: VaadinIpService, private val fafProperties: FafProperties) :
+class LoginView(
+    private val hydraService: HydraService,
+    private val vaadinIpService: VaadinIpService,
+    private val fafProperties: FafProperties,
+) :
     CompactVerticalLayout(), BeforeEnterObserver {
 
     private val footer = VerticalLayout().apply {
