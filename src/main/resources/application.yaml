@@ -63,6 +63,10 @@ security:
   failed-login-throttling-minutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
   failed-login-days-to-check: ${FAILED_LOGIN_DAYS_TO_CHECK:1}
 
+mailjet:
+  api-key: ${MAILJET_API_KEY}
+  api-secret: ${MAILJET_API_SECRET}
+
 quarkus:
   log:
     level: INFO

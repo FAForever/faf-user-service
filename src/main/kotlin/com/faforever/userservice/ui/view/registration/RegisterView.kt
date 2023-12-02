@@ -158,7 +158,7 @@ class RegisterView(
             .withValidator(
                 { email -> registrationService.emailAvailable(email) !is EmailStatusResponse.EmailBlackListed },
                 getTranslation("register.email.blacklisted"),
-        ).bind("email")
+            ).bind("email")
 
         binder.forField(termsOfService).asRequired(getTranslation("register.acknowledge.terms")).bind("termsOfService")
 
