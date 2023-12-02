@@ -145,7 +145,7 @@ class RegisterView(
             .withValidator(
                 { email -> registrationService.emailAvailable(email) == EmailStatus.EMAIL_AVAILABLE },
                 getTranslation("register.email.taken"),
-        ).bind("email")
+            ).bind("email")
 
         binder.forField(termsOfService).asRequired(getTranslation("register.acknowledge.terms")).bind("termsOfService")
 
