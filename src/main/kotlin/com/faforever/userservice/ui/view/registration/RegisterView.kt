@@ -140,10 +140,12 @@ class RegisterView(private val registrationService: RegistrationService, fafProp
 
         registrationService.register(username.value, email.value)
 
-        val successDialog = Dialog()
-        successDialog.add(H2(getTranslation("register.success")))
-        successDialog.add(Span(getTranslation("register.success.details", email.value)))
-        successDialog.open()
+        Dialog().apply {
+            add(H2(getTranslation("register.success")))
+            add(Span(getTranslation("register.success.details", email.value)))
+            isCloseOnOutsideClick = false
+            open()
+        }
 
         binder.readBean(null)
     }
