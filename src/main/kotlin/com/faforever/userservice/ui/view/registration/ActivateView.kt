@@ -104,10 +104,12 @@ class ActivateView(private val registrationService: RegistrationService, private
 
         registrationService.activate(registeredUser, ipAddress, password.value)
 
-        val successDialog = Dialog()
-        successDialog.add(H2(getTranslation("register.activated")))
-        successDialog.add(Span(getTranslation("register.activated.details")))
-        successDialog.open()
+        Dialog().apply {
+            add(H2(getTranslation("register.activated")))
+            add(Span(getTranslation("register.activated.details")))
+            isCloseOnOutsideClick = false
+            open()
+        }
 
         binder.readBean(null)
     }

@@ -19,6 +19,10 @@ html {
     background-color: white;
 }
 
+vaadin-text-field[readonly]::part(input-field) {
+    background-color: #dddddd;
+}
+
 input {
     outline: none;
 }
@@ -111,6 +115,7 @@ header {
 
 a, a:visited {
     color: black;
+    text-decoration: underline dotted black;
 }
 
 a:hover {
