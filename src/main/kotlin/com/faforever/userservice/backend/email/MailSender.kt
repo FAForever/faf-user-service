@@ -8,9 +8,16 @@ import jakarta.enterprise.context.ApplicationScoped
 class MailSender(
     private val mailer: Mailer,
 ) {
-    fun sendMail(toEmail: String, subject: String, content: String) {
+    fun sendMail(toEmail: String, subject: String, content: String, contentType: ContentType) {
         mailer.send(
-            Mail.withHtml(toEmail, subject, content),
+            when (contentType) {
+                ContentType.TEXT -> Mail.withText(toEmail, subject, content)
+                ContentType.HTML -> Mail.withHtml(toEmail, subject, content)
+            }
         )
     }
+}
+
+enum class ContentType {
+    TEXT, HTML;
 }
