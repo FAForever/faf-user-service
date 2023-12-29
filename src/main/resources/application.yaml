@@ -60,7 +60,6 @@ quarkus:
     username: ${MAIL_USERNAME:mailer}
     password: ${MAIL_PASSWORD:banana}
     start-tls: OPTIONAL
-    ssl: true
     login: REQUIRED
     from: ${EMAIL_FROM_ADDRESS:admin@faforever.com}
     mock: ${MOCK_EMAIL:true}

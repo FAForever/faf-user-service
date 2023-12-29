@@ -10,7 +10,7 @@ class MailSender(
 ) {
     fun sendMail(toEmail: String, subject: String, content: String) {
         mailer.send(
-            Mail.withText(toEmail, subject, content),
+            Mail.withHtml(toEmail, subject, content),
         )
     }
 }
