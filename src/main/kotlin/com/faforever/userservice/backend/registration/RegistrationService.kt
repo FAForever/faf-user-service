@@ -148,6 +148,8 @@ class RegistrationService(
         LOG.info("User has been activated: {}", user)
         metricHelper.userActivationCounter.increment()
 
+        emailService.sendWelcomeToFafMail(username, email)
+
         return user
     }
 
