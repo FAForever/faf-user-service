@@ -54,16 +54,16 @@ class EmailService(
 
     fun sendActivationMail(username: String, email: String, activationUrl: String) {
         val mailBody = mailBodyBuilder.buildAccountActivationBody(username, activationUrl)
-        mailSender.sendMail(email, properties.account().registration().subject(), mailBody)
+        mailSender.sendMail(email, properties.account().registration().subject(), mailBody, ContentType.HTML)
     }
 
     fun sendWelcomeToFafMail(username: String, email: String) {
         val mailBody = mailBodyBuilder.buildWelcomeToFafBody(username)
-        mailSender.sendMail(email, properties.account().registration().welcomeSubject(), mailBody)
+        mailSender.sendMail(email, properties.account().registration().welcomeSubject(), mailBody, ContentType.HTML)
     }
 
     fun sendPasswordResetMail(username: String, email: String, passwordResetUrl: String) {
         val mailBody = mailBodyBuilder.buildPasswordResetBody(username, passwordResetUrl)
-        mailSender.sendMail(email, properties.account().passwordReset().subject(), mailBody)
+        mailSender.sendMail(email, properties.account().passwordReset().subject(), mailBody, ContentType.HTML)
     }
 }
