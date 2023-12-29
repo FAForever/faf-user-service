@@ -33,10 +33,10 @@ class RecaptchaService(
         val LOG: Logger = LoggerFactory.getLogger(RecaptchaService::class.java)
     }
 
-    fun validateResponse(recaptchaResponse: String?) {
+    fun validateResponse(recaptchaResponse: String?): Boolean {
         if (!fafProperties.recaptcha().enabled()) {
             LOG.debug("Recaptcha validation is disabled")
-            return
+            return true
         }
 
         LOG.debug("Validating response: {}", recaptchaResponse)
@@ -45,10 +45,11 @@ class RecaptchaService(
 
         if (!validateResponse.success) {
             LOG.debug("Recaptcha validation failed for reasons: {}", validateResponse.errorCodes)
-            throw IllegalStateException("Recaptcha validation failed")
+            return false
         }
 
         LOG.debug("Recaptcha validation successful")
+        return true
     }
 }
 

@@ -1,8 +1,8 @@
 package com.faforever.userservice.backend.email
 
 import com.faforever.userservice.config.FafProperties
+import io.quarkus.runtime.Startup
 import io.quarkus.runtime.StartupEvent
-import jakarta.ejb.Startup
 import jakarta.enterprise.event.Observes
 import jakarta.inject.Singleton
 import org.slf4j.Logger
@@ -42,7 +42,7 @@ class MailBodyBuilder(private val properties: FafProperties) {
 
     fun onStart(@Observes event: StartupEvent) {
         var templateError = false
-        for (template in Template.values()) {
+        for (template in Template.entries) {
             val path = getTemplateFilePath(template)
             if (Files.exists(path)) {
                 log.debug("Template {} has template file present at {}", template, path)
