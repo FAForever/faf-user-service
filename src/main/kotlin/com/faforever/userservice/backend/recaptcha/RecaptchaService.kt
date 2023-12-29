@@ -2,6 +2,7 @@ package com.faforever.userservice.backend.recaptcha
 
 import com.faforever.userservice.config.FafProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.quarkus.cache.CacheResult
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.POST
 import jakarta.ws.rs.Path
@@ -33,10 +34,16 @@ class RecaptchaService(
         val LOG: Logger = LoggerFactory.getLogger(RecaptchaService::class.java)
     }
 
-    fun validateResponse(recaptchaResponse: String?): Boolean {
+    @CacheResult(cacheName = "recaptcha")
+    fun validateResponse(recaptchaResponse: String): Boolean {
         if (!fafProperties.recaptcha().enabled()) {
             LOG.debug("Recaptcha validation is disabled")
             return true
+        }
+
+        if (recaptchaResponse.isBlank()) {
+            LOG.debug("Recaptcha response is empty")
+            return false
         }
 
         LOG.debug("Validating response: {}", recaptchaResponse)

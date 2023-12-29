@@ -71,6 +71,11 @@ quarkus:
     password: ${DB_PASSWORD:banana}
     jdbc:
       url: ${DB_URL:jdbc:mariadb://localhost:3306/faf?ssl=false}
+  cache:
+    caffeine:
+      "recaptcha":
+        expire-after-access: 1m
+        maximum-size: 25
   application:
     name: faf-user-service
   management:

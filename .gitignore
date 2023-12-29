@@ -40,3 +40,6 @@ out/
 .vscode/
 /frontend/generated/
 /frontend/index.html
+/node_modules/
+/vite.generated.ts
+/frontend/themes/faforever/theme-editor.css
