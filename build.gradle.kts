@@ -18,8 +18,8 @@ java {
 }
 
 val version: String by project
-val quarkusPlatformVersion: String by project
-val vaadinVersion: String by project
+val quarkusPlatformVersion = "3.6.4"
+val vaadinVersion = "24.3.2"
 
 repositories {
     mavenCentral()
