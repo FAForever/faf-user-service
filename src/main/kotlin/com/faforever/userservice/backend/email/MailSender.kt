@@ -13,11 +13,11 @@ class MailSender(
             when (contentType) {
                 ContentType.TEXT -> Mail.withText(toEmail, subject, content)
                 ContentType.HTML -> Mail.withHtml(toEmail, subject, content)
-            }
+            },
         )
     }
 }
 
 enum class ContentType {
-    TEXT, HTML;
+    TEXT, HTML
 }
