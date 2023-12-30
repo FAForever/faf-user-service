@@ -14,6 +14,7 @@ import jakarta.inject.Inject
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasSize
 import org.hamcrest.Matchers.`is`
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -64,7 +65,7 @@ class RegistrationServiceTest {
     fun registerSuccess() {
         registrationService.register(username, email)
 
-        val sent = mailbox.getMailMessagesSentTo(email)
+        val sent = mailbox.getMailsSentTo(email)
         assertThat(sent, hasSize(1))
         val actual = sent[0]
         assertThat(actual.subject, `is`(fafProperties.account().registration().subject()))
@@ -103,6 +104,11 @@ class RegistrationServiceTest {
         registrationService.activate(RegisteredUser(username, email), ipAddress, password)
 
         verify(userRepository).persist(any<User>())
+
+        val sent = mailbox.getMailsSentTo(email)
+        assertThat(sent, hasSize(1))
+        val actual = sent[0]
+        assertEquals(fafProperties.account().registration().welcomeSubject(), actual.subject)
     }
 
     @Test
