@@ -18,7 +18,7 @@ java {
 }
 
 val version: String by project
-val quarkusPlatformVersion = "3.6.4"
+val quarkusPlatformVersion = "3.8.1"
 val vaadinVersion = "24.3.2"
 
 repositories {
