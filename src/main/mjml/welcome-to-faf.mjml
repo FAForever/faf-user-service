@@ -45,7 +45,7 @@
           <p>You will need to install our client to chat with other player launch games, download maps & mods..
           </p>
         </mj-text>
-        <mj-button href="https://www.faforever.com/client">
+        <mj-button href="https://www.faforever.com/play">
           Download FAF client
         </mj-button>
         <mj-divider border-width="2px" border-color="lightgrey" padding-bottom="0px"/>
