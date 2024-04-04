@@ -6,7 +6,7 @@ plugins {
     kotlin("plugin.noarg") version kotlinVersion
     id("com.diffplug.spotless") version "6.25.0"
     id("io.quarkus") version "3.9.2"
-    id("com.vaadin") version "24.3.2"
+    id("com.vaadin") version "24.3.9"
     id("com.adarshr.test-logger") version "4.0.0"
 }
 
@@ -19,7 +19,7 @@ java {
 
 val version: String by project
 val quarkusPlatformVersion = "3.9.2"
-val vaadinVersion = "24.3.2"
+val vaadinVersion = "24.3.9"
 
 repositories {
     mavenCentral()
