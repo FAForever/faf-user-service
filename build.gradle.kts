@@ -58,7 +58,7 @@ dependencies {
     val mockitoVersion = "5.11.0"
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
 }
 
 tasks.withType<Test> {
