@@ -21,5 +21,10 @@
       "matchUpdateTypes": ["minor", "patch"],
       "automerge": true
     }
+  ],
+  "ignorePaths": [
+    "package.json",
+    "package-lock.json",
+    "**/node_modules/**"
   ]
 }
