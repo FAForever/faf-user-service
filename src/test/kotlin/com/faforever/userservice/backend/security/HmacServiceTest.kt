@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test
 
 @QuarkusTest
 class HmacServiceTest {
-
     @Inject
     private lateinit var hmacService: HmacService
 

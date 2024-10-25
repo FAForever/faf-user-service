@@ -11,14 +11,16 @@ import jakarta.servlet.http.HttpServletResponse
 
 @Suppress("unused")
 @ParentLayout(CardLayout::class)
-class GoneExceptionView : ErrorCard(), HasErrorParameter<GoneException> {
-
+class GoneExceptionView :
+    ErrorCard(),
+    HasErrorParameter<GoneException> {
     init {
         setTitle(getTranslation("title.technicalError"))
         setMessage(getTranslation("login.technicalError"))
     }
 
-    override fun setErrorParameter(event: BeforeEnterEvent?, parameter: ErrorParameter<GoneException>?): Int {
-        return HttpServletResponse.SC_INTERNAL_SERVER_ERROR
-    }
+    override fun setErrorParameter(
+        event: BeforeEnterEvent?,
+        parameter: ErrorParameter<GoneException>?,
+    ): Int = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
 }

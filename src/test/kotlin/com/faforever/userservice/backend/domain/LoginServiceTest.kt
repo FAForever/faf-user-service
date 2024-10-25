@@ -19,7 +19,6 @@ import java.time.OffsetDateTime
 
 @QuarkusTest
 class LoginServiceTest {
-
     companion object {
         private const val USERNAME = "someUsername"
         private const val EMAIL = "some@email.com"

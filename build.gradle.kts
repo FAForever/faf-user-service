@@ -1,15 +1,14 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    val kotlinVersion = "2.0.10"
-
-    kotlin("jvm") version kotlinVersion
-    kotlin("plugin.allopen") version kotlinVersion
-    kotlin("plugin.noarg") version kotlinVersion
-    id("com.diffplug.spotless") version "6.25.0"
-    id("io.quarkus") version "3.9.2"
-    id("com.vaadin") version "24.3.9"
-    id("com.adarshr.test-logger") version "4.0.0"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.allopen)
+    alias(libs.plugins.noarg)
+    alias(libs.plugins.quarkus)
+    alias(libs.plugins.vaadin)
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.test.logger)
 }
 
 defaultTasks("build")
@@ -20,8 +19,6 @@ java {
 }
 
 val version: String by project
-val quarkusPlatformVersion = "3.9.2"
-val vaadinVersion = "24.3.9"
 
 repositories {
     mavenCentral()
@@ -29,8 +26,8 @@ repositories {
 }
 
 dependencies {
-    implementation(enforcedPlatform("com.vaadin:vaadin-bom:$vaadinVersion"))
-    implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusPlatformVersion"))
+    implementation(enforcedPlatform(libs.vaadin.bom))
+    implementation(enforcedPlatform(libs.quarkus.bom))
 
     implementation("io.quarkus:quarkus-smallrye-health")
     implementation("io.quarkus:quarkus-container-image-docker")
@@ -57,10 +54,7 @@ dependencies {
     testImplementation("io.quarkus:quarkus-junit5-mockito")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.quarkus:quarkus-test-security")
-    val mockitoVersion = "5.11.0"
-    testImplementation("org.mockito:mockito-core:$mockitoVersion")
-    testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+    testImplementation(libs.mockito.kotlin)
 }
 
 tasks.withType<Test> {

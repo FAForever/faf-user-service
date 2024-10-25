@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test
 @QuarkusTest
 @TestHTTPEndpoint(ErgochatController::class)
 class ErgoChatControllerTest {
-
     @Inject
     private lateinit var properties: FafProperties
 
@@ -30,7 +29,8 @@ class ErgoChatControllerTest {
     fun authenticateUnknownType() {
         val loginRequest =
             ErgochatController.LoginRequest(accountName = "test-user", passphrase = "test:test", ip = "127.0.0.1")
-        RestAssured.given()
+        RestAssured
+            .given()
             .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
@@ -45,7 +45,8 @@ class ErgoChatControllerTest {
     fun authenticateStatic() {
         val loginRequest =
             ErgochatController.LoginRequest(accountName = "test-user", passphrase = "static:banana", ip = "127.0.0.1")
-        RestAssured.given()
+        RestAssured
+            .given()
             .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
@@ -60,7 +61,8 @@ class ErgoChatControllerTest {
     fun authenticateStaticUnknownUser() {
         val loginRequest =
             ErgochatController.LoginRequest(accountName = "test", passphrase = "static:banana", ip = "127.0.0.1")
-        RestAssured.given()
+        RestAssured
+            .given()
             .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
@@ -75,7 +77,8 @@ class ErgoChatControllerTest {
     fun authenticateStaticBadPassword() {
         val loginRequest =
             ErgochatController.LoginRequest(accountName = "test-user", passphrase = "static:ban", ip = "127.0.0.1")
-        RestAssured.given()
+        RestAssured
+            .given()
             .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
@@ -89,7 +92,8 @@ class ErgoChatControllerTest {
     @Test
     @TestSecurity(user = "test-user")
     fun requestTokenWithoutRoleFails() {
-        RestAssured.given()
+        RestAssured
+            .given()
             .get("/token")
             .then()
             .statusCode(403)
@@ -99,19 +103,22 @@ class ErgoChatControllerTest {
     @TestSecurity(user = "test-user")
     @FafRoleTest([FafRole.USER])
     fun requestAndAuthenticateIrcToken() {
-        val token: String = RestAssured.given()
-            .get("/token")
-            .then()
-            .statusCode(200)
-            .body("value", matchesRegex("\\d{10}-.{43,}"))
-            .extract()
-            .body()
-            .path("value")
+        val token: String =
+            RestAssured
+                .given()
+                .get("/token")
+                .then()
+                .statusCode(200)
+                .body("value", matchesRegex("\\d{10}-.{43,}"))
+                .extract()
+                .body()
+                .path("value")
 
         val loginRequest =
             ErgochatController.LoginRequest(accountName = "test-user", passphrase = "token:$token", ip = "127.0.0.1")
 
-        RestAssured.given()
+        RestAssured
+            .given()
             .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
@@ -126,21 +133,24 @@ class ErgoChatControllerTest {
     @TestSecurity(user = "test-user")
     @FafRoleTest([FafRole.USER])
     fun requestAndAuthenticateIrcTokenExpired() {
-        val token: String = RestAssured.given()
-            .get("/token")
-            .then()
-            .statusCode(200)
-            .body("value", matchesRegex("\\d{10}-.{43,}"))
-            .extract()
-            .body()
-            .path("value")
+        val token: String =
+            RestAssured
+                .given()
+                .get("/token")
+                .then()
+                .statusCode(200)
+                .body("value", matchesRegex("\\d{10}-.{43,}"))
+                .extract()
+                .body()
+                .path("value")
 
         Thread.sleep(1000)
 
         val loginRequest =
             ErgochatController.LoginRequest(accountName = "test-user", passphrase = "token:$token", ip = "127.0.0.1")
 
-        RestAssured.given()
+        RestAssured
+            .given()
             .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
@@ -155,19 +165,22 @@ class ErgoChatControllerTest {
     @TestSecurity(user = "test-user")
     @FafRoleTest([FafRole.USER])
     fun requestAndAuthenticateIrcTokenUserMismatch() {
-        val token: String = RestAssured.given()
-            .get("/token")
-            .then()
-            .statusCode(200)
-            .body("value", matchesRegex("\\d{10}-.{43,}"))
-            .extract()
-            .body()
-            .path("value")
+        val token: String =
+            RestAssured
+                .given()
+                .get("/token")
+                .then()
+                .statusCode(200)
+                .body("value", matchesRegex("\\d{10}-.{43,}"))
+                .extract()
+                .body()
+                .path("value")
 
         val loginRequest =
             ErgochatController.LoginRequest(accountName = "test", passphrase = "token:$token", ip = "127.0.0.1")
 
-        RestAssured.given()
+        RestAssured
+            .given()
             .body(loginRequest)
             .contentType(ContentType.JSON)
             .post("/login")
