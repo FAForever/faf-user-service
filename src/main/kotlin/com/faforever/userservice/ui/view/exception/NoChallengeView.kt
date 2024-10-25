@@ -11,14 +11,16 @@ import jakarta.servlet.http.HttpServletResponse
 
 @Suppress("unused")
 @ParentLayout(CardLayout::class)
-class NoChallengeView : ErrorCard(), HasErrorParameter<NoChallengeException> {
-
+class NoChallengeView :
+    ErrorCard(),
+    HasErrorParameter<NoChallengeException> {
     init {
         setTitle(getTranslation("title.accessDenied"))
         setMessage(getTranslation("login.invalidFlow"))
     }
 
-    override fun setErrorParameter(event: BeforeEnterEvent?, parameter: ErrorParameter<NoChallengeException>?): Int {
-        return HttpServletResponse.SC_FORBIDDEN
-    }
+    override fun setErrorParameter(
+        event: BeforeEnterEvent?,
+        parameter: ErrorParameter<NoChallengeException>?,
+    ): Int = HttpServletResponse.SC_FORBIDDEN
 }

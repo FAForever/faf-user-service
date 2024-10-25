@@ -1,0 +1,19 @@
+[versions]
+kotlin = "2.0.21"
+quarkus = "3.15.1"
+vaadin = "24.5.1"
+
+[libraries]
+vaadin-bom = { module = "com.vaadin:vaadin-bom", version.ref = "vaadin" }
+quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version = "5.4.0" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
+noarg = { id = "org.jetbrains.kotlin.plugin.noarg", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version = "6.25.0" }
+test-logger = { id = "com.adarshr.test-logger", version = "4.0.0" }
+vaadin = { id = "com.vaadin", version.ref = "vaadin" }
+quarkus = { id = "io.quarkus", version.ref = "quarkus" }

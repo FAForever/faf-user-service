@@ -10,7 +10,9 @@ import jakarta.enterprise.context.Dependent
 import jakarta.enterprise.inject.Instance
 
 @Dependent
-class ScopeWidget(private val scopeItemFactory: Instance<ScopeItem>) : CompactVerticalLayout() {
+class ScopeWidget(
+    private val scopeItemFactory: Instance<ScopeItem>,
+) : CompactVerticalLayout() {
     private val scopeLayout = CompactVerticalLayout()
 
     init {
@@ -46,14 +48,15 @@ class ScopeItem : HorizontalLayout() {
 
     fun setScope(scope: String) {
         val translation = getTranslation("oauth2.scope.$scope")
-        span.text = if (translation.matches(Regex("!\\{.*}!"))) {
-            getTranslation(
-                "oauth2.scope.textMissing",
-                scope,
-            )
-        } else {
-            translation
-        }
+        span.text =
+            if (translation.matches(Regex("!\\{.*}!"))) {
+                getTranslation(
+                    "oauth2.scope.textMissing",
+                    scope,
+                )
+            } else {
+                translation
+            }
         val descriptionTranslation = getTranslation("oauth2.scope.$scope.description")
         if (!descriptionTranslation.isNullOrBlank() && !descriptionTranslation.matches(Regex("!\\{.*}!"))) {
             infoTooltip.setTooltip(descriptionTranslation)

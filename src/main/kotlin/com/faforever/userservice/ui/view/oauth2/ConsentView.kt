@@ -21,11 +21,12 @@ class ConsentView(
     private val oAuthClientHeader: OAuthClientHeader,
     private val scopeWidget: ScopeWidget,
     private val hydraService: HydraService,
-) : CompactVerticalLayout(), BeforeEnterObserver {
-
-    private val authorize = Button(getTranslation("consent.authorize")) { authorize() }.apply {
-        addThemeVariants(ButtonVariant.LUMO_PRIMARY)
-    }
+) : CompactVerticalLayout(),
+    BeforeEnterObserver {
+    private val authorize =
+        Button(getTranslation("consent.authorize")) { authorize() }.apply {
+            addThemeVariants(ButtonVariant.LUMO_PRIMARY)
+        }
     private val deny = Button(getTranslation("consent.deny")) { deny() }
 
     private lateinit var challenge: String
@@ -34,17 +35,19 @@ class ConsentView(
         add(oAuthClientHeader)
         add(scopeWidget)
 
-        val buttonLayout = HorizontalLayout(deny, authorize).apply {
-            alignItems = FlexComponent.Alignment.STRETCH
-            setFlexGrow(1.0, deny, authorize)
-            setWidthFull()
-        }
+        val buttonLayout =
+            HorizontalLayout(deny, authorize).apply {
+                alignItems = FlexComponent.Alignment.STRETCH
+                setFlexGrow(1.0, deny, authorize)
+                setWidthFull()
+            }
 
         add(buttonLayout)
 
-        val socialIcons = SocialIcons().apply {
-            setWidthFull()
-        }
+        val socialIcons =
+            SocialIcons().apply {
+                setWidthFull()
+            }
         add(socialIcons)
     }
 
@@ -69,7 +72,13 @@ class ConsentView(
     }
 
     override fun beforeEnter(event: BeforeEnterEvent?) {
-        val possibleChallenge = event?.location?.queryParameters?.parameters?.get("consent_challenge")?.get(0)
+        val possibleChallenge =
+            event
+                ?.location
+                ?.queryParameters
+                ?.parameters
+                ?.get("consent_challenge")
+                ?.get(0)
         if (possibleChallenge != null) {
             challenge = possibleChallenge
             setDetailsFromRequest(hydraService.getConsentRequest(challenge))

@@ -5,7 +5,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 
 class LogoHeader : HorizontalLayout() {
-
     private val title = H2()
 
     init {

@@ -25,7 +25,6 @@ import java.time.OffsetDateTime
 
 @QuarkusTest
 class HydraServiceTest {
-
     companion object {
         val ipAddress = IpAddress("127.0.0.1")
         val loginRequest = LoginRequest("", OAuth2Client(), "", listOf(), listOf(), false, "1")

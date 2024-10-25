@@ -9,7 +9,6 @@ import java.net.URI
 
 @QuarkusTest
 class CloudflareServiceTest {
-
     @Inject
     private lateinit var cloudflareService: CloudflareService
 
