@@ -19,7 +19,8 @@ data class User(
     val id: Int? = null,
     @Column(name = "login")
     val username: String,
-    val password: String,
+    @Column(name = "password")
+    val passwordHash: String,
     val email: String,
     val ip: String?,
 ) : PanacheEntityBase {
