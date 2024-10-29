@@ -29,6 +29,7 @@ dependencies {
     implementation(enforcedPlatform(libs.vaadin.bom))
     implementation(enforcedPlatform(libs.quarkus.bom))
 
+    implementation("io.quarkus:quarkus-security")
     implementation("io.quarkus:quarkus-smallrye-health")
     implementation("io.quarkus:quarkus-container-image-docker")
     implementation("io.quarkus:quarkus-rest-client-jackson")

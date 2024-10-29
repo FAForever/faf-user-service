@@ -70,6 +70,12 @@ mailjet:
 quarkus:
   log:
     level: INFO
+  http:
+    auth:
+      form:
+        enabled: true
+        login-page: /ucp/login
+        error-page: /ucp/login?error
   rest-client:
     faf-ory-hydra:
       url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}

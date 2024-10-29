@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:src/main/kotlin/com/faforever/userservice/backend/account/LoginService.kt
-package com.faforever.userservice.backend.account
-========
 package com.faforever.userservice.backend.security
->>>>>>>> 4e7b62d (UCP WIP):src/main/kotlin/com/faforever/userservice/backend/security/LoginService.kt
 
 import com.faforever.userservice.backend.domain.AccountLinkRepository
 import com.faforever.userservice.backend.domain.Ban
@@ -13,17 +9,10 @@ import com.faforever.userservice.backend.domain.LoginLog
 import com.faforever.userservice.backend.domain.LoginLogRepository
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
-<<<<<<<< HEAD:src/main/kotlin/com/faforever/userservice/backend/account/LoginService.kt
 import com.faforever.userservice.backend.hydra.HydraService
-import com.faforever.userservice.backend.security.PasswordEncoder
-import io.smallrye.config.ConfigMapping
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.transaction.Transactional
-import jakarta.validation.constraints.NotNull
-========
 import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
->>>>>>>> 4e7b62d (UCP WIP):src/main/kotlin/com/faforever/userservice/backend/security/LoginService.kt
+import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -72,6 +61,7 @@ class LoginServiceImpl(
 
     override fun findUserBySubject(subject: String) = userRepository.findByUsernameOrEmail(subject)
 
+    @Transactional
     override fun login(usernameOrEmail: String, password: String, ip: IpAddress, requiresGameOwnership: Boolean):
         LoginResult {
         if (throttlingRequired(ip)) {
@@ -79,7 +69,7 @@ class LoginServiceImpl(
         }
 
         val user = userRepository.findByUsernameOrEmail(usernameOrEmail)
-        if (user == null || !passwordEncoder.matches(password, user.passwordHash)) {
+        if (user == null || !passwordEncoder.matches(password, user.password)) {
             logFailedLogin(usernameOrEmail, ip)
             return LoginResult.RecoverableLoginOrCredentialsMismatch
         }
