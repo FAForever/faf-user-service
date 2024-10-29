@@ -76,6 +76,15 @@ quarkus:
         enabled: true
         login-page: /ucp/login
         error-page: /ucp/login?error
+      permission:
+        public:
+          paths:
+            - /ucp/login
+          policy: permit
+        protected:
+          paths:
+            - /ucp/*
+          policy: authenticated
   rest-client:
     faf-ory-hydra:
       url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
