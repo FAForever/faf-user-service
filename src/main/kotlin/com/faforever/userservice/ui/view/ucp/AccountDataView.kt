@@ -15,10 +15,12 @@ import com.vaadin.flow.component.textfield.TextField
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
+import jakarta.annotation.security.RolesAllowed
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 @Route("/ucp")
+@RolesAllowed("user")
 class AccountDataView(
     private val i18n: I18n,
     private val currentUserService: CurrentUserService,

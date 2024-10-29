@@ -11,6 +11,7 @@ import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -56,6 +57,7 @@ class LoginServiceImpl(
 
     override fun findUserBySubject(subject: String) = userRepository.findByUsernameOrEmail(subject)
 
+    @Transactional
     override fun login(usernameOrEmail: String, password: String, ip: IpAddress, requiresGameOwnership: Boolean):
         LoginResult {
         if (throttlingRequired(ip)) {
