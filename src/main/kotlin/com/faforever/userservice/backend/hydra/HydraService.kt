@@ -142,12 +142,22 @@ class HydraService(
 
         val roles = listOf("USER") + permissions.map { it.technicalName }
 
+        val context = mutableMapOf(
+            "username" to user.username,
+            "roles" to roles,
+        )
+
+        if (OAuthScope.canShowEmail(consentRequest.requestedScope)) {
+            context["email"] = user.email
+            context["email_verified"] = true
+        }
+
         val redirectResponse = hydraClient.acceptConsentRequest(
             challenge,
             AcceptConsentRequest(
                 session = ConsentRequestSession(
-                    accessToken = mapOf("username" to user.username, "roles" to roles),
-                    idToken = mapOf("username" to user.username, "roles" to roles),
+                    accessToken = context,
+                    idToken = context,
                 ),
                 grantScope = consentRequest.requestedScope,
             ),
