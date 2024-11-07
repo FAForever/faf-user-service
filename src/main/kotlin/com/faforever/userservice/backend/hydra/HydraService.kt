@@ -143,7 +143,8 @@ class HydraService(
         val roles = listOf("USER") + permissions.map { it.technicalName }
 
         val context = mutableMapOf(
-            "username" to user.username,
+            "username" to user.username, // not official OIDC claim, but required for backwards compatible
+            "preferred_username" to user.username,
             "roles" to roles,
         )
 
