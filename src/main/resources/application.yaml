@@ -110,7 +110,7 @@ quarkus:
 mp:
   jwt:
     verify:
-      issuer: ${HYDRA_TOKEN_ISSUER:http://faf-ory-hydra:4444/}
+      issuer: ${HYDRA_TOKEN_ISSUER:http://faf-ory-hydra:4444}
       key-format: JWKS
       publickey:
         location: ${HYDRA_JWKS_URL:http://localhost:4444/.well-known/jwks.json}

@@ -14,7 +14,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
-import sh.ory.hydra.model.ConsentRequest
+import sh.ory.hydra.model.OAuth2ConsentRequest
 
 @Route("/oauth2/consent", layout = CardLayout::class)
 class ConsentView(
@@ -51,7 +51,7 @@ class ConsentView(
         add(socialIcons)
     }
 
-    private fun setDetailsFromRequest(consentRequest: ConsentRequest) {
+    private fun setDetailsFromRequest(consentRequest: OAuth2ConsentRequest) {
         consentRequest.client?.let { oAuthClientHeader.setClient(it) }
 
         if (consentRequest.requestedScope.isNullOrEmpty()) {
