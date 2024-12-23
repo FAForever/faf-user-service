@@ -7,6 +7,7 @@ import com.faforever.userservice.ui.component.ScopeWidget
 import com.faforever.userservice.ui.component.SocialIcons
 import com.faforever.userservice.ui.layout.CardLayout
 import com.faforever.userservice.ui.layout.CompactVerticalLayout
+import com.vaadin.flow.component.Key
 import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
 import com.vaadin.flow.component.orderedlayout.FlexComponent
@@ -26,6 +27,7 @@ class ConsentView(
     private val authorize =
         Button(getTranslation("consent.authorize")) { authorize() }.apply {
             addThemeVariants(ButtonVariant.LUMO_PRIMARY)
+            addClickShortcut(Key.ENTER)
         }
     private val deny = Button(getTranslation("consent.deny")) { deny() }
 
