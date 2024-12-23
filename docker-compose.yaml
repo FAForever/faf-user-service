@@ -1,0 +1,106 @@
+services:
+  # Set up the faf db
+  faf-db:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: faf
+      MARIADB_USER: faf-user-service
+      MARIADB_PASSWORD: banana
+      MARIADB_ROOT_PASSWORD: banana
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "3306:3306"
+
+  faf-db-migrations:
+    image: faforever/faf-db-migrations:v135
+    command: migrate
+    environment:
+      FLYWAY_URL: jdbc:mysql://faf-db/faf?useSSL=false
+      FLYWAY_USER: root
+      FLYWAY_PASSWORD: banana
+      FLYWAY_DATABASE: faf
+    depends_on:
+      faf-db:
+        condition: service_healthy
+
+  faf-db-testdata:
+    image: mariadb:11
+    entrypoint: sh -c "apt-get update && apt-get install -y curl && curl -s https://raw.githubusercontent.com/FAForever/db/refs/heads/develop/test-data.sql | mariadb -h faf-db -uroot -pbanana -D faf"
+    depends_on:
+      faf-db-migrations:
+        condition: service_completed_successfully
+
+  hydra-db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=hydra
+      - POSTGRES_PASSWORD=banana
+      - POSTGRES_DB=hydra
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hydra-migrate:
+    image: oryd/hydra:v1.11.10
+    command: migrate -c /etc/config/hydra/hydra.yml sql -e --yes
+    environment:
+      - DSN=postgres://hydra:banana@hydra-db:5432/hydra?sslmode=disable
+    volumes:
+      - type: bind
+        source: ./hydra.yml
+        target: /etc/config/hydra/hydra.yml
+    depends_on:
+      hydra-db:
+        condition: service_healthy
+
+  hydra:
+    image: oryd/hydra:v1.11.10
+    ports:
+      - "4444:4444" # Public port
+      - "4445:4445" # Admin port
+    command: serve -c /etc/config/hydra/hydra.yml all --dangerous-force-http
+    environment:
+      - DSN=postgres://hydra:banana@hydra-db:5432/hydra?sslmode=disable
+    volumes:
+      - type: bind
+        source: ./hydra.yml
+        target: /etc/config/hydra/hydra.yml
+    depends_on:
+      hydra-db:
+        condition: service_healthy
+      hydra-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "hydra", "clients", "list", "--endpoint", "http://hydra:4445"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hydra-testdata:
+    image: oryd/hydra:v1.11.10
+    entrypoint: >
+      hydra clients create
+      --skip-tls-verify
+      --endpoint http://hydra:4445
+      --fake-tls-termination
+      --id faf-client
+      --name faf-client
+      --logo-uri https://faforever.com/images/faf-logo.png
+      --grant-types authorization_code,refresh_token
+      --response-types code
+      --scope openid,offline,public_profile,lobby,upload_map,upload_mod
+      --callbacks http://127.0.0.1
+      --token-endpoint-auth-method none
+    depends_on:
+      hydra:
+        condition: service_healthy
+      hydra-migrate:
+        condition: service_completed_successfully
+
+
