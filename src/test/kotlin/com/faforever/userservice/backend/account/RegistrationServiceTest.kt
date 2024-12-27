@@ -1,4 +1,4 @@
-package com.faforever.userservice.backend.registration
+package com.faforever.userservice.backend.account
 
 import com.faforever.userservice.backend.domain.DomainBlacklistRepository
 import com.faforever.userservice.backend.domain.IpAddress

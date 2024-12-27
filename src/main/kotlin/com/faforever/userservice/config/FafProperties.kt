@@ -10,6 +10,9 @@ import java.util.*
 
 @ConfigMapping(prefix = "faf")
 interface FafProperties {
+    @NotBlank
+    fun selfUrl(): String
+
     fun environment(): Optional<String>
 
     /**
@@ -31,6 +34,8 @@ interface FafProperties {
     fun lobby(): Lobby
 
     fun irc(): Irc
+
+    fun steam(): Steam
 
     interface Lobby {
         @NotBlank
@@ -132,5 +137,12 @@ interface FafProperties {
             @WithDefault("6")
             fun usernameReservationTimeInMonths(): Long
         }
+    }
+
+    interface Steam {
+        fun loginUrlFormat(): String = "https://steamcommunity.com/openid/login"
+
+        @NotBlank
+        fun realm(): String
     }
 }

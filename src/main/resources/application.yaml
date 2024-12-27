@@ -1,13 +1,14 @@
 faf:
+  self-url: ${SELF_URL:http://localhost:8080}
   environment: ${FAF_ENVIRONMENT}
   real-ip-header: ${REAL_IP_HEADER:X-Real-Ip}
   hydra-base-url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
   account:
-    password-reset-url: ${PASSWORD_RESET_URL:`https://faforever.com/account/password/reset`}
-    register-account-url: ${REGISTER_ACCOUNT_URL:`https://faforever.com/account/register`}
+    password-reset-url: ${faf.self-url}/recover-account
+    register-account-url: ${faf.self-url}/recover-account/register
     account-link-url: ${ACCOUNT_LINK_URL:`https://www.faforever.com/account/link`}
     registration:
-      activation-url-format: ${ACTIVATION_URL_FORMAT:http://localhost:8080/register/activate?token=%s}
+      activation-url-format: ${faf.self-url}/register/activate?token=%s
       subject: ${REGISTRATION_EMAIL_SUBJECT:FAF user registration}
       activation-mail-template-path: ${ACCOUNT_ACTIVATION_MAIL_TEMPLATE_PATH:/config/mail/account-activation.html}
       welcome-subject: ${WELCOME_MAIL_SUBJECT:Welcome to FAF}
@@ -16,7 +17,7 @@ faf:
       privacy-statement-url: ${FAF_PRIVACY_STATEMENT:https://faforever.com/privacy}
       rules-url: ${FAF_RULES:https://faforever.com/rules}
     password-reset:
-      password-reset-url-format: ${PASSWORD_RESET_URL_FORMAT:http://localhost:8080/account/password/confirmReset?token=%s}
+      password-reset-url-format: ${faf.self-url}/recover-account/set-password?token=%s
       subject: ${PASSWORD_RESET_EMAIL_SUBJECT:FAF password reset}
       mail-template-path: ${PASSWORD_RESET_MAIL_TEMPLATE_PATH:/config/mail/password-reset.html}
     username:
@@ -35,6 +36,8 @@ faf:
   irc:
     secret: ${IRC_SECRET:banana}
     token-ttl: ${IRC_TOKEN_TTL:300}
+  steam:
+    realm: ${faf.self-url}
 
 mailjet:
   api-key: ${MAILJET_API_KEY}

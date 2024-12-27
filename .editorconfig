@@ -6,3 +6,8 @@ max_line_length=120
 end_of_line=lf
 ij_any_line_comment_add_space = true
 ij_any_line_comment_at_first_column = false
+
+#  Disable wildcard imports entirely
+ij_kotlin_name_count_to_use_star_import = 2147483647
+ij_kotlin_name_count_to_use_star_import_for_members = 2147483647
+ij_kotlin_packages_to_use_import_on_demand = unset

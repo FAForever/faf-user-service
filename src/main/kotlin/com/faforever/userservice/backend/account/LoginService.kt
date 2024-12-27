@@ -1,4 +1,4 @@
-package com.faforever.userservice.backend.login
+package com.faforever.userservice.backend.account
 
 import com.faforever.userservice.backend.domain.AccountLinkRepository
 import com.faforever.userservice.backend.domain.Ban
@@ -9,6 +9,7 @@ import com.faforever.userservice.backend.domain.LoginLog
 import com.faforever.userservice.backend.domain.LoginLogRepository
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
+import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.security.PasswordEncoder
 import io.smallrye.config.ConfigMapping
 import jakarta.enterprise.context.ApplicationScoped
@@ -56,6 +57,8 @@ interface LoginService {
     fun findUserBySubject(subject: String): User?
 
     fun login(usernameOrEmail: String, password: String, ip: IpAddress, requiresGameOwnership: Boolean): LoginResult
+
+    fun resetPassword(userId: Int, newPassword: String)
 }
 
 @ApplicationScoped
@@ -66,6 +69,7 @@ class LoginServiceImpl(
     private val accountLinkRepository: AccountLinkRepository,
     private val passwordEncoder: PasswordEncoder,
     private val banRepository: BanRepository,
+    private val hydraService: HydraService,
 ) : LoginService {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(LoginServiceImpl::class.java)
@@ -145,5 +149,16 @@ class LoginServiceImpl(
             LOG.trace("IP '$ip' did not hit a throttling limit")
             false
         }
+    }
+
+    override fun resetPassword(userId: Int, newPassword: String) {
+        userRepository.findById(userId)!!.apply {
+            password = passwordEncoder.encode(newPassword)
+            userRepository.persist(this)
+        }
+
+        hydraService.revokeConsentRequest(userId.toString())
+
+        LOG.info("Password for user id {}} has been reset", userId)
     }
 }
