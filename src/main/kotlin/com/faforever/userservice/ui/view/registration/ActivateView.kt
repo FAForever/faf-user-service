@@ -1,8 +1,8 @@
 package com.faforever.userservice.ui.view.registration
 
-import com.faforever.userservice.backend.registration.InvalidRegistrationException
-import com.faforever.userservice.backend.registration.RegisteredUser
-import com.faforever.userservice.backend.registration.RegistrationService
+import com.faforever.userservice.backend.account.InvalidRegistrationException
+import com.faforever.userservice.backend.account.RegisteredUser
+import com.faforever.userservice.backend.account.RegistrationService
 import com.faforever.userservice.backend.security.VaadinIpService
 import com.faforever.userservice.ui.component.FafLogo
 import com.faforever.userservice.ui.component.SocialIcons
@@ -82,7 +82,7 @@ class ActivateView(private val registrationService: RegistrationService, private
 
         binder.forField(password)
             .asRequired(getTranslation("register.password.required"))
-            .withValidator({ username -> username.length >= 6 }, getTranslation("register.password.size"))
+            .withValidator({ it.length >= 6 }, getTranslation("register.password.size"))
             .bind("password")
 
         binder.forField(confirmedPassword)
