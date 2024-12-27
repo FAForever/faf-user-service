@@ -1,14 +1,16 @@
 package com.faforever.userservice.backend.hydra
 
+import com.faforever.userservice.backend.account.LoginResult
+import com.faforever.userservice.backend.account.LoginService
 import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.domain.UserRepository
-import com.faforever.userservice.backend.login.LoginResult
-import com.faforever.userservice.backend.login.LoginService
 import com.faforever.userservice.backend.security.OAuthScope
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.inject.Produces
 import jakarta.transaction.Transactional
 import org.eclipse.microprofile.rest.client.inject.RestClient
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import sh.ory.hydra.model.AcceptConsentRequest
 import sh.ory.hydra.model.AcceptLoginRequest
 import sh.ory.hydra.model.ConsentRequest
@@ -48,6 +50,8 @@ class HydraService(
     private val userRepository: UserRepository,
 ) {
     companion object {
+        private val LOG: Logger = LoggerFactory.getLogger(HydraService::class.java)
+
         private const val HYDRA_ERROR_USER_BANNED = "user_banned"
         private const val HYDRA_ERROR_NO_OWNERSHIP_VERIFICATION = "ownership_not_verified"
         private const val HYDRA_ERROR_TECHNICAL_ERROR = "technical_error"
@@ -170,5 +174,21 @@ class HydraService(
     fun denyConsentRequest(challenge: String): RedirectTo {
         val redirectResponse = hydraClient.rejectConsentRequest(challenge, GenericError("scope_denied"))
         return RedirectTo(redirectResponse.redirectTo)
+    }
+
+    fun revokeConsentRequest(subject: String, client: String? = null) {
+        LOG.info(
+            "Revoking consent sessions for subject `{}` on client `{}`",
+            subject,
+            client ?: "all",
+        )
+        val response = hydraClient.revokeRefreshTokens(
+            subject = subject,
+            all = client == null,
+            client = client,
+        )
+        if (response.status != 204) {
+            LOG.error("Revoking tokens from Hydra failed for request (subject={}, client={})", subject, client)
+        }
     }
 }
