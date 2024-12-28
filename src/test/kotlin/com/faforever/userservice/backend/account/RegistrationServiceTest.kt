@@ -35,7 +35,7 @@ class RegistrationServiceTest {
         private const val password = "somePassword"
         private val ipAddress = IpAddress("127.0.0.1")
 
-        private val user = User(1, username, password, email, null)
+        private val user = User(1, username, password, email, null, null)
     }
 
     @InjectSpy

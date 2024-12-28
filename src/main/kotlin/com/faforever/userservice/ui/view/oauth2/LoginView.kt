@@ -5,6 +5,7 @@ import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.hydra.LoginResponse
 import com.faforever.userservice.backend.hydra.NoChallengeException
 import com.faforever.userservice.backend.security.VaadinIpService
+import com.faforever.userservice.backend.tos.TosService
 import com.faforever.userservice.config.FafProperties
 import com.faforever.userservice.ui.component.FontAwesomeIcon
 import com.faforever.userservice.ui.component.LogoHeader
@@ -14,7 +15,9 @@ import com.faforever.userservice.ui.layout.CompactVerticalLayout
 import com.vaadin.flow.component.Key
 import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
+import com.vaadin.flow.component.dialog.Dialog
 import com.vaadin.flow.component.html.Anchor
+import com.vaadin.flow.component.html.IFrame
 import com.vaadin.flow.component.html.Span
 import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
@@ -24,6 +27,7 @@ import com.vaadin.flow.component.textfield.TextField
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
+import java.net.URI
 import java.time.format.DateTimeFormatter
 
 @Route("/oauth2/login", layout = CardLayout::class)
@@ -31,6 +35,7 @@ class LoginView(
     private val hydraService: HydraService,
     private val vaadinIpService: VaadinIpService,
     private val fafProperties: FafProperties,
+    private val tosService: TosService,
 ) :
     CompactVerticalLayout(), BeforeEnterObserver {
 
@@ -98,8 +103,46 @@ class LoginView(
         when (val loginResponse = hydraService.login(challenge, usernameOrEmail.value, password.value, ipAddress)) {
             is LoginResponse.FailedLogin -> displayErrorMessage(loginResponse.recoverableLoginFailure)
             is LoginResponse.RejectedLogin -> displayRejectedMessage(loginResponse.unrecoverableLoginFailure)
-            is LoginResponse.SuccessfulLogin -> ui.ifPresent { it.page.setLocation(loginResponse.redirectTo.uri) }
+            is LoginResponse.SuccessfulLogin -> onSuccessfulLogin(loginResponse)
         }
+    }
+
+    private fun onSuccessfulLogin(loginResponse: LoginResponse.SuccessfulLogin) {
+        val userId = loginResponse.userId.toInt()
+        val hasUserAcceptedLatestTos = tosService.hasUserAcceptedLatestTos(userId)
+        val redirectUri = loginResponse.redirectTo.uri
+
+        if (!hasUserAcceptedLatestTos) {
+            showTosConsentModal(redirectUri, userId)
+        } else {
+            redirectToUrl(redirectUri)
+        }
+    }
+
+    //todo: i18n
+    private fun showTosConsentModal(redirectUri: URI, userId: Int) {
+        val modalDialog = Dialog("A Newer Version of the TOS Needs to Be Accepted")
+        modalDialog.width = "70%"
+        modalDialog.height = "90%"
+
+        val iframe = IFrame(fafProperties.account().registration().termsOfServiceUrl())
+        iframe.width = "100%";
+        iframe.height = "90%";
+        val acceptButton = Button("Accept") {
+            modalDialog.close()
+            redirectToUrl(redirectUri)
+            tosService.acceptLatestTos(userId)
+        }.apply { addThemeVariants(ButtonVariant.LUMO_PRIMARY) }
+        val declineButton = Button("Decline") { modalDialog.close() } //todo: behaviour
+        val buttonLayout = HorizontalLayout(acceptButton, declineButton).apply {
+            justifyContentMode = FlexComponent.JustifyContentMode.END
+        }
+        modalDialog.add(iframe, buttonLayout)
+        modalDialog.open()
+    }
+
+    private fun redirectToUrl(redirectUri: URI) {
+        ui.ifPresent { it.page.setLocation(redirectUri) }
     }
 
     private fun displayErrorMessage(loginError: LoginResult.RecoverableLoginFailure) {

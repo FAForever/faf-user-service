@@ -25,7 +25,7 @@ class LoginServiceTest {
         private const val PASSWORD = "somePassword"
         private val IP_ADDRESS = IpAddress("127.0.0.1")
 
-        private val USER = User(1, USERNAME, PASSWORD, EMAIL, null)
+        private val USER = User(1, USERNAME, PASSWORD, EMAIL, null, null)
     }
 
     @Inject

@@ -22,6 +22,8 @@ data class User(
     var password: String,
     var email: String,
     val ip: String?,
+    @Column(name = "accepted_tos")
+    var acceptedTos: Short?,
 ) : PanacheEntityBase {
 
     override fun toString(): String =
@@ -57,6 +59,17 @@ data class Permission(
     @Column(name = "update_time")
     @UpdateTimestamp
     val updateTime: LocalDateTime,
+) : PanacheEntityBase
+
+@Entity(name = "terms_of_service")
+data class TermsOfService(
+    @Id
+    @GeneratedValue
+    val version: Short,
+    @Column(name = "valid_from", nullable = false)
+    val validFrom: LocalDateTime,
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    val content: String,
 ) : PanacheEntityBase
 
 @ApplicationScoped
@@ -100,4 +113,9 @@ class UserRepository : PanacheRepositoryBase<User, Int> {
 class AccountLinkRepository : PanacheRepositoryBase<AccountLink, String> {
     fun hasOwnershipLink(userId: Int): Boolean =
         count("userId = ?1 and ownership", userId) > 0
+}
+
+@ApplicationScoped
+class TermsOfServiceRepository : PanacheRepositoryBase<TermsOfService, Short> {
+    fun findLatest(): TermsOfService? = find("validFrom <= ?1 order by version desc", LocalDateTime.now()).firstResult()
 }
