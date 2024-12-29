@@ -119,26 +119,44 @@ class LoginView(
         }
     }
 
-    //todo: i18n
     private fun showTosConsentModal(redirectUri: URI, userId: Int) {
-        val modalDialog = Dialog("A Newer Version of the TOS Needs to Be Accepted")
-        modalDialog.width = "70%"
-        modalDialog.height = "90%"
+        val modalDialog = Dialog().apply {
+            headerTitle = getTranslation("login.tos.dialogTitle")
+            width = "70%"
+            height = "90%"
+            isCloseOnEsc = false
+            isCloseOnOutsideClick = false
+        }
 
-        val iframe = IFrame(fafProperties.account().registration().termsOfServiceUrl())
-        iframe.width = "100%";
-        iframe.height = "90%";
-        val acceptButton = Button("Accept") {
+        val iframe = IFrame(fafProperties.account().registration().termsOfServiceUrl()).apply {
+            width = "100%"
+            height = "90%"
+        }
+
+        val acceptButton = Button(getTranslation("login.tos.dialogAcceptBtn")) {
             modalDialog.close()
-            redirectToUrl(redirectUri)
-            tosService.acceptLatestTos(userId)
+            onTosAccept(userId, redirectUri)
         }.apply { addThemeVariants(ButtonVariant.LUMO_PRIMARY) }
-        val declineButton = Button("Decline") { modalDialog.close() } //todo: behaviour
+
+        val declineButton = Button(getTranslation("login.tos.dialogDeclineBtn")) { onTosDecline() }
         val buttonLayout = HorizontalLayout(acceptButton, declineButton).apply {
             justifyContentMode = FlexComponent.JustifyContentMode.END
         }
+
         modalDialog.add(iframe, buttonLayout)
         modalDialog.open()
+    }
+
+    private fun onTosAccept(userId: Int, redirectUri: URI) {
+        tosService.acceptLatestTos(userId)
+        redirectToUrl(redirectUri)
+    }
+
+    private fun onTosDecline() {
+        Dialog().apply {
+            add(Span(getTranslation("login.tos.notAcceptedMsg")))
+            open()
+        }
     }
 
     private fun redirectToUrl(redirectUri: URI) {

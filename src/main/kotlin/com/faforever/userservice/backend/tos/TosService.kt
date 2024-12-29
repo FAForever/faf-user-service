@@ -4,6 +4,7 @@ import com.faforever.userservice.backend.domain.TermsOfService
 import com.faforever.userservice.backend.domain.TermsOfServiceRepository
 import com.faforever.userservice.backend.domain.UserRepository
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.Transactional
 
 
 @ApplicationScoped
@@ -22,6 +23,7 @@ class TosService(
 
     fun findLatestTos(): TermsOfService? = tosRepository.findLatest()
 
+    @Transactional
     fun acceptLatestTos(userId: Int) {
         val user = userRepository.findById(userId)
         user?.let {
