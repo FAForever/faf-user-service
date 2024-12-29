@@ -47,8 +47,9 @@ class TosServiceTest {
 
     @Test
     fun testHasUserAcceptedLatestTosWhenAccepted() {
-        val testUser = user.copy(acceptedTos = LATEST_VERSION)
-        whenever(userRepository.findById(eq(USER_ID))).thenReturn(testUser)
+        user.acceptedTos = LATEST_VERSION
+
+        whenever(userRepository.findById(eq(USER_ID))).thenReturn(user)
         val result = tosService.hasUserAcceptedLatestTos(USER_ID)
 
         assertTrue(result)
