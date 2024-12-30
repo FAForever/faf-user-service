@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
@@ -64,12 +65,35 @@ class TosServiceTest {
     }
 
     @Test
+    fun testHasUserAcceptedLatestTosWhenTosNotExist() {
+        whenever(tosRepository.findLatest()).thenReturn(null)
+        whenever(userRepository.findById(eq(USER_ID))).thenReturn(user)
+        val result = tosService.hasUserAcceptedLatestTos(USER_ID)
+
+        assertFalse(result)
+    }
+
+    @Test
+    fun testHasUserAcceptedLatestTosWhenUserNotExist() {
+        whenever(userRepository.findById(eq(USER_ID))).thenReturn(null)
+
+        assertThrows<IllegalStateException>{ tosService.hasUserAcceptedLatestTos(USER_ID) }
+    }
+
+    @Test
     fun testAcceptLatestTosUpdatesUserAcceptedTos() {
         whenever(userRepository.findById(eq(USER_ID))).thenReturn(user)
         tosService.acceptLatestTos(USER_ID)
 
         verify(userRepository).persist(any<User>())
         assertEquals(LATEST_VERSION, user.acceptedTos)
+    }
+
+    @Test
+    fun testAcceptLatestTosUserNotFoundThrowsException() {
+        whenever(userRepository.findById(eq(USER_ID))).thenReturn(null)
+
+        assertThrows<IllegalStateException>{ tosService.acceptLatestTos(USER_ID) }
     }
 
     @Test
