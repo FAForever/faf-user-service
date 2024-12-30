@@ -14,11 +14,10 @@ class TosService(
 ) {
     fun hasUserAcceptedLatestTos(userId: Int): Boolean {
         val user = userRepository.findById(userId)
-        user?.let {
-            val latestTos = tosRepository.findLatest()
-            return latestTos?.version == user.acceptedTos
-        }
-        return false
+            ?: throw IllegalStateException("User id $userId not found")
+
+        val latestTosVersion = tosRepository.findLatest()?.version
+        return latestTosVersion == user.acceptedTos
     }
 
     fun findLatestTos(): TermsOfService? = tosRepository.findLatest()
@@ -26,10 +25,10 @@ class TosService(
     @Transactional
     fun acceptLatestTos(userId: Int) {
         val user = userRepository.findById(userId)
-        user?.let {
-            val latestTos = tosRepository.findLatest()
-            user.acceptedTos = latestTos?.version
-            userRepository.persist(user)
-        }
+            ?: throw IllegalStateException("User id $userId not found")
+
+        val latestTos = tosRepository.findLatest()
+        user.acceptedTos = latestTos?.version
+        userRepository.persist(user)
     }
 }
