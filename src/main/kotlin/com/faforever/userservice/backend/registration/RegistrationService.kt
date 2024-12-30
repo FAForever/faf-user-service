@@ -10,6 +10,7 @@ import com.faforever.userservice.backend.metrics.MetricHelper
 import com.faforever.userservice.backend.security.FafTokenService
 import com.faforever.userservice.backend.security.FafTokenType
 import com.faforever.userservice.backend.security.PasswordEncoder
+import com.faforever.userservice.backend.tos.TosService
 import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
@@ -41,6 +42,7 @@ class RegistrationService(
     private val fafProperties: FafProperties,
     private val emailService: EmailService,
     private val metricHelper: MetricHelper,
+    private val tosService: TosService,
 ) {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(RegistrationService::class.java)
@@ -141,6 +143,7 @@ class RegistrationService(
             password = encodedPassword,
             email = email,
             ip = ipAddress.value,
+            acceptedTos = tosService.findLatestTos()?.version
         )
 
         userRepository.persist(user)

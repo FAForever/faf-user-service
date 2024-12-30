@@ -5,7 +5,7 @@ import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.domain.NameRecordRepository
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
-import com.faforever.userservice.backend.security.FafTokenService
+import com.faforever.userservice.backend.tos.TosService
 import com.faforever.userservice.config.FafProperties
 import io.quarkus.mailer.MockMailbox
 import io.quarkus.test.InjectMock
@@ -27,12 +27,10 @@ import org.mockito.kotlin.whenever
 class RegistrationServiceTest {
 
     companion object {
-        private const val username = "someUsername"
-        private const val email = "some@email.com"
-        private const val password = "somePassword"
+        private const val USERNAME = "someUsername"
+        private const val EMAIL = "some@email.com"
+        private const val PASSWORD = "somePassword"
         private val ipAddress = IpAddress("127.0.0.1")
-
-        private val user = User(1, username, password, email, null)
     }
 
     @Inject
@@ -54,7 +52,7 @@ class RegistrationServiceTest {
     private lateinit var domainBlacklistRepository: DomainBlacklistRepository
 
     @InjectMock
-    private lateinit var fafTokenService: FafTokenService
+    private lateinit var tosService: TosService
 
     @BeforeEach
     fun setup() {
@@ -63,9 +61,9 @@ class RegistrationServiceTest {
 
     @Test
     fun registerSuccess() {
-        registrationService.register(username, email)
+        registrationService.register(USERNAME, EMAIL)
 
-        val sent = mailbox.getMailsSentTo(email)
+        val sent = mailbox.getMailsSentTo(EMAIL)
         assertThat(sent, hasSize(1))
         val actual = sent[0]
         assertThat(actual.subject, `is`(fafProperties.account().registration().subject()))
@@ -75,37 +73,38 @@ class RegistrationServiceTest {
     fun registerUsernameTaken() {
         whenever(userRepository.existsByUsername(anyString())).thenReturn(true)
 
-        assertThrows<IllegalArgumentException> { registrationService.register(username, email) }
+        assertThrows<IllegalArgumentException> { registrationService.register(USERNAME, EMAIL) }
     }
 
     @Test
     fun registerUsernameReserved() {
         whenever(nameRecordRepository.existsByPreviousNameAndChangeTimeAfter(anyString(), any())).thenReturn(true)
 
-        assertThrows<IllegalArgumentException> { registrationService.register(username, email) }
+        assertThrows<IllegalArgumentException> { registrationService.register(USERNAME, EMAIL) }
     }
 
     @Test
     fun registerEmailTaken() {
         whenever(userRepository.existsByEmail(anyString())).thenReturn(true)
 
-        assertThrows<IllegalArgumentException> { registrationService.register(username, email) }
+        assertThrows<IllegalArgumentException> { registrationService.register(USERNAME, EMAIL) }
     }
 
     @Test
     fun registerEmailBlacklisted() {
         whenever(domainBlacklistRepository.existsByDomain(anyString())).thenReturn(true)
 
-        assertThrows<IllegalArgumentException> { registrationService.register(username, email) }
+        assertThrows<IllegalArgumentException> { registrationService.register(USERNAME, EMAIL) }
     }
 
     @Test
     fun activateSuccess() {
-        registrationService.activate(RegisteredUser(username, email), ipAddress, password)
+        registrationService.activate(RegisteredUser(USERNAME, EMAIL), ipAddress, PASSWORD)
 
         verify(userRepository).persist(any<User>())
+        verify(tosService).findLatestTos()
 
-        val sent = mailbox.getMailsSentTo(email)
+        val sent = mailbox.getMailsSentTo(EMAIL)
         assertThat(sent, hasSize(1))
         val actual = sent[0]
         assertEquals(fafProperties.account().registration().welcomeSubject(), actual.subject)
@@ -116,7 +115,7 @@ class RegistrationServiceTest {
         whenever(userRepository.existsByUsername(anyString())).thenReturn(true)
 
         assertThrows<IllegalArgumentException> {
-            registrationService.activate(RegisteredUser(username, email), ipAddress, password)
+            registrationService.activate(RegisteredUser(USERNAME, EMAIL), ipAddress, PASSWORD)
         }
     }
 
@@ -125,7 +124,7 @@ class RegistrationServiceTest {
         whenever(nameRecordRepository.existsByPreviousNameAndChangeTimeAfter(anyString(), any())).thenReturn(true)
 
         assertThrows<IllegalArgumentException> {
-            registrationService.activate(RegisteredUser(username, email), ipAddress, password)
+            registrationService.activate(RegisteredUser(USERNAME, EMAIL), ipAddress, PASSWORD)
         }
     }
 
@@ -134,7 +133,7 @@ class RegistrationServiceTest {
         whenever(userRepository.existsByEmail(anyString())).thenReturn(true)
 
         assertThrows<IllegalArgumentException> {
-            registrationService.activate(RegisteredUser(username, email), ipAddress, password)
+            registrationService.activate(RegisteredUser(USERNAME, EMAIL), ipAddress, PASSWORD)
         }
     }
 
@@ -143,7 +142,7 @@ class RegistrationServiceTest {
         whenever(domainBlacklistRepository.existsByDomain(anyString())).thenReturn(true)
 
         assertThrows<IllegalArgumentException> {
-            registrationService.activate(RegisteredUser(username, email), ipAddress, password)
+            registrationService.activate(RegisteredUser(USERNAME, EMAIL), ipAddress, PASSWORD)
         }
     }
 }
