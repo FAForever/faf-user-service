@@ -62,5 +62,6 @@ class CardLayout : VerticalLayout(), RouterLayout {
 
     init {
         addClassName("main-card")
+        width = null
     }
 }

@@ -18,9 +18,9 @@ data class User(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int? = null,
     @Column(name = "login")
-    val username: String,
-    val password: String,
-    val email: String,
+    var username: String,
+    var password: String,
+    var email: String,
     val ip: String?,
 ) : PanacheEntityBase {
 
@@ -79,6 +79,18 @@ class UserRepository : PanacheRepositoryBase<User, Int> {
     fun existsByUsername(username: String): Boolean = count("username = ?1", username) > 0
 
     fun existsByEmail(email: String): Boolean = count("email = ?1", email) > 0
+
+    fun findBySteamId(steamId: String): User? =
+        getEntityManager().createNativeQuery(
+            """
+            SELECT login.*
+            FROM login
+            INNER JOIN service_links ON login.id = service_links.user_id
+            WHERE type = 'STEAM' and service_id = :steamId
+            """.trimIndent(),
+            User::class.java,
+        ).setParameter("steamId", steamId)
+            .resultList.firstOrNull() as User?
 }
 
 @ApplicationScoped

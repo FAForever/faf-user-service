@@ -1,9 +1,9 @@
 package com.faforever.userservice.ui.view.registration
 
+import com.faforever.userservice.backend.account.EmailStatus
+import com.faforever.userservice.backend.account.RegistrationService
+import com.faforever.userservice.backend.account.UsernameStatus
 import com.faforever.userservice.backend.recaptcha.RecaptchaService
-import com.faforever.userservice.backend.registration.EmailStatus
-import com.faforever.userservice.backend.registration.RegistrationService
-import com.faforever.userservice.backend.registration.UsernameStatus
 import com.faforever.userservice.config.FafProperties
 import com.faforever.userservice.ui.component.FafLogo
 import com.faforever.userservice.ui.component.ReCaptcha

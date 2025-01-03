@@ -1,6 +1,6 @@
 package com.faforever.userservice.ui.view.exception
 
-import com.faforever.userservice.backend.registration.InvalidRegistrationException
+import com.faforever.userservice.backend.account.InvalidRegistrationException
 import com.faforever.userservice.ui.component.FafLogo
 import com.faforever.userservice.ui.layout.CardLayout
 import com.faforever.userservice.ui.layout.CompactVerticalLayout

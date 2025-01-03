@@ -1,4 +1,4 @@
-package com.faforever.userservice.backend.registration
+package com.faforever.userservice.backend.account
 
 import com.faforever.userservice.backend.domain.DomainBlacklistRepository
 import com.faforever.userservice.backend.domain.IpAddress
@@ -46,14 +46,13 @@ class RegistrationService(
         private val LOG: Logger = LoggerFactory.getLogger(RegistrationService::class.java)
         private const val KEY_USERNAME = "username"
         private const val KEY_EMAIL = "email"
-        private const val KEY_USER_ID = "id"
     }
 
     fun register(username: String, email: String) {
         checkUsernameAndEmail(username, email)
 
         sendActivationEmail(username, email)
-        metricHelper.userRegistrationCounter.increment()
+        metricHelper.incrementUserRegistrationCounter()
     }
 
     private fun sendActivationEmail(username: String, email: String) {
@@ -67,23 +66,6 @@ class RegistrationService(
         )
         val activationUrl = fafProperties.account().registration().activationUrlFormat().format(token)
         emailService.sendActivationMail(username, email, activationUrl)
-    }
-
-    fun resetPassword(user: User) {
-        sendPasswordResetEmail(user)
-        metricHelper.userPasswordResetRequestCounter.increment()
-    }
-
-    private fun sendPasswordResetEmail(user: User) {
-        val token = fafTokenService.createToken(
-            FafTokenType.REGISTRATION,
-            Duration.ofSeconds(fafProperties.account().passwordReset().linkExpirationSeconds()),
-            mapOf(
-                KEY_USER_ID to user.id.toString(),
-            ),
-        )
-        val passwordResetUrl = fafProperties.account().passwordReset().passwordResetUrlFormat().format(token)
-        emailService.sendPasswordResetMail(user.username, user.email, passwordResetUrl)
     }
 
     @Transactional
@@ -113,9 +95,8 @@ class RegistrationService(
     }
 
     fun validateRegistrationToken(registrationToken: String): RegisteredUser {
-        val claims: Map<String, String>
-        try {
-            claims = fafTokenService.getTokenClaims(FafTokenType.REGISTRATION, registrationToken)
+        val claims = try {
+            fafTokenService.getTokenClaims(FafTokenType.REGISTRATION, registrationToken)
         } catch (exception: Exception) {
             LOG.error("Unable to extract claims", exception)
             throw InvalidRegistrationException()
@@ -146,7 +127,7 @@ class RegistrationService(
         userRepository.persist(user)
 
         LOG.info("User has been activated: {}", user)
-        metricHelper.userActivationCounter.increment()
+        metricHelper.incrementUserActivationCounter()
 
         emailService.sendWelcomeToFafMail(username, email)
 

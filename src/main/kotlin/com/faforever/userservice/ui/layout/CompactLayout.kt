@@ -8,6 +8,7 @@ open class CompactVerticalLayout(vararg children: Component) : VerticalLayout(*c
     init {
         isPadding = false
         isSpacing = false
+        width = null
     }
 }
 

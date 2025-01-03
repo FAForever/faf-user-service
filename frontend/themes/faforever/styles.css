@@ -80,7 +80,7 @@ header {
 
 .main-card {
     border-radius: 2px;
-    max-width: 30rem;
+    max-width: max(80%, 30rem);
     margin: 3rem auto;
     background-color: rgba(220, 220, 220, 0.8);
     box-shadow: 3px 4px 5px 5px rgba(0, 0, 0, 0.2);

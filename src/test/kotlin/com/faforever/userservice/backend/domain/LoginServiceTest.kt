@@ -1,8 +1,8 @@
 package com.faforever.userservice.backend.domain
 
-import com.faforever.userservice.backend.login.LoginResult
-import com.faforever.userservice.backend.login.LoginServiceImpl
-import com.faforever.userservice.backend.login.SecurityProperties
+import com.faforever.userservice.backend.account.LoginResult
+import com.faforever.userservice.backend.account.LoginServiceImpl
+import com.faforever.userservice.backend.account.SecurityProperties
 import com.faforever.userservice.backend.security.PasswordEncoder
 import io.quarkus.test.InjectMock
 import io.quarkus.test.junit.QuarkusTest

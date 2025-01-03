@@ -9,7 +9,7 @@ import org.junit.jupiter.api.assertThrows
 import java.time.Duration
 
 @QuarkusTest
-class FAFTokenServiceTest {
+class FafTokenServiceTest {
 
     @Inject
     private lateinit var fafTokenService: FafTokenService
