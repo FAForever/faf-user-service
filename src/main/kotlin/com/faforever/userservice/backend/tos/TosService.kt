@@ -6,7 +6,6 @@ import com.faforever.userservice.backend.domain.UserRepository
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
 
-
 @ApplicationScoped
 class TosService(
     private val userRepository: UserRepository,

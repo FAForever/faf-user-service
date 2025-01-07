@@ -265,5 +265,6 @@ class RecoveryServiceTest {
             password = "testPassword",
             email = "test@faforever.com",
             ip = null,
+            acceptedTos = 1,
         )
 }

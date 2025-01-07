@@ -8,10 +8,10 @@ import com.faforever.userservice.backend.tos.TosService
 import io.quarkus.test.InjectMock
 import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -26,7 +26,8 @@ class TosServiceTest {
     companion object {
         private const val USER_ID = 1
         private const val LATEST_VERSION: Short = 2
-        private val LATEST_TOS = TermsOfService(version = LATEST_VERSION, validFrom = LocalDateTime.now(), content = "Latest TOS")
+        private val LATEST_TOS =
+            TermsOfService(version = LATEST_VERSION, validFrom = LocalDateTime.now(), content = "Latest TOS")
     }
 
     @InjectMock
@@ -42,7 +43,14 @@ class TosServiceTest {
 
     @BeforeEach
     fun setUp() {
-        user = User(id = USER_ID, username = "testUser", password = "password", email = "test@example.com", ip = "127.0.0.1", acceptedTos = 1)
+        user = User(
+            id = USER_ID,
+            username = "testUser",
+            password = "password",
+            email = "test@example.com",
+            ip = "127.0.0.1",
+            acceptedTos = 1,
+        )
         whenever(tosRepository.findLatest()).thenReturn(LATEST_TOS)
     }
 
@@ -77,7 +85,7 @@ class TosServiceTest {
     fun testHasUserAcceptedLatestTosWhenUserNotExist() {
         whenever(userRepository.findById(eq(USER_ID))).thenReturn(null)
 
-        assertThrows<IllegalStateException>{ tosService.hasUserAcceptedLatestTos(USER_ID) }
+        assertThrows<IllegalStateException> { tosService.hasUserAcceptedLatestTos(USER_ID) }
     }
 
     @Test
@@ -93,7 +101,7 @@ class TosServiceTest {
     fun testAcceptLatestTosUserNotFoundThrowsException() {
         whenever(userRepository.findById(eq(USER_ID))).thenReturn(null)
 
-        assertThrows<IllegalStateException>{ tosService.acceptLatestTos(USER_ID) }
+        assertThrows<IllegalStateException> { tosService.acceptLatestTos(USER_ID) }
     }
 
     @Test

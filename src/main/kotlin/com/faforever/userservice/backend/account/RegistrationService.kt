@@ -140,7 +140,7 @@ class RegistrationService(
             password = encodedPassword,
             email = email,
             ip = ipAddress.value,
-            acceptedTos = tosService.findLatestTos()?.version
+            acceptedTos = tosService.findLatestTos()?.version,
         )
 
         userRepository.persist(user)
