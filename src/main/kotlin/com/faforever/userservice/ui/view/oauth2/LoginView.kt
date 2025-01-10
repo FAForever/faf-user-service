@@ -3,7 +3,7 @@ package com.faforever.userservice.ui.view.oauth2
 import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.hydra.LoginResponse
 import com.faforever.userservice.backend.hydra.NoChallengeException
-import com.faforever.userservice.backend.login.LoginResult
+import com.faforever.userservice.backend.security.LoginResult
 import com.faforever.userservice.backend.security.VaadinIpService
 import com.faforever.userservice.config.FafProperties
 import com.faforever.userservice.ui.component.FontAwesomeIcon
