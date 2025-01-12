@@ -1,5 +1,6 @@
 package com.faforever.userservice.backend.account
 
+import com.faforever.userservice.backend.account.RecoveryService.ParsingResult
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.email.EmailService
@@ -16,10 +17,9 @@ import jakarta.inject.Inject
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.containsString
 import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.nullValue
+import org.hamcrest.Matchers.instanceOf
 import org.hamcrest.Matchers.startsWith
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
@@ -113,51 +113,49 @@ class RecoveryServiceTest {
     @Test
     fun testParseRecoveryHttpRequestWithEmptyParameters() {
         // Execute
-        assertThrows<InvalidRecoveryException> {
-            recoveryService.parseRecoveryHttpRequest(emptyMap())
-        }
+        val result = recoveryService.parseRecoveryHttpRequest(emptyMap())
 
         // Verify
+        assertThat(result, instanceOf(ParsingResult.Invalid::class.java))
+
         verify(metricHelper).incrementPasswordResetViaEmailFailedCounter()
     }
 
     @Test
     fun testParseRecoveryHttpRequestWithUnknownSteamId() {
         // Prepare
-        val parameters = mapOf("some" to listOf("fake", "values"))
+        val parameters = mapOf("token" to listOf("STEAM"))
 
         whenever(steamService.parseSteamIdFromRequestParameters(parameters))
-            .thenReturn("someSteamId")
+            .thenReturn(SteamService.ParsingResult.ExtractedId("someSteamId"))
         whenever(steamService.findUserBySteamId("someSteamId"))
             .thenReturn(null)
 
         // Execute
-        val (type, user) = recoveryService.parseRecoveryHttpRequest(parameters)
+        val result = recoveryService.parseRecoveryHttpRequest(parameters) as ParsingResult.ValidNoUser
 
         // Verify
-        assertThat(type, equalTo(RecoveryService.Type.STEAM))
-        assertThat(user, nullValue())
-
+        assertThat(result.type, equalTo(RecoveryService.Type.STEAM))
         verify(metricHelper).incrementPasswordResetViaSteamFailedCounter()
     }
 
     @Test
     fun testParseRecoveryHttpRequestWithKnownSteamId() {
         // Prepare
-        val parameters = mapOf("some" to listOf("fake", "values"))
+        val parameters = mapOf("token" to listOf("STEAM"))
         val testUser = buildTestUser()
 
         whenever(steamService.parseSteamIdFromRequestParameters(parameters))
-            .thenReturn("someSteamId")
+            .thenReturn(SteamService.ParsingResult.ExtractedId("someSteamId"))
         whenever(steamService.findUserBySteamId("someSteamId"))
             .thenReturn(testUser)
 
         // Execute
-        val (type, user) = recoveryService.parseRecoveryHttpRequest(parameters)
+        val result = recoveryService.parseRecoveryHttpRequest(parameters) as ParsingResult.ExtractedUser
 
         // Verify
-        assertThat(type, equalTo(RecoveryService.Type.STEAM))
-        assertThat(user, equalTo(testUser))
+        assertThat(result.type, equalTo(RecoveryService.Type.STEAM))
+        assertThat(result.user, equalTo(testUser))
     }
 
     @Test
@@ -165,17 +163,14 @@ class RecoveryServiceTest {
         // Prepare
         val parameters = mapOf("token" to listOf("tokenValue"))
 
-        whenever(steamService.parseSteamIdFromRequestParameters(parameters))
-            .thenReturn(null)
         whenever(fafTokenService.getTokenClaims(PASSWORD_RESET, "tokenValue"))
             .thenThrow(RuntimeException("invalid token claim"))
 
         // Execute
-        assertThrows<InvalidRecoveryException> {
-            recoveryService.parseRecoveryHttpRequest(parameters)
-        }
+        val result = recoveryService.parseRecoveryHttpRequest(parameters)
 
         // Verify
+        assertThat(result, instanceOf(ParsingResult.Invalid::class.java))
         verify(metricHelper).incrementPasswordResetViaEmailFailedCounter()
     }
 
@@ -185,16 +180,15 @@ class RecoveryServiceTest {
         val parameters = mapOf("token" to listOf("tokenValue"))
 
         whenever(steamService.parseSteamIdFromRequestParameters(parameters))
-            .thenReturn(null)
+            .thenReturn(SteamService.ParsingResult.NoSteamIdPresent)
         whenever(fafTokenService.getTokenClaims(PASSWORD_RESET, "tokenValue"))
             .thenReturn(emptyMap())
 
         // Execute
-        assertThrows<InvalidRecoveryException> {
-            recoveryService.parseRecoveryHttpRequest(parameters)
-        }
+        val result = recoveryService.parseRecoveryHttpRequest(parameters)
 
         // Verify
+        assertThat(result, instanceOf(ParsingResult.Invalid::class.java))
         verify(metricHelper).incrementPasswordResetViaEmailFailedCounter()
     }
 
@@ -203,18 +197,16 @@ class RecoveryServiceTest {
         // Prepare
         val parameters = mapOf("token" to listOf("tokenValue"))
 
-        whenever(steamService.parseSteamIdFromRequestParameters(parameters))
-            .thenReturn(null)
         whenever(fafTokenService.getTokenClaims(PASSWORD_RESET, "tokenValue"))
             .thenReturn(mapOf("id" to "12345"))
         whenever(userRepository.findById(12345)).thenReturn(null)
 
         // Execute
-        assertThrows<InvalidRecoveryException> {
-            recoveryService.parseRecoveryHttpRequest(parameters)
-        }
+        val result = recoveryService.parseRecoveryHttpRequest(parameters)
 
         // Verify
+        assertThat(result, instanceOf(ParsingResult.Invalid::class.java))
+
         verify(metricHelper).incrementPasswordResetViaEmailFailedCounter()
     }
 
@@ -231,11 +223,11 @@ class RecoveryServiceTest {
         whenever(userRepository.findById(12345)).thenReturn(testUser)
 
         // Execute
-        val (type, user) = recoveryService.parseRecoveryHttpRequest(parameters)
+        val result = recoveryService.parseRecoveryHttpRequest(parameters) as ParsingResult.ExtractedUser
 
         // Verify
-        assertThat(type, equalTo(RecoveryService.Type.EMAIL))
-        assertThat(user, equalTo(testUser))
+        assertThat(result.type, equalTo(RecoveryService.Type.EMAIL))
+        assertThat(result.user, equalTo(testUser))
     }
 
     @Test

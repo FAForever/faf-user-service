@@ -35,20 +35,31 @@ class SteamService(
             .build().toString()
     }
 
-    fun parseSteamIdFromRequestParameters(parameters: Map<String, List<String>>): String? {
-        if (!parameters.containsKey(OPENID_IDENTITY_KEY)) {
-            LOG.debug("No OpenID identity key present")
-            return null
-        }
-
-        validateSteamRedirect(parameters)
-
-        LOG.trace("Parsing steam id from request parameters: {}", parameters)
-        return parameters[OPENID_IDENTITY_KEY]?.get(0)
-            ?.let { identityUrl -> identityUrl.substring(identityUrl.lastIndexOf("/") + 1) }
+    sealed interface ParsingResult {
+        data object NoSteamIdPresent : ParsingResult
+        data object InvalidRedirect : ParsingResult
+        data class ExtractedId(val steamId: String) : ParsingResult
     }
 
-    private fun validateSteamRedirect(parameters: Map<String, List<String>>) {
+    fun parseSteamIdFromRequestParameters(parameters: Map<String, List<String>>): ParsingResult =
+        when {
+            !isValidSteamRedirect(parameters) -> ParsingResult.InvalidRedirect
+            else -> {
+                LOG.trace("Parsing steam id from request parameters: {}", parameters)
+                parameters[OPENID_IDENTITY_KEY]?.firstOrNull()
+                    ?.let { identityUrl -> identityUrl.substring(identityUrl.lastIndexOf("/") + 1) }
+                    ?.let { steamId ->
+                        ParsingResult.ExtractedId(steamId).also {
+                            LOG.debug("Extracted Steam id: {}", steamId)
+                        }
+                    }
+                    ?: ParsingResult.NoSteamIdPresent.also {
+                        LOG.debug("No OpenID identity key present")
+                    }
+            }
+        }
+
+    private fun isValidSteamRedirect(parameters: Map<String, List<String>>): Boolean {
         LOG.debug("Checking valid OpenID 2.0 redirect against Steam API, parameters: {}", parameters)
 
         val uriBuilder = UriBuilder.fromUri(fafProperties.steam().loginUrlFormat())
@@ -68,11 +79,11 @@ class SteamService(
         val result = response.body()
 
         if (result == null || !result.contains("is_valid:true")) {
-            throw InvalidSteamRedirectException(
-                "Could not verify steam redirect for identity: ${parameters[OPENID_IDENTITY_KEY]}",
-            )
+            LOG.debug("Could not verify steam redirect for identity: {}", parameters[OPENID_IDENTITY_KEY])
+            return false
         } else {
             LOG.debug("Steam response successfully validated.")
+            return true
         }
     }
 

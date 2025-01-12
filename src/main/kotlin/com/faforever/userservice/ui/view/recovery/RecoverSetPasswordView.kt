@@ -102,27 +102,19 @@ class RecoverSetPasswordView(
     override fun beforeEnter(event: BeforeEnterEvent?) {
         val parameters = event?.location?.queryParameters?.parameters ?: emptyMap()
 
-        val (recoveryType, user) = try {
-            recoveryService.parseRecoveryHttpRequest(parameters)
-        } catch (e: Exception) {
-            showDialog("recovery.setPassword.failed.title", "recovery.setPassword.invalidToken")
-            return
-        }
+        when (val result = recoveryService.parseRecoveryHttpRequest(parameters)) {
+            is RecoveryService.ParsingResult.Invalid ->
+                showDialog("recovery.setPassword.failed.title", "recovery.setPassword.invalidToken")
+            is RecoveryService.ParsingResult.ValidNoUser ->
+                showDialog("recovery.setPassword.failed.title", "recovery.setPassword.unknownUser")
+            is RecoveryService.ParsingResult.ExtractedUser -> {
+                this.recoveryType = result.type
+                this.user = result.user
 
-        if (user == null) {
-            when (recoveryType) {
-                RecoveryService.Type.EMAIL ->
-                    showDialog("recovery.setPassword.failed.title", "recovery.setPassword.invalidToken")
-                RecoveryService.Type.STEAM ->
-                    showDialog("recovery.setPassword.failed.title", "recovery.steam.unknownUser")
+                usernameInRecovery.element.text =
+                    getTranslation("recovery.setPassword.usernameInRecovery", user?.username ?: "")
             }
-        } else {
-            usernameInRecovery.element.text =
-                getTranslation("recovery.setPassword.usernameInRecovery", user.username ?: "")
         }
-
-        this.recoveryType = recoveryType
-        this.user = user
     }
 
     private fun showDialog(titleKey: String, messageKey: String?) {

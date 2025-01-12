@@ -20,7 +20,7 @@ class RecoverAccountView :
 
     private val emailSection = VerticalLayout(
         Button(getTranslation("recovery.selectMethod.email.link")) {
-            getUI().ifPresent{ ui -> ui.navigate(RecoverViaEmailView::class.java) }
+            getUI().ifPresent { ui -> ui.navigate(RecoverViaEmailView::class.java) }
         }.apply {
             addThemeVariants(ButtonVariant.LUMO_PRIMARY)
         },
@@ -33,7 +33,7 @@ class RecoverAccountView :
 
     private val steamSection = VerticalLayout(
         Button(getTranslation("recovery.selectMethod.steam.link")) {
-            getUI().ifPresent{ ui -> ui.navigate(RecoverViaSteamView::class.java) }
+            getUI().ifPresent { ui -> ui.navigate(RecoverViaSteamView::class.java) }
         }.apply {
             addThemeVariants(ButtonVariant.LUMO_PRIMARY)
         },
