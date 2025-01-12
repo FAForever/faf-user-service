@@ -58,52 +58,72 @@ class RecoveryService(
             fafProperties.account().passwordReset().passwordResetUrlFormat().format("STEAM"),
         )
 
-    fun parseRecoveryHttpRequest(parameters: Map<String, List<String>>): Pair<Type, User?> {
+    sealed interface ParsingResult {
+        data class ExtractedUser(val type: Type, val user: User) : ParsingResult
+        data class ValidNoUser(val type: Type) : ParsingResult
+        data class Invalid(val cause: Exception) : ParsingResult
+    }
+
+    fun parseRecoveryHttpRequest(parameters: Map<String, List<String>>): ParsingResult {
         // At first glance it may seem strange that a service is parsing http request parameters,
         // but the parameters of the request are determined by this service itself in the request reset phase!
-        val token = parameters["token"]?.first()
+
+        val token = parameters["token"]?.firstOrNull()
         LOG.debug("Extracted token: {}", token)
-
-        val steamId = steamService.parseSteamIdFromRequestParameters(parameters)
-        LOG.debug("Extracted Steam id: {}", steamId)
-
-        return when {
-            steamId != null -> Type.STEAM to steamService.findUserBySteamId(steamId).also { user ->
-                if (user == null) metricHelper.incrementPasswordResetViaSteamFailedCounter()
-            }
-
-            token != null -> Type.EMAIL to extractUserFromEmailRecoveryToken(token)
-            else -> {
+        return when (token) {
+            null -> {
                 metricHelper.incrementPasswordResetViaEmailFailedCounter()
-                throw InvalidRecoveryException("Could not extract recovery type or user from HTTP request")
+                ParsingResult.Invalid(InvalidRecoveryException("Could not extract token"))
             }
+            "STEAM" -> when (val result = steamService.parseSteamIdFromRequestParameters(parameters)) {
+                is SteamService.ParsingResult.NoSteamIdPresent,
+                is SteamService.ParsingResult.InvalidRedirect,
+                -> {
+                    metricHelper.incrementPasswordResetViaSteamFailedCounter()
+                    ParsingResult.Invalid(
+                        InvalidRecoveryException("Steam based recovery attempt is invalid"),
+                    )
+                }
+                is SteamService.ParsingResult.ExtractedId -> {
+                    val user = steamService.findUserBySteamId(result.steamId)
+                    if (user == null) {
+                        metricHelper.incrementPasswordResetViaSteamFailedCounter()
+                        ParsingResult.ValidNoUser(Type.STEAM)
+                    } else {
+                        ParsingResult.ExtractedUser(Type.STEAM, user)
+                    }
+                }
+            }
+
+            // Email
+            else -> extractUserFromEmailRecoveryToken(token)
         }
     }
 
-    private fun extractUserFromEmailRecoveryToken(emailRecoveryToken: String): User {
+    private fun extractUserFromEmailRecoveryToken(emailRecoveryToken: String): ParsingResult {
         val claims = try {
             fafTokenService.getTokenClaims(FafTokenType.PASSWORD_RESET, emailRecoveryToken)
         } catch (exception: Exception) {
             metricHelper.incrementPasswordResetViaEmailFailedCounter()
             LOG.error("Unable to extract claims", exception)
-            throw InvalidRecoveryException("Unable to extract claims from token")
+            return ParsingResult.Invalid(InvalidRecoveryException("Unable to extract claims from token"))
         }
 
         val userId = claims[KEY_USER_ID]
 
         if (userId.isNullOrBlank()) {
             metricHelper.incrementPasswordResetViaEmailFailedCounter()
-            throw InvalidRecoveryException("No user id found in token claims")
+            return ParsingResult.Invalid(InvalidRecoveryException("No user id found in token claims"))
         }
 
         val user = userRepository.findById(userId.toInt())
 
         if (user == null) {
             metricHelper.incrementPasswordResetViaEmailFailedCounter()
-            throw InvalidRecoveryException("User with id $userId not found")
+            return ParsingResult.Invalid(InvalidRecoveryException("User with id $userId not found"))
         }
 
-        return user
+        return ParsingResult.ExtractedUser(Type.EMAIL, user)
     }
 
     fun resetPassword(type: Type, userId: Int, newPassword: String) {

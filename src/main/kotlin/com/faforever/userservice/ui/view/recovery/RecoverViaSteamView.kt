@@ -69,6 +69,6 @@ class RecoverViaSteamView(
 
     private fun redirectToSteam() {
         val steamUrl = recoveryService.buildSteamLoginUrl()
-        getUI().ifPresent{ ui -> ui.page.setLocation(steamUrl)}
+        getUI().ifPresent { ui -> ui.page.setLocation(steamUrl) }
     }
 }
