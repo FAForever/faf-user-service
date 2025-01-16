@@ -72,7 +72,7 @@ class RegisterView(
         val reCaptcha = ReCaptcha(fafProperties.recaptcha().siteKey())
 
         val formHeaderLeft = FafLogo()
-        val formHeaderRight = H2(getTranslation("register.action"))
+        val formHeaderRight = H2(getTranslation("register.title"))
         val formHeader =
             HorizontalLayout(formHeaderLeft, formHeaderRight).apply {
                 justifyContentMode = FlexComponent.JustifyContentMode.CENTER
