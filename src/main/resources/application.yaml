@@ -5,7 +5,7 @@ faf:
   hydra-base-url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
   account:
     password-reset-url: ${faf.self-url}/recover-account
-    register-account-url: ${faf.self-url}/recover-account/register
+    register-account-url: ${faf.self-url}/register
     account-link-url: ${ACCOUNT_LINK_URL:`https://www.faforever.com/account/link`}
     registration:
       activation-url-format: ${faf.self-url}/register/activate?token=%s

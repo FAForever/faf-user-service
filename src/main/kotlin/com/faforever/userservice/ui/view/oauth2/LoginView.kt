@@ -35,10 +35,10 @@ class LoginView(
     CompactVerticalLayout(), BeforeEnterObserver {
 
     private val footer = VerticalLayout().apply {
-        val resetHref = "https://faforever.com/account/password/reset"
-        val passwordReset = Anchor(resetHref, getTranslation("login.forgotPassword"))
-        val registerHref = "https://faforever.com/account/register"
-        val registerAccount = Anchor(registerHref, getTranslation("login.registerAccount"))
+        val passwordReset =
+            Anchor(fafProperties.account().passwordResetUrl(), getTranslation("login.forgotPassword"))
+        val registerAccount =
+            Anchor(fafProperties.account().registerAccountUrl(), getTranslation("login.registerAccount"))
 
         val links = HorizontalLayout(passwordReset, registerAccount).apply {
             addClassNames("pipe-separated")
@@ -80,7 +80,9 @@ class LoginView(
         addThemeVariants(ButtonVariant.LUMO_PRIMARY)
         addClickShortcut(Key.ENTER)
     }
-    private val loginLayout = CompactVerticalLayout(usernameOrEmail, password, submit)
+    private val loginLayout = CompactVerticalLayout(usernameOrEmail, password, submit).apply {
+        width = "100%"
+    }
 
     private lateinit var challenge: String
 
