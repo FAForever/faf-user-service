@@ -19,6 +19,7 @@ class OAuthClientHeader : CompactVerticalLayout() {
     private val clientPolicy = Anchor()
 
     init {
+        width = "100%"
         clientTos.text = getTranslation("consent.termsOfService")
         clientPolicy.text = getTranslation("consent.privacyStatement")
 
