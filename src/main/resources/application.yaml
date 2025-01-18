@@ -12,12 +12,15 @@ faf:
       subject: ${REGISTRATION_EMAIL_SUBJECT:FAF user registration}
       activation-mail-template-path: ${ACCOUNT_ACTIVATION_MAIL_TEMPLATE_PATH:/config/mail/account-activation.html}
       welcome-subject: ${WELCOME_MAIL_SUBJECT:Welcome to FAF}
+      email-taken-subject: ${EMAIL_TAKEN_SUBJECT:Account exists notice}
       welcome-mail-template-path: ${WELCOME_MAIL_TEMPLATE_PATH:/config/mail/welcome-to-faf.html}
+      email-taken-mail-template-path: ${EMAIL_TAKEN_MAIL_TEMPLATE_PATH:/config/mail/email-taken.html}
       terms-of-service-url: ${FAF_TERMS_OF_SERVICE:https://faforever.com/tos}
       privacy-statement-url: ${FAF_PRIVACY_STATEMENT:https://faforever.com/privacy}
       rules-url: ${FAF_RULES:https://faforever.com/rules}
     password-reset:
       password-reset-url-format: ${faf.self-url}/recover-account/set-password?token=%s
+      password-reset-initiate-email-url-format: ${faf.self-url}/recover-account/email?identifier=%s
       subject: ${PASSWORD_RESET_EMAIL_SUBJECT:FAF password reset}
       mail-template-path: ${PASSWORD_RESET_MAIL_TEMPLATE_PATH:/config/mail/password-reset.html}
     username:
@@ -103,6 +106,7 @@ quarkus:
       registration:
         activation-mail-template-path: ${ACCOUNT_ACTIVATION_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-account-activation.html}
         welcome-mail-template-path: ${WELCOME_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-welcome-to-faf.html}
+        email-taken-mail-template-path: ${EMAIL_TAKEN_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-email-taken.html}
       password-reset:
         mail-template-path: ${PASSWORD_RESET_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-password-reset.html}
     irc:

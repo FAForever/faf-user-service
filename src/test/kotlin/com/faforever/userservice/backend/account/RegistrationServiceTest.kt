@@ -5,11 +5,13 @@ import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.domain.NameRecordRepository
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
+import com.faforever.userservice.backend.email.EmailService
 import com.faforever.userservice.backend.security.FafTokenService
 import com.faforever.userservice.config.FafProperties
 import io.quarkus.mailer.MockMailbox
 import io.quarkus.test.InjectMock
 import io.quarkus.test.junit.QuarkusTest
+import io.quarkus.test.junit.mockito.InjectSpy
 import jakarta.inject.Inject
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasSize
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.any
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -34,6 +37,9 @@ class RegistrationServiceTest {
 
         private val user = User(1, username, password, email, null)
     }
+
+    @InjectSpy
+    private lateinit var emailService: EmailService
 
     @Inject
     private lateinit var registrationService: RegistrationService
@@ -87,16 +93,20 @@ class RegistrationServiceTest {
 
     @Test
     fun registerEmailTaken() {
-        whenever(userRepository.existsByEmail(anyString())).thenReturn(true)
+        whenever(userRepository.findByEmail(anyString())).thenReturn(user)
+        val newTestUsername = "newUsername"
 
-        assertThrows<IllegalArgumentException> { registrationService.register(username, email) }
+        registrationService.register(newTestUsername, email)
+
+        val expectedLink = fafProperties.account().passwordReset().passwordResetInitiateEmailUrlFormat().format(email)
+        verify(emailService, times(1)).sendEmailAlreadyTakenMail(newTestUsername, username, email, expectedLink)
     }
 
     @Test
     fun registerEmailBlacklisted() {
         whenever(domainBlacklistRepository.existsByDomain(anyString())).thenReturn(true)
 
-        assertThrows<IllegalArgumentException> { registrationService.register(username, email) }
+        assertThrows<IllegalStateException> { registrationService.register(username, email) }
     }
 
     @Test
@@ -131,7 +141,7 @@ class RegistrationServiceTest {
 
     @Test
     fun activateEmailTaken() {
-        whenever(userRepository.existsByEmail(anyString())).thenReturn(true)
+        whenever(userRepository.findByEmail(anyString())).thenReturn(user)
 
         assertThrows<IllegalArgumentException> {
             registrationService.activate(RegisteredUser(username, email), ipAddress, password)

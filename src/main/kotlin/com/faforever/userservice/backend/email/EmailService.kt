@@ -66,4 +66,14 @@ class EmailService(
         val mailBody = mailBodyBuilder.buildPasswordResetBody(username, passwordResetUrl)
         mailSender.sendMail(email, properties.account().passwordReset().subject(), mailBody, ContentType.HTML)
     }
+
+    fun sendEmailAlreadyTakenMail(
+        desiredUsername: String,
+        existingUsername: String,
+        email: String,
+        passwordResetUrl: String,
+    ) {
+        val mailBody = mailBodyBuilder.buildEmailTakenBody(desiredUsername, existingUsername, passwordResetUrl)
+        mailSender.sendMail(email, properties.account().registration().emailTakenSubject(), mailBody, ContentType.HTML)
+    }
 }

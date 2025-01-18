@@ -22,8 +22,10 @@ enum class UsernameStatus {
     USERNAME_TAKEN, USERNAME_RESERVED, USERNAME_AVAILABLE,
 }
 
-enum class EmailStatus {
-    EMAIL_TAKEN, EMAIL_BLACKLISTED, EMAIL_AVAILABLE,
+sealed interface EmailStatusResponse {
+    data object EmailBlackListed : EmailStatusResponse
+    data object EmailAvailable : EmailStatusResponse
+    data class EmailTaken(val existingUsername: String) : EmailStatusResponse
 }
 
 data class RegisteredUser(
@@ -49,10 +51,22 @@ class RegistrationService(
     }
 
     fun register(username: String, email: String) {
-        checkUsernameAndEmail(username, email)
+        checkUsername(username)
 
-        sendActivationEmail(username, email)
-        metricHelper.incrementUserRegistrationCounter()
+        when (val emailStatus = emailAvailable(email)) {
+            is EmailStatusResponse.EmailBlackListed -> throw IllegalStateException("Email provider is blacklisted")
+            is EmailStatusResponse.EmailTaken -> onEmailTaken(username, emailStatus.existingUsername, email)
+            is EmailStatusResponse.EmailAvailable -> {
+                sendActivationEmail(username, email)
+                metricHelper.incrementUserRegistrationCounter()
+            }
+        }
+    }
+
+    private fun onEmailTaken(desiredUsername: String, existingUsername: String, email: String) {
+        val passwordResetUrl =
+            fafProperties.account().passwordReset().passwordResetInitiateEmailUrlFormat().format(email)
+        emailService.sendEmailAlreadyTakenMail(desiredUsername, existingUsername, email, passwordResetUrl)
     }
 
     private fun sendActivationEmail(username: String, email: String) {
@@ -84,14 +98,14 @@ class RegistrationService(
     }
 
     @Transactional
-    fun emailAvailable(email: String): EmailStatus {
+    fun emailAvailable(email: String): EmailStatusResponse {
         val onBlacklist = domainBlacklistRepository.existsByDomain(email.substring(email.lastIndexOf('@') + 1))
         if (onBlacklist) {
-            return EmailStatus.EMAIL_BLACKLISTED
+            return EmailStatusResponse.EmailBlackListed
         }
 
-        val exists = userRepository.existsByEmail(email)
-        return if (exists) EmailStatus.EMAIL_TAKEN else EmailStatus.EMAIL_AVAILABLE
+        val user = userRepository.findByEmail(email)
+        return if (user != null) EmailStatusResponse.EmailTaken(user.username) else EmailStatusResponse.EmailAvailable
     }
 
     fun validateRegistrationToken(registrationToken: String): RegisteredUser {
@@ -115,7 +129,9 @@ class RegistrationService(
         val email = registeredUser.email
         val encodedPassword = passwordEncoder.encode(password)
 
-        checkUsernameAndEmail(username, email)
+        checkUsername(username)
+        val emailStatus = emailAvailable(email)
+        require(emailStatus is EmailStatusResponse.EmailAvailable) { "Email unavailable" }
 
         val user = User(
             username = username,
@@ -134,15 +150,8 @@ class RegistrationService(
         return user
     }
 
-    private fun checkUsernameAndEmail(username: String, email: String) {
+    private fun checkUsername(username: String) {
         val usernameStatus = usernameAvailable(username)
-        if (usernameStatus != UsernameStatus.USERNAME_AVAILABLE) {
-            throw IllegalArgumentException("Username unavailable")
-        }
-
-        val emailStatus = emailAvailable(email)
-        if (emailStatus != EmailStatus.EMAIL_AVAILABLE) {
-            throw IllegalArgumentException("Email unavailable")
-        }
+        require(usernameStatus == UsernameStatus.USERNAME_AVAILABLE) { "Username unavailable" }
     }
 }

@@ -6,7 +6,7 @@ import io.smallrye.config.WithName
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.net.URI
-import java.util.*
+import java.util.Optional
 
 @ConfigMapping(prefix = "faf")
 interface FafProperties {
@@ -107,6 +107,12 @@ interface FafProperties {
             fun welcomeMailTemplatePath(): String
 
             @NotBlank
+            fun emailTakenMailTemplatePath(): String
+
+            @NotBlank
+            fun emailTakenSubject(): String
+
+            @NotBlank
             fun termsOfServiceUrl(): String
 
             @NotBlank
@@ -122,6 +128,9 @@ interface FafProperties {
 
             @NotBlank
             fun passwordResetUrlFormat(): String
+
+            @NotBlank
+            fun passwordResetInitiateEmailUrlFormat(): String
 
             @NotBlank
             fun subject(): String
