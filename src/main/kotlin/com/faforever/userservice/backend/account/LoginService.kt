@@ -157,8 +157,9 @@ class LoginServiceImpl(
             userRepository.persist(this)
         }
 
-        hydraService.revokeConsentRequest(userId.toString())
+        // Disabled due to #377 -- revoking consent requests does not seem the right way to disable all active sessions
+        // hydraService.revokeConsentRequest(userId.toString())
 
-        LOG.info("Password for user id {}} has been reset", userId)
+        LOG.info("Password for user id {} has been reset", userId)
     }
 }
