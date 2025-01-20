@@ -24,10 +24,10 @@
     <mj-section>
       <mj-column>
         <mj-text>
-          <p>Remember, our system does not allow multiple accounts with the same email. According to
-            our policy, one Steam account cannot be linked to more than one FAF (Forged Alliance
-            Forever) account. If this was you and you've forgotten your password, you can reset it:
+          <p>According to our rules each user may have only have one (1) FAF account.
+            Maybe you forgot, that you already registered in the past, thus we send you this notice.
           </p>
+          <p>If you have no more access to this account, you can reset the password right here:</p>
         </mj-text>
         <mj-button href="{{passwordResetUrl}}">
           Reset Password
@@ -38,7 +38,7 @@
     <mj-section background-color="gray" padding="0">
       <mj-column>
         <mj-text color="#d3d3d3">
-          <p>If you did not attempt to register another account, please ignore this email.</p>
+          <p>If you did not attempt to register a new account, please ignore this email.</p>
         </mj-text>
       </mj-column>
     </mj-section>
