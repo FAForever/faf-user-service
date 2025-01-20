@@ -13,6 +13,7 @@ import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.security.PasswordEncoder
 import io.smallrye.config.ConfigMapping
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.Transactional
 import jakarta.validation.constraints.NotNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -151,6 +152,7 @@ class LoginServiceImpl(
         }
     }
 
+    @Transactional
     override fun resetPassword(userId: Int, newPassword: String) {
         userRepository.findById(userId)!!.apply {
             password = passwordEncoder.encode(newPassword)
