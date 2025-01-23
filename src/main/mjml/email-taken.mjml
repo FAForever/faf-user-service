@@ -1,0 +1,60 @@
+<mjml>
+  <mj-head>
+    <mj-include path="_style.mjml"/>
+    <mj-preview>
+      Account exists notice
+    </mj-preview>
+  </mj-head>
+  <mj-body background-color="#fafafa">
+    <mj-include path="_header.mjml"/>
+
+    <mj-section background-color="#ffffff">
+      <mj-column>
+        <mj-text>
+          <h1>Account exists notice</h1>
+          <p>Dear {{existingUsername}},</p>
+          <p>We noticed someone tried to register an account with the username "{{desiredUsername}}"
+            using your email address. However, your email is already associated with an existing
+            account.
+          </p>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-text>
+          <p>According to our rules each user may have only have one (1) FAF account.
+            Maybe you forgot, that you already registered in the past, thus we send you this notice.
+          </p>
+          <p>If you have no more access to this account, you can reset the password right here:</p>
+        </mj-text>
+        <mj-button href="{{passwordResetUrl}}">
+          Reset Password
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="gray" padding="0">
+      <mj-column>
+        <mj-text color="#d3d3d3">
+          <p>If you did not attempt to register a new account, please ignore this email.</p>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-include path="_footer.mjml"/>
+
+    <mj-section padding="0">
+      <mj-column>
+        <mj-text color="gray">
+          <p>If the button above doesn't work, you can enter the following URL manually in your
+            browser:
+          </p>
+          <p>{{passwordResetUrl}}</p>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+  </mj-body>
+</mjml>

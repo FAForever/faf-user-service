@@ -17,12 +17,14 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.component.textfield.TextField
 import com.vaadin.flow.data.value.ValueChangeMode
+import com.vaadin.flow.router.BeforeEnterEvent
+import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
 
 @Route("/recover-account/email", layout = CardLayout::class)
 class RecoverViaEmailView(
     private val recoveryService: RecoveryService,
-) : CompactVerticalLayout() {
+) : CompactVerticalLayout(), BeforeEnterObserver {
 
     private val usernameOrEmailDescription =
         Paragraph(
@@ -79,6 +81,15 @@ class RecoverViaEmailView(
             add(Span(getTranslation("recovery.email.sent.hint")))
             isCloseOnOutsideClick = false
             open()
+        }
+    }
+
+    override fun beforeEnter(event: BeforeEnterEvent?) {
+        val possibleIdentifier = event?.location?.queryParameters?.parameters?.get("identifier")?.get(0)
+        if (!possibleIdentifier.isNullOrBlank()) {
+            usernameOrEmail.value = possibleIdentifier
+            usernameOrEmail.isReadOnly = true
+            requestEmail()
         }
     }
 }

@@ -22,6 +22,7 @@ class MailBodyBuilder(private val properties: FafProperties) {
         ACCOUNT_ACTIVATION("username", "activationUrl"),
         WELCOME_TO_FAF("username"),
         PASSWORD_RESET("username", "passwordResetUrl"),
+        EMAIL_ALREADY_TAKEN("desiredUsername", "existingUsername", "passwordResetUrl"),
         ;
 
         val variables: Set<String>
@@ -36,6 +37,7 @@ class MailBodyBuilder(private val properties: FafProperties) {
             Template.ACCOUNT_ACTIVATION -> properties.account().registration().activationMailTemplatePath()
             Template.WELCOME_TO_FAF -> properties.account().registration().welcomeMailTemplatePath()
             Template.PASSWORD_RESET -> properties.account().passwordReset().mailTemplatePath()
+            Template.EMAIL_ALREADY_TAKEN -> properties.account().registration().emailTakenMailTemplatePath()
         }
         return Path.of(path)
     }
@@ -122,6 +124,16 @@ class MailBodyBuilder(private val properties: FafProperties) {
             Template.PASSWORD_RESET,
             mapOf(
                 "username" to username,
+                "passwordResetUrl" to passwordResetUrl,
+            ),
+        )
+
+    fun buildEmailTakenBody(desiredUsername: String, existingUsername: String, passwordResetUrl: String) =
+        populate(
+            Template.EMAIL_ALREADY_TAKEN,
+            mapOf(
+                "desiredUsername" to desiredUsername,
+                "existingUsername" to existingUsername,
                 "passwordResetUrl" to passwordResetUrl,
             ),
         )

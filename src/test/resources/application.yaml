@@ -5,6 +5,7 @@ faf:
     registration:
       activation-mail-template-path: src/test/resources/mail/account-activation.html
       welcome-mail-template-path: src/test/resources/mail/welcome-to-faf.html
+      email-taken-mail-template-path: src/test/resources/mail/email-taken.html
 
   irc:
     fixed:

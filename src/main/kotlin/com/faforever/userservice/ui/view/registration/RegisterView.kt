@@ -1,6 +1,6 @@
 package com.faforever.userservice.ui.view.registration
 
-import com.faforever.userservice.backend.account.EmailStatus
+import com.faforever.userservice.backend.account.EmailStatusResponse
 import com.faforever.userservice.backend.account.RegistrationService
 import com.faforever.userservice.backend.account.UsernameStatus
 import com.faforever.userservice.backend.recaptcha.RecaptchaService
@@ -141,7 +141,7 @@ class RegisterView(
             ).bind("username")
 
         binder.forField(email).withValidator(EmailValidator(getTranslation("register.email.invalid"))).withValidator(
-            { email -> registrationService.emailAvailable(email) != EmailStatus.EMAIL_BLACKLISTED },
+            { email -> registrationService.emailAvailable(email) !is EmailStatusResponse.EmailBlackListed },
             getTranslation("register.email.blacklisted"),
         ).bind("email")
 
