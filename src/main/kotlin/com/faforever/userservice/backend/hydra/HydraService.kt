@@ -26,7 +26,7 @@ sealed interface LoginResponse {
 
     data class RejectedLogin(val unrecoverableLoginFailure: LoginResult.UnrecoverableLoginFailure) : LoginResponse
     data class FailedLogin(val recoverableLoginFailure: LoginResult.RecoverableLoginFailure) : LoginResponse
-    data class SuccessfulLogin(val redirectTo: RedirectTo) : LoginResponse
+    data class SuccessfulLogin(val redirectTo: RedirectTo, val userId: String) : LoginResponse
 }
 
 @JvmInline
@@ -109,11 +109,12 @@ class HydraService(
             }
 
             is LoginResult.SuccessfulLogin -> {
+                val userId = loginResult.userId.toString()
                 val redirectResponse = hydraClient.acceptLoginRequest(
                     challenge,
-                    AcceptLoginRequest(subject = loginResult.userId.toString()),
+                    AcceptLoginRequest(subject = userId),
                 )
-                LoginResponse.SuccessfulLogin(RedirectTo(redirectResponse.redirectTo))
+                LoginResponse.SuccessfulLogin(RedirectTo(redirectResponse.redirectTo), userId)
             }
         }
     }
