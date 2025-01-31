@@ -35,7 +35,7 @@ services:
         condition: service_completed_successfully
 
   hydra-db:
-    image: postgres:16
+    image: postgres:17
     environment:
       - POSTGRES_USER=hydra
       - POSTGRES_PASSWORD=banana
