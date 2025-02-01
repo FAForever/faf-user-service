@@ -7,6 +7,7 @@ vaadin = "24.5.3"
 vaadin-bom = { module = "com.vaadin:vaadin-bom", version.ref = "vaadin" }
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version = "5.4.0" }
+bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version= "1.80" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
