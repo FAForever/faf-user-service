@@ -13,7 +13,7 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 noarg = { id = "org.jetbrains.kotlin.plugin.noarg", version.ref = "kotlin" }
-spotless = { id = "com.diffplug.spotless", version = "6.25.0" }
+spotless = { id = "com.diffplug.spotless", version = "7.0.2" }
 test-logger = { id = "com.adarshr.test-logger", version = "4.0.0" }
 vaadin = { id = "com.vaadin", version.ref = "vaadin" }
 quarkus = { id = "io.quarkus", version.ref = "quarkus" }
