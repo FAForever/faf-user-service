@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.1.10"
-quarkus = "3.15.1"
+quarkus = "3.19.2"
 vaadin = "24.5.3"
 
 [libraries]
