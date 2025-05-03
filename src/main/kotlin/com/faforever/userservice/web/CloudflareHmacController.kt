@@ -11,21 +11,21 @@ import jakarta.ws.rs.Path
 import jakarta.ws.rs.core.UriBuilder
 import java.net.URI
 
-@Path("/lobby")
+@Path("")
 @ApplicationScoped
-class LobbyController(
+class CloudflareHmacController(
     val cloudflareService: CloudflareService,
     val fafProperties: FafProperties,
 ) {
 
-    data class LobbyAccess(
+    data class HmacAccess(
         val accessUrl: URI,
     )
 
     @GET
-    @Path("/access")
+    @Path("/lobby/access")
     @PermissionsAllowed("${FafRole.USER}:${OAuthScope.LOBBY}")
-    fun getLobbyAccess(): LobbyAccess {
+    fun getLobbyAccess(): HmacAccess {
         val lobby = fafProperties.lobby()
         val accessUri = lobby.accessUri()
         val token = cloudflareService.generateCloudFlareHmacToken(
@@ -35,6 +35,22 @@ class LobbyController(
 
         val accessUrl = UriBuilder.fromUri(accessUri).queryParam(lobby.accessParam(), token).build()
 
-        return LobbyAccess(accessUrl)
+        return HmacAccess(accessUrl)
+    }
+
+    @GET
+    @Path("/replay/access")
+    @PermissionsAllowed("${FafRole.USER}:${OAuthScope.LOBBY}")
+    fun getReplayAccess(): HmacAccess {
+        val replay = fafProperties.replay()
+        val accessUri = replay.accessUri()
+        val token = cloudflareService.generateCloudFlareHmacToken(
+            accessUri,
+            replay.secret(),
+        )
+
+        val accessUrl = UriBuilder.fromUri(accessUri).queryParam(replay.accessParam(), token).build()
+
+        return HmacAccess(accessUrl)
     }
 }

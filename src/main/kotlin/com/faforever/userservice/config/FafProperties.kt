@@ -31,13 +31,15 @@ interface FafProperties {
 
     fun recaptcha(): Recaptcha
 
-    fun lobby(): Lobby
+    fun lobby(): CloudflareHmacConfig
+
+    fun replay(): CloudflareHmacConfig
 
     fun irc(): Irc
 
     fun steam(): Steam
 
-    interface Lobby {
+    interface CloudflareHmacConfig {
         @NotBlank
         fun secret(): String
 

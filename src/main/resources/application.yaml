@@ -36,6 +36,10 @@ faf:
     secret: ${LOBBY_SECRET:banana}
     access-uri: ${LOBBY_URL:ws://localhost:8003}
     access-param: ${LOBBY_PARAM:verify}
+  replay:
+    secret: ${REPLAY_SECRET:banana}
+    access-uri: ${REPLAY_URL:ws://localhost:8004}
+    access-param: ${REPLAY_PARAM:verify}
   irc:
     secret: ${IRC_SECRET:banana}
     token-ttl: ${IRC_TOKEN_TTL:300}
