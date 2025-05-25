@@ -4,7 +4,9 @@ import com.faforever.userservice.backend.account.LoginResult
 import com.faforever.userservice.backend.account.LoginService
 import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.domain.UserRepository
+import com.faforever.userservice.backend.security.HmacService
 import com.faforever.userservice.backend.security.OAuthScope
+import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.inject.Produces
 import jakarta.transaction.Transactional
@@ -48,6 +50,8 @@ class HydraService(
     private val httpClient: HttpClient,
     private val loginService: LoginService,
     private val userRepository: UserRepository,
+    private val fafProperties: FafProperties,
+    private val hmacService: HmacService,
 ) {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(HydraService::class.java)
@@ -147,10 +151,15 @@ class HydraService(
 
         val roles = listOf("USER") + permissions.map { it.technicalName }
 
+        val hmac = fafProperties.jwt().hmac()?.let {
+            hmacService.generateHmacToken(it.message(), it.secret())
+        }
+
         val context = mutableMapOf(
             "username" to user.username, // not official OIDC claim, but required for backwards compatible
             "preferred_username" to user.username,
             "roles" to roles,
+            "hmac" to hmac,
         )
 
         if (OAuthScope.canShowEmail(consentRequest.requestedScope)) {
