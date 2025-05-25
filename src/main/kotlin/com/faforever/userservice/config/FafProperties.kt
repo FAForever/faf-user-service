@@ -61,6 +61,14 @@ interface FafProperties {
 
     interface Jwt {
         fun secret(): String
+
+        fun hmac(): Hmac?
+    }
+
+    interface Hmac {
+        fun message(): String
+
+        fun secret(): String
     }
 
     interface Recaptcha {
