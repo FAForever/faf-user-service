@@ -32,6 +32,9 @@ faf:
     site-key: ${RECAPTCHA_SITE_KEY:6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI}
   jwt:
     secret: ${JWT_SECRET:banana}
+    hmac:
+      message: ${JWT_MAC_MESSAGE:helloFaf}
+      secret: ${JWT_MAC_SECRET:banana}
   lobby:
     secret: ${LOBBY_SECRET:banana}
     access-uri: ${LOBBY_URL:ws://localhost:8003}
