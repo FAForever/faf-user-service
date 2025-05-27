@@ -14,8 +14,8 @@ plugins {
 defaultTasks("build")
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 val version: String by project
@@ -63,7 +63,7 @@ tasks.withType<Test> {
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget.set(JvmTarget.JVM_21)
         javaParameters.set(true)
     }
 }
