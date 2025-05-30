@@ -53,4 +53,20 @@ class CloudflareHmacController(
 
         return HmacAccess(accessUrl)
     }
+
+    @GET
+    @Path("/chat/access")
+    @PermissionsAllowed("${FafRole.USER}:${OAuthScope.LOBBY}")
+    fun getChatAccess(): HmacAccess {
+        val chat = fafProperties.chat()
+        val accessUri = chat.accessUri()
+        val token = cloudflareService.generateCloudFlareHmacToken(
+            accessUri,
+            chat.secret(),
+        )
+
+        val accessUrl = UriBuilder.fromUri(accessUri).queryParam(chat.accessParam(), token).build()
+
+        return HmacAccess(accessUrl)
+    }
 }

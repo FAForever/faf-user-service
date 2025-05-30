@@ -6,7 +6,7 @@ import io.smallrye.config.WithName
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.net.URI
-import java.util.Optional
+import java.util.*
 
 @ConfigMapping(prefix = "faf")
 interface FafProperties {
@@ -34,6 +34,8 @@ interface FafProperties {
     fun lobby(): CloudflareHmacConfig
 
     fun replay(): CloudflareHmacConfig
+
+    fun chat(): CloudflareHmacConfig
 
     fun irc(): Irc
 
