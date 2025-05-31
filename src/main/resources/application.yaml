@@ -44,9 +44,9 @@ faf:
     access-uri: ${REPLAY_URL:ws://localhost:8004}
     access-param: ${REPLAY_PARAM:verify}
   chat:
-    secret: ${REPLAY_SECRET:banana}
-    access-uri: ${REPLAY_URL:ws://localhost:8005}
-    access-param: ${REPLAY_PARAM:verify}
+    secret: ${CHAT_ACCESS_SECRET:banana}
+    access-uri: ${CHAT_URL:ws://localhost:8005}
+    access-param: ${CHAT_ACCESS_PARAM:verify}
   irc:
     secret: ${IRC_SECRET:banana}
     token-ttl: ${IRC_TOKEN_TTL:300}
