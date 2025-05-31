@@ -120,4 +120,54 @@ class CloudflareHmacControllerTest {
             RestAssured.get("/replay/access").then().statusCode(401)
         }
     }
+
+    @Nested
+    inner class ChatEndpointTest {
+        @Test
+        @TestSecurity(authorizationEnabled = false)
+        fun canRetrieveAccessUrl() {
+            val chat = fafProperties.chat()
+            RestAssured.given()
+                .get("/chat/access")
+                .then()
+                .statusCode(200)
+                .body("accessUrl", matchesRegex("${chat.accessUri()}\\?${chat.accessParam()}=\\d{10}-.{43,}"))
+        }
+
+        @Test
+        @TestSecurity(user = "test")
+        @FafRoleTest([FafRole.USER])
+        @FafScopeTest([OAuthScope.LOBBY])
+        fun canRetrieveAccessUrlWithScopeAndRole() {
+            RestAssured.given()
+                .get("/chat/access")
+                .then()
+                .statusCode(200)
+        }
+
+        @Test
+        @TestSecurity(user = "test")
+        @FafScopeTest([OAuthScope.LOBBY])
+        fun cannotRetrieveAccessUrlWithOnlyScope() {
+            RestAssured.get("/chat/access").then().statusCode(403)
+        }
+
+        @Test
+        @TestSecurity(user = "test")
+        @FafRoleTest([FafRole.USER])
+        fun cannotRetrieveAccessUrlWithOnlyRole() {
+            RestAssured.get("/chat/access").then().statusCode(403)
+        }
+
+        @Test
+        @TestSecurity(user = "test")
+        fun cannotRetrieveAccessUrlWithNoScopeAndNoRole() {
+            RestAssured.get("/chat/access").then().statusCode(403)
+        }
+
+        @Test
+        fun cannotRetrieveAccessUrlUnAuthenticated() {
+            RestAssured.get("/chat/access").then().statusCode(401)
+        }
+    }
 }
