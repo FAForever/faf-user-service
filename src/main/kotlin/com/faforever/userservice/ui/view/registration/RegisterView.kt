@@ -100,7 +100,7 @@ class RegisterView(
                         fafProperties.account().registration().termsOfServiceUrl(),
                         getTranslation("register.termsOfService"),
                     ).apply { addClassName("policy-link") },
-                )
+                ),
             )
         val privacyPolicyLayout =
             CompactHorizontalLayout(
@@ -113,7 +113,7 @@ class RegisterView(
                         fafProperties.account().registration().privacyStatementUrl(),
                         getTranslation("register.privacy"),
                     ).apply { addClassName("policy-link") },
-                )
+                ),
             )
         val rulesLayout =
             CompactHorizontalLayout(
@@ -124,7 +124,7 @@ class RegisterView(
                         fafProperties.account().registration().rulesUrl(),
                         getTranslation("register.rules"),
                     ).apply { addClassName("policy-link") },
-                )
+                ),
             )
 
         add(username, email, termsOfServiceLayout, privacyPolicyLayout, rulesLayout)
