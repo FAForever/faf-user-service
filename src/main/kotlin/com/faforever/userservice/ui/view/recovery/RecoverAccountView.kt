@@ -28,7 +28,7 @@ class RecoverAccountView :
             element.text = (getTranslation("recovery.selectMethod.email.description"))
         },
     ).apply {
-        maxWidth = "50%"
+        style.set("flex", "1 1 50%")
     }
 
     private val steamSection = VerticalLayout(
@@ -41,7 +41,7 @@ class RecoverAccountView :
             element.text = (getTranslation("recovery.selectMethod.steam.description"))
         },
     ).apply {
-        maxWidth = "50%"
+        style.set("flex", "1 1 50%")
     }
 
     init {
