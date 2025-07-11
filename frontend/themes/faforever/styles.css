@@ -180,3 +180,9 @@ a:hover {
 .policy-link {
     padding-left: 5px;
 }
+
+.policy-checkbox::part(checkbox) {
+    border: 1px solid white;
+    border-radius: 2px; /* Optional: makes it look cleaner */
+    box-sizing: border-box; /* Ensures padding doesn't push border out */
+}

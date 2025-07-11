@@ -17,6 +17,7 @@ import com.vaadin.flow.component.button.ButtonVariant
 import com.vaadin.flow.component.checkbox.Checkbox
 import com.vaadin.flow.component.dialog.Dialog
 import com.vaadin.flow.component.html.Anchor
+import com.vaadin.flow.component.html.Div
 import com.vaadin.flow.component.html.H2
 import com.vaadin.flow.component.html.Span
 import com.vaadin.flow.component.orderedlayout.FlexComponent
@@ -66,9 +67,15 @@ class RegisterView(
 
     init {
 
-        val termsOfService = Checkbox(false)
-        val privacyPolicy = Checkbox(false)
-        val rules = Checkbox(false)
+        val termsOfService = Checkbox(false).apply {
+            addClassName("policy-checkbox")
+        }
+        val privacyPolicy = Checkbox(false).apply {
+            addClassName("policy-checkbox")
+        }
+        val rules = Checkbox(false).apply {
+            addClassName("policy-checkbox")
+        }
         val reCaptcha = ReCaptcha(fafProperties.recaptcha().siteKey())
 
         val formHeaderLeft = FafLogo()
@@ -87,31 +94,37 @@ class RegisterView(
         val termsOfServiceLayout =
             CompactHorizontalLayout(
                 termsOfService,
-                Text(readAndAgree),
-                Anchor(
-                    fafProperties.account().registration().termsOfServiceUrl(),
-                    getTranslation("register.termsOfService"),
-                ).apply { addClassName("policy-link") },
+                Div(
+                    Text(readAndAgree),
+                    Anchor(
+                        fafProperties.account().registration().termsOfServiceUrl(),
+                        getTranslation("register.termsOfService"),
+                    ).apply { addClassName("policy-link") },
+                )
             )
         val privacyPolicyLayout =
             CompactHorizontalLayout(
                 privacyPolicy,
-                Text(
-                    readAndAgree,
-                ),
-                Anchor(
-                    fafProperties.account().registration().privacyStatementUrl(),
-                    getTranslation("register.privacy"),
-                ).apply { addClassName("policy-link") },
+                Div(
+                    Text(
+                        readAndAgree,
+                    ),
+                    Anchor(
+                        fafProperties.account().registration().privacyStatementUrl(),
+                        getTranslation("register.privacy"),
+                    ).apply { addClassName("policy-link") },
+                )
             )
         val rulesLayout =
             CompactHorizontalLayout(
                 rules,
-                Text(readAndAgree),
-                Anchor(
-                    fafProperties.account().registration().rulesUrl(),
-                    getTranslation("register.rules"),
-                ).apply { addClassName("policy-link") },
+                Div(
+                    Text(readAndAgree),
+                    Anchor(
+                        fafProperties.account().registration().rulesUrl(),
+                        getTranslation("register.rules"),
+                    ).apply { addClassName("policy-link") },
+                )
             )
 
         add(username, email, termsOfServiceLayout, privacyPolicyLayout, rulesLayout)
