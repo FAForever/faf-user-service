@@ -47,7 +47,7 @@ class PasswordService(
                 passwordHash = passwordEncoder.encode(newPassword),
             ),
         )
-        metricHelper.userPasswordChangeCounter.increment()
+        metricHelper.incrementPasswordChangeCounter()
 
         log.info("Password of user ${user.id} was changed")
 

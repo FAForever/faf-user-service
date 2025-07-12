@@ -1,6 +1,5 @@
 package com.faforever.userservice.ui.view.oauth2
 
-import com.faforever.userservice.backend.account.LoginResult
 import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.hydra.LoginResponse
 import com.faforever.userservice.backend.hydra.NoChallengeException

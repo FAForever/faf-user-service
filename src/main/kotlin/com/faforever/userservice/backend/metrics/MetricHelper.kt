@@ -48,7 +48,7 @@ class MetricHelper(private val meterRegistry: MeterRegistry) {
     // Username Change Counters
     fun incrementUserNameChangeCounter() = meterRegistry.counter("user.name.change.count").increment()
 
-    val userPasswordChangeCounter: Counter = meterRegistry.counter("user.password.change.count")
+    fun incrementPasswordChangeCounter() = meterRegistry.counter("user.password.change.count").increment()
 
     // Password Reset Counters
     fun incrementPasswordResetViaEmailRequestCounter() = meterRegistry.counter(

@@ -21,6 +21,7 @@ class CurrentUserService(
         "thisshouldnotbehere",
         email = "iam@faforever.com",
         null,
+        0
     )
 
     fun invalidate() {

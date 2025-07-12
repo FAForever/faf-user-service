@@ -1,7 +1,5 @@
 package com.faforever.userservice.backend.hydra
 
-import com.faforever.userservice.backend.account.LoginResult
-import com.faforever.userservice.backend.account.LoginService
 import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.security.LoginResult

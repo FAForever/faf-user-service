@@ -18,7 +18,7 @@ class LoginView(request: HttpServletRequest) : VerticalLayout() {
             try {
                 // Trigger form-based login using Quarkus' built-in mechanism
                 request.login(e.username, e.password)
-                loginForm.ui.ifPresent { ui -> ui.navigate("main") } // Navigate on successful login
+                loginForm.ui.ifPresent { ui -> ui.navigate(AccountDataView::class.java) } // Navigate on successful login
             } catch (ex: Exception) {
                 loginForm.isError = true // Show error on login failure
                 Notification.show("Login failed. Check your credentials.")

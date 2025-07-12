@@ -30,6 +30,7 @@ class EmailService(
         BLACKLISTED,
     }
 
+    @Transactional
     fun changeUserEmail(newEmail: String, user: User) {
         validateEmailAddress(newEmail)
         log.debug("Changing email for user '${user.username}' to '$newEmail'")

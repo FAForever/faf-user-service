@@ -8,6 +8,7 @@ import io.quarkus.security.identity.SecurityIdentity
 import io.quarkus.security.identity.request.UsernamePasswordAuthenticationRequest
 import io.quarkus.security.runtime.QuarkusSecurityIdentity
 import io.smallrye.mutiny.Uni
+import io.smallrye.mutiny.unchecked.Unchecked
 import jakarta.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
@@ -20,13 +21,14 @@ class FafIdentityProvider(
         request: UsernamePasswordAuthenticationRequest,
         context: AuthenticationRequestContext
     ): Uni<SecurityIdentity> =
-        Uni.createFrom().item {
+        Uni.createFrom().item(Unchecked.supplier {
             val loginResult = loginService.login(
                 usernameOrEmail = request.username,
                 password = request.password.password.joinToString(separator = ""),
                 ip = IpAddress("tbd"),
                 requiresGameOwnership = false,
             )
+            Uni.createFrom()
 
             if(loginResult is LoginResult.SuccessfulLogin) {
                 QuarkusSecurityIdentity.builder()
@@ -37,5 +39,5 @@ class FafIdentityProvider(
             } else {
                 throw AuthenticationFailedException("Authentication failed")
             }
-        }
+        })
 }

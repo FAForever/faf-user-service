@@ -69,7 +69,7 @@ class LoginServiceImpl(
         }
 
         val user = userRepository.findByUsernameOrEmail(usernameOrEmail)
-        if (user == null || !passwordEncoder.matches(password, user.password)) {
+        if (user == null || !passwordEncoder.matches(password, user.passwordHash)) {
             logFailedLogin(usernameOrEmail, ip)
             return LoginResult.RecoverableLoginOrCredentialsMismatch
         }
@@ -139,7 +139,7 @@ class LoginServiceImpl(
     @Transactional
     override fun resetPassword(userId: Int, newPassword: String) {
         userRepository.findById(userId)!!.apply {
-            password = passwordEncoder.encode(newPassword)
+            passwordHash = passwordEncoder.encode(newPassword)
             userRepository.persist(this)
         }
 

@@ -19,7 +19,8 @@ data class User(
     val id: Int? = null,
     @Column(name = "login")
     var username: String,
-    var password: String,
+    @Column(name = "password")
+    var passwordHash: String,
     var email: String,
     val ip: String?,
     @Column(name = "accepted_tos")

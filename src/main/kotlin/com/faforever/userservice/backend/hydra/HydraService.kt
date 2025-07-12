@@ -1,12 +1,10 @@
 package com.faforever.userservice.backend.hydra
 
-import com.faforever.userservice.backend.account.LoginResult
-import com.faforever.userservice.backend.account.LoginService
 import com.faforever.userservice.backend.domain.IpAddress
 import com.faforever.userservice.backend.domain.UserRepository
+import com.faforever.userservice.backend.security.HmacService
 import com.faforever.userservice.backend.security.LoginResult
 import com.faforever.userservice.backend.security.LoginService
-import com.faforever.userservice.backend.security.HmacService
 import com.faforever.userservice.backend.security.OAuthScope
 import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
@@ -48,7 +46,7 @@ object HttpClientProducer {
 
 @ApplicationScoped
 class HydraService(
-    @RestClient private val hydraClient: HydraClient,
+    @param:RestClient private val hydraClient: HydraClient,
     private val httpClient: HttpClient,
     private val loginService: LoginService,
     private val userRepository: UserRepository,
