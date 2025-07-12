@@ -1,8 +1,7 @@
 package com.faforever.userservice.backend.domain
 
-import com.faforever.userservice.backend.account.LoginResult
-import com.faforever.userservice.backend.account.LoginServiceImpl
-import com.faforever.userservice.backend.account.SecurityProperties
+import com.faforever.userservice.backend.security.LoginResult
+import com.faforever.userservice.backend.security.LoginServiceImpl
 import com.faforever.userservice.backend.security.PasswordEncoder
 import io.quarkus.test.InjectMock
 import io.quarkus.test.junit.QuarkusTest
@@ -30,9 +29,6 @@ class LoginServiceTest {
 
     @Inject
     private lateinit var loginService: LoginServiceImpl
-
-    @Inject
-    private lateinit var securityProperties: SecurityProperties
 
     @InjectMock
     private lateinit var userRepository: UserRepository
