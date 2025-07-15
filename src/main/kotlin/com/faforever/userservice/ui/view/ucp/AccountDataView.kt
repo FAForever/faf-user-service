@@ -4,6 +4,7 @@ import com.faforever.userservice.backend.email.EmailService
 import com.faforever.userservice.backend.i18n.I18n
 import com.faforever.userservice.backend.security.CurrentUserService
 import com.faforever.userservice.backend.security.FafTokenService
+import com.faforever.userservice.backend.security.LoginService
 import com.faforever.userservice.backend.security.PasswordService
 import com.faforever.userservice.ui.layout.UcpLayout
 import com.vaadin.flow.component.button.Button
@@ -20,12 +21,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 @Route("/ucp")
-@RolesAllowed("user")
 class AccountDataView(
     private val i18n: I18n,
     private val currentUserService: CurrentUserService,
     private val emailService: EmailService,
     private val passwordService: PasswordService,
+    private val loginService: LoginService,
 ) : UcpLayout(i18n), BeforeEnterObserver {
 
     companion object {
@@ -35,18 +36,20 @@ class AccountDataView(
     private val usernameField = TextField().apply {
         label = "Username"
         prefixComponent = VaadinIcon.USER.create()
+        style.setWidth("25rem")
     }
 
     private val usernameChangeButton = Button().apply {
         text = "Change username"
         prefixComponent = VaadinIcon.EDIT.create()
         addClickListener {
-            changeUsername(usernameField.value)
+            changeUsername(usernameField.value.trim())
         }
     }
 
     private val emailField = TextField().apply {
         label = "Email"
+        style.setWidth("25rem")
         prefixComponent = VaadinIcon.ENVELOPE_O.create()
     }
 
@@ -54,12 +57,13 @@ class AccountDataView(
         text = "Change Email"
         prefixComponent = VaadinIcon.EDIT.create()
         addClickListener {
-            changeEmail(emailField.value)
+            changeEmail(emailField.value.trim())
         }
     }
 
     private val passwordField = PasswordField().apply {
         label = "Password"
+        style.setWidth("25rem")
         prefixComponent = VaadinIcon.PASSWORD.create()
     }
 
@@ -67,12 +71,14 @@ class AccountDataView(
         text = "Change Password"
         prefixComponent = VaadinIcon.EDIT.create()
         addClickListener {
-            changePassword("", passwordField.value)
+            changePassword("", passwordField.value.trim())
         }
     }
 
     init {
         content = Div().apply {
+            style.setPadding("1rem")
+
             add(H2("Account Data"))
 
             add(
@@ -99,22 +105,41 @@ class AccountDataView(
     }
 
     override fun beforeEnter(event: BeforeEnterEvent) {
-        val user = currentUserService.requireUser()
+        val user = try {
+            currentUserService.requireUser()
+        } catch (e: Exception) {
+            event.rerouteTo(LoginView::class.java)
+            return
+        }
 
         usernameField.value = user.username
         emailField.value = user.email
     }
 
     private fun changeUsername(username: String) {
-        if (username.length > 20) {
-            usernameField.isInvalid = true
-            usernameField.errorMessage = "Username is too long"
+        val currentUser = currentUserService.requireUser()
 
-            return
+        when {
+            currentUser.username == username -> {
+                usernameField.isInvalid = true
+                usernameField.errorMessage = "Username is unchanged"
+                return
+            }
+
+            username.length > 20 -> {
+                usernameField.isInvalid = true
+                usernameField.errorMessage = "Username is too long"
+                return
+            }
+
+            else -> {
+                log.info("User name of user ${currentUser.id} changed from ${currentUser.username} to $username")
+
+                usernameField.isInvalid = false
+                usernameField.value = username
+            }
         }
 
-        usernameField.isInvalid = false
-        usernameField.value = username
     }
 
     private fun changeEmail(email: String) {
@@ -125,16 +150,18 @@ class AccountDataView(
                 emailField.errorMessage = "Mail address invalid"
                 return
             }
+
             EmailService.ValidationResult.BLACKLISTED -> {
                 log.debug("Email provider of $email is blacklisted")
                 emailField.isInvalid = true
                 emailField.errorMessage = "Email provider is blacklisted"
                 return
             }
+
             EmailService.ValidationResult.VALID -> {
                 val currentUser = currentUserService.requireUser()
                 log.info("Email address of user ${currentUser.id} changed from ${currentUser.email} to $email")
-                emailService.changeUserEmail(email, currentUserService.requireUser())
+                emailService.changeUserEmail(email, currentUser)
                 emailField.isInvalid = false
                 emailField.errorMessage = null
                 emailField.value = email
@@ -150,6 +177,7 @@ class AccountDataView(
                 passwordField.errorMessage = "Password is too short"
                 return
             }
+
             PasswordService.ValidatePasswordResult.VALID -> log.debug("Password is valid")
         }
 
@@ -159,6 +187,7 @@ class AccountDataView(
                 passwordField.isInvalid = true
                 passwordField.errorMessage = "Old password did not match"
             }
+
             PasswordService.ChangePasswordResult.OK -> {
                 log.debug("Password was changed")
                 currentUserService.invalidate()

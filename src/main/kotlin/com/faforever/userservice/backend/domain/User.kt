@@ -8,6 +8,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.transaction.Transactional
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
@@ -74,6 +75,7 @@ data class TermsOfService(
 ) : PanacheEntityBase
 
 @ApplicationScoped
+@Transactional
 class UserRepository : PanacheRepositoryBase<User, Int> {
     fun findByUsernameOrEmail(usernameOrEmail: String): User? =
         find("username = ?1 or email = ?1", usernameOrEmail).firstResult()

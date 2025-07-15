@@ -34,8 +34,10 @@ class EmailService(
     fun changeUserEmail(newEmail: String, user: User) {
         validateEmailAddress(newEmail)
         log.debug("Changing email for user '${user.username}' to '$newEmail'")
-        val updatedUser = user.copy(email = newEmail)
-        userRepository.persist(updatedUser)
+        user.email = newEmail
+
+        userRepository.getEntityManager().merge(user)
+        userRepository.persist(user)
         // TODO: broadcastUserChange(user)
     }
 
