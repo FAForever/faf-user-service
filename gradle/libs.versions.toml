@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.2.0"
+kotlin = "2.2.10"
 quarkus = "3.25.0"
 vaadin = "24.8.3"
 
