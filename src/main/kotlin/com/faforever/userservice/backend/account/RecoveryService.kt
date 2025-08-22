@@ -6,6 +6,7 @@ import com.faforever.userservice.backend.email.EmailService
 import com.faforever.userservice.backend.metrics.MetricHelper
 import com.faforever.userservice.backend.security.FafTokenService
 import com.faforever.userservice.backend.security.FafTokenType
+import com.faforever.userservice.backend.security.LoginService
 import com.faforever.userservice.backend.steam.SteamService
 import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
