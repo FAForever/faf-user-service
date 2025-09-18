@@ -1,4 +1,4 @@
-package com.faforever.userservice.backend.account
+package com.faforever.userservice.backend.security
 
 import com.faforever.userservice.backend.domain.AccountLinkRepository
 import com.faforever.userservice.backend.domain.Ban
@@ -10,30 +10,13 @@ import com.faforever.userservice.backend.domain.LoginLogRepository
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.hydra.HydraService
-import com.faforever.userservice.backend.security.PasswordEncoder
-import io.smallrye.config.ConfigMapping
+import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
-import jakarta.validation.constraints.NotNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
-
-@ConfigMapping(prefix = "security")
-interface SecurityProperties {
-    @NotNull
-    fun failedLoginAccountThreshold(): Int
-
-    @NotNull
-    fun failedLoginAttemptThreshold(): Int
-
-    @NotNull
-    fun failedLoginThrottlingMinutes(): Long
-
-    @NotNull
-    fun failedLoginDaysToCheck(): Long
-}
 
 sealed interface LoginResult {
     sealed interface RecoverableLoginFailure : LoginResult
@@ -64,7 +47,7 @@ interface LoginService {
 
 @ApplicationScoped
 class LoginServiceImpl(
-    private val securityProperties: SecurityProperties,
+    private val fafProperties: FafProperties,
     private val userRepository: UserRepository,
     private val loginLogRepository: LoginLogRepository,
     private val accountLinkRepository: AccountLinkRepository,
@@ -78,6 +61,7 @@ class LoginServiceImpl(
 
     override fun findUserBySubject(subject: String) = userRepository.findByUsernameOrEmail(subject)
 
+    @Transactional
     override fun login(usernameOrEmail: String, password: String, ip: IpAddress, requiresGameOwnership: Boolean):
         LoginResult {
         if (throttlingRequired(ip)) {
@@ -85,7 +69,7 @@ class LoginServiceImpl(
         }
 
         val user = userRepository.findByUsernameOrEmail(usernameOrEmail)
-        if (user == null || !passwordEncoder.matches(password, user.password)) {
+        if (user == null || !passwordEncoder.matches(password, user.passwordHash)) {
             logFailedLogin(usernameOrEmail, ip)
             return LoginResult.RecoverableLoginOrCredentialsMismatch
         }
@@ -124,7 +108,7 @@ class LoginServiceImpl(
     private fun throttlingRequired(ip: IpAddress): Boolean {
         val failedAttemptsSummary = loginLogRepository.findFailedAttemptsByIpAfterDate(
             ip.value,
-            LocalDateTime.now().minusDays(securityProperties.failedLoginDaysToCheck()),
+            LocalDateTime.now().minusDays(fafProperties.security().failedLoginDaysToCheck()),
         ) ?: FailedAttemptsSummary(0, 0, null, null)
 
         val accountsAffected = failedAttemptsSummary.accountsAffected
@@ -132,12 +116,12 @@ class LoginServiceImpl(
 
         LOG.debug("Failed login attempts for IP address '{}': {}", ip, failedAttemptsSummary)
 
-        return if (accountsAffected > securityProperties.failedLoginAccountThreshold() ||
-            totalFailedAttempts > securityProperties.failedLoginAttemptThreshold()
+        return if (accountsAffected > fafProperties.security().failedLoginAccountThreshold() ||
+            totalFailedAttempts > fafProperties.security().failedLoginAttemptThreshold()
         ) {
             val lastAttempt = failedAttemptsSummary.lastAttemptAt!!
             if (LocalDateTime.now()
-                    .minusMinutes(securityProperties.failedLoginThrottlingMinutes())
+                    .minusMinutes(fafProperties.security().failedLoginThrottlingMinutes())
                     .isBefore(lastAttempt)
             ) {
                 LOG.debug("IP '$ip' is trying again to early -> throttle it")
@@ -155,7 +139,7 @@ class LoginServiceImpl(
     @Transactional
     override fun resetPassword(userId: Int, newPassword: String) {
         userRepository.findById(userId)!!.apply {
-            password = passwordEncoder.encode(newPassword)
+            passwordHash = passwordEncoder.encode(newPassword)
             userRepository.persist(this)
         }
 

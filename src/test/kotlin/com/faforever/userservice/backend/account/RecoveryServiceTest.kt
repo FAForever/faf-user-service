@@ -8,6 +8,7 @@ import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.metrics.MetricHelper
 import com.faforever.userservice.backend.security.FafTokenService
 import com.faforever.userservice.backend.security.FafTokenType.PASSWORD_RESET
+import com.faforever.userservice.backend.security.LoginService
 import com.faforever.userservice.backend.steam.SteamService
 import com.faforever.userservice.config.FafProperties
 import io.quarkus.test.InjectMock
@@ -262,7 +263,7 @@ class RecoveryServiceTest {
         User(
             id = 1234,
             username = "testUser",
-            password = "testPassword",
+            passwordHash = "testPassword",
             email = "test@faforever.com",
             ip = null,
             acceptedTos = 1,
