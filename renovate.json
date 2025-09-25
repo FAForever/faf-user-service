@@ -1,24 +1,43 @@
 {
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:recommended"
+  ],
   "packageRules": [
     {
-      "matchDatasources": ["gradle-wrapper"],
+      "matchDatasources": [
+        "gradle-wrapper"
+      ],
       "enabled": true,
-      "labels": ["deps"]
+      "labels": [
+        "deps"
+      ]
     },
     {
-      "matchManagers": ["gradle"],
-      "matchPackagePatterns": ["^.*$"],
-      "enabled": true
-    },
-    {
-      "matchFiles": ["gradle/libs.versions.toml"],
-      "matchDatasources": ["gradle-version-catalog"],
+      "matchManagers": [
+        "gradle"
+      ],
       "enabled": true,
-      "labels": ["deps"]
+      "matchPackageNames": [
+        "/^.*$/"
+      ]
     },
     {
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchFileNames": [
+        "gradle/libs.versions.toml"
+      ],
+      "matchDatasources": [
+        "gradle-version-catalog"
+      ],
+      "enabled": true,
+      "labels": [
+        "deps"
+      ]
+    },
+    {
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "automerge": true
     }
   ],
