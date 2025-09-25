@@ -90,7 +90,7 @@ class LoginServiceImpl(
             return LoginResult.RecoverableLoginOrCredentialsMismatch
         }
 
-        logLogin(user, ip)
+        logLogin(usernameOrEmail, user, ip)
 
         val activeGlobalBan = findActiveGlobalBan(user)
 
@@ -111,8 +111,8 @@ class LoginServiceImpl(
         return LoginResult.SuccessfulLogin(user.id!!, user.username)
     }
 
-    private fun logLogin(user: User, ip: IpAddress) =
-        loginLogRepository.persist(LoginLog(0, user.id, null, ip.value, true))
+    private fun logLogin(loginString: String, user: User, ip: IpAddress) =
+        loginLogRepository.persist(LoginLog(0, user.id, loginString, ip.value, true))
 
     private fun logFailedLogin(unknownLogin: String, ip: IpAddress) =
         loginLogRepository.persist(LoginLog(0, null, unknownLogin.take(100), ip.value, false))
