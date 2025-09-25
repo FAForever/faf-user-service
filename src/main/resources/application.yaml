@@ -52,20 +52,34 @@ faf:
     token-ttl: ${IRC_TOKEN_TTL:300}
   steam:
     realm: ${faf.self-url}
+  security:
+    failed-login-account-threshold: ${FAILED_LOGIN_ACCOUNT_THRESHOLD:5}
+    failed-login-attempt-threshold: ${FAILED_LOGIN_ATTEMPT_THRESHOLD:10}
+    failed-login-throttling-minutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
+    failed-login-days-to-check: ${FAILED_LOGIN_DAYS_TO_CHECK:1}
 
 mailjet:
   api-key: ${MAILJET_API_KEY}
   api-secret: ${MAILJET_API_SECRET}
 
-security:
-  failed-login-account-threshold: ${FAILED_LOGIN_ACCOUNT_THRESHOLD:5}
-  failed-login-attempt-threshold: ${FAILED_LOGIN_ATTEMPT_THRESHOLD:10}
-  failed-login-throttling-minutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
-  failed-login-days-to-check: ${FAILED_LOGIN_DAYS_TO_CHECK:1}
-
 quarkus:
   log:
     level: INFO
+  http:
+    auth:
+      form:
+        enabled: true
+        login-page: /ucp/login
+        error-page: /ucp/login?error
+      permission:
+        public:
+          paths:
+            - /ucp/login
+          policy: permit
+        protected:
+          paths:
+            - /ucp/*
+          policy: authenticated
   rest-client:
     faf-ory-hydra:
       url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}

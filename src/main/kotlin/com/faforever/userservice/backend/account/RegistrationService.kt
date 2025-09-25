@@ -137,7 +137,7 @@ class RegistrationService(
 
         val user = User(
             username = username,
-            password = encodedPassword,
+            passwordHash = encodedPassword,
             email = email,
             ip = ipAddress.value,
             acceptedTos = tosService.findLatestTos()?.version,

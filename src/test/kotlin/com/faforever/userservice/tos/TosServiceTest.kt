@@ -46,7 +46,7 @@ class TosServiceTest {
         user = User(
             id = USER_ID,
             username = "testUser",
-            password = "password",
+            passwordHash = "password",
             email = "test@example.com",
             ip = "127.0.0.1",
             acceptedTos = 1,
