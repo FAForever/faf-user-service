@@ -6,7 +6,7 @@ vaadin = "24.9.0"
 [libraries]
 vaadin-bom = { module = "com.vaadin:vaadin-bom", version.ref = "vaadin" }
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
-mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version = "6.0.0" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version = "6.1.0" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
