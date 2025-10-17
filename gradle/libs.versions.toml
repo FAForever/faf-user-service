@@ -1,7 +1,7 @@
 [versions]
 kotlin = "2.2.20"
 quarkus = "3.25.0"
-vaadin = "24.9.2"
+vaadin = "24.9.3"
 
 [libraries]
 vaadin-bom = { module = "com.vaadin:vaadin-bom", version.ref = "vaadin" }
