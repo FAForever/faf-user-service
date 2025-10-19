@@ -17,8 +17,9 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import sh.ory.hydra.model.LoginRequest
 import sh.ory.hydra.model.OAuth2Client
+import sh.ory.hydra.model.OAuth2LoginRequest
+import sh.ory.hydra.model.OAuth2RedirectTo
 import java.net.http.HttpClient
 import java.net.http.HttpResponse.BodyHandler
 import java.time.OffsetDateTime
@@ -27,12 +28,13 @@ import java.time.OffsetDateTime
 class HydraServiceTest {
     companion object {
         val ipAddress = IpAddress("127.0.0.1")
-        val loginRequest = LoginRequest("", OAuth2Client(), "", listOf(), listOf(), false, "1")
-        val lobbyLoginRequest = LoginRequest("", OAuth2Client(), "", listOf(), listOf(OAuthScope.LOBBY), false, "1")
+        val loginRequest = OAuth2LoginRequest("", OAuth2Client(), "", false, "1")
+        val lobbyLoginRequest =
+            OAuth2LoginRequest("", OAuth2Client(), "", false, "1", null, null, listOf(OAuthScope.LOBBY))
         val implicitLobbyLoginRequest =
-            LoginRequest("", OAuth2Client(scope = OAuthScope.LOBBY), "", listOf(), listOf(), false, "1")
+            OAuth2LoginRequest("", OAuth2Client(scope = OAuthScope.LOBBY), "", false, "1")
         val noLobbyLoginRequest =
-            LoginRequest("", OAuth2Client(scope = OAuthScope.LOBBY), "", listOf(), listOf("test"), false, "1")
+            OAuth2LoginRequest("", OAuth2Client(scope = OAuthScope.LOBBY), "", false, "1", null, null, listOf("test"))
     }
 
     @Inject
@@ -89,7 +91,7 @@ class HydraServiceTest {
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(
             LoginResult.UserNoGameOwnership,
         )
-        whenever(hydraClient.rejectLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
+        whenever(hydraClient.rejectLoginRequest(anyString(), any())).thenReturn(OAuth2RedirectTo("http://localhost"))
 
         val response = hydraService.login("test", "", "", ipAddress)
 
@@ -108,7 +110,7 @@ class HydraServiceTest {
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(
             LoginResult.UserBanned("", OffsetDateTime.MAX),
         )
-        whenever(hydraClient.rejectLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
+        whenever(hydraClient.rejectLoginRequest(anyString(), any())).thenReturn(OAuth2RedirectTo("http://localhost"))
 
         val response = hydraService.login("test", "", "", ipAddress)
 
@@ -125,7 +127,7 @@ class HydraServiceTest {
     fun testTechnicalError() {
         whenever(hydraClient.getLoginRequest(any())).thenReturn(loginRequest)
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(LoginResult.TechnicalError)
-        whenever(hydraClient.rejectLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
+        whenever(hydraClient.rejectLoginRequest(anyString(), any())).thenReturn(OAuth2RedirectTo("http://localhost"))
 
         val response = hydraService.login("test", "", "", ipAddress)
 
@@ -144,7 +146,7 @@ class HydraServiceTest {
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(
             LoginResult.SuccessfulLogin(1, "test"),
         )
-        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
+        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(OAuth2RedirectTo("http://localhost"))
 
         val response = hydraService.login("test", "", "", ipAddress)
 
@@ -157,7 +159,7 @@ class HydraServiceTest {
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(
             LoginResult.SuccessfulLogin(1, ""),
         )
-        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
+        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(OAuth2RedirectTo("http://localhost"))
 
         hydraService.login("test", "", "", ipAddress)
 
@@ -170,7 +172,7 @@ class HydraServiceTest {
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(
             LoginResult.SuccessfulLogin(1, ""),
         )
-        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
+        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(OAuth2RedirectTo("http://localhost"))
 
         hydraService.login("test", "", "", ipAddress)
 
@@ -183,7 +185,7 @@ class HydraServiceTest {
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(
             LoginResult.SuccessfulLogin(1, ""),
         )
-        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
+        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(OAuth2RedirectTo("http://localhost"))
 
         hydraService.login("test", "", "", ipAddress)
 
@@ -196,7 +198,7 @@ class HydraServiceTest {
         whenever(loginService.login(any(), any(), IpAddress(anyString()), any())).thenReturn(
             LoginResult.SuccessfulLogin(1, ""),
         )
-        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(RedirectResponse("http://localhost"))
+        whenever(hydraClient.acceptLoginRequest(anyString(), any())).thenReturn(OAuth2RedirectTo("http://localhost"))
 
         hydraService.login("test", "", "", ipAddress)
 
