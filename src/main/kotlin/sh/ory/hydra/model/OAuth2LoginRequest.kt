@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 /**
  *
  *
- * @param challenge ID is the identifier (\"login challenge\") of the login request. It is used to identify the session.
+ * @param challenge ID is the identifier of the login request.
  * @param client
  * @param requestUrl RequestURL is the original OAuth 2.0 Authorization URL requested by the OAuth 2.0 client. It is the URL which initiates the OAuth 2.0 Authorization Code or OAuth 2.0 Implicit flow. This URL is typically not needed, but might come in handy if you want to deal with additional request parameters.
  * @param skip Skip, if true, implies that the client has requested the same scopes from the same user previously. If true, you can skip asking the user to grant the requested scopes, and simply forward the user to the redirect URL.  This feature allows you to update / set session information.
@@ -33,36 +33,36 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 data class OAuth2LoginRequest(
 
-    /* ID is the identifier (\"login challenge\") of the login request. It is used to identify the session. */
-    @JsonProperty("challenge")
+    /* ID is the identifier of the login request. */
+    @get:JsonProperty("challenge")
     val challenge: kotlin.String,
 
-    @JsonProperty("client")
+    @get:JsonProperty("client")
     val client: OAuth2Client,
 
     /* RequestURL is the original OAuth 2.0 Authorization URL requested by the OAuth 2.0 client. It is the URL which initiates the OAuth 2.0 Authorization Code or OAuth 2.0 Implicit flow. This URL is typically not needed, but might come in handy if you want to deal with additional request parameters. */
-    @JsonProperty("request_url")
+    @get:JsonProperty("request_url")
     val requestUrl: kotlin.String,
 
     /* Skip, if true, implies that the client has requested the same scopes from the same user previously. If true, you can skip asking the user to grant the requested scopes, and simply forward the user to the redirect URL.  This feature allows you to update / set session information. */
-    @JsonProperty("skip")
+    @get:JsonProperty("skip")
     val skip: kotlin.Boolean,
 
     /* Subject is the user ID of the end-user that authenticated. Now, that end user needs to grant or deny the scope requested by the OAuth 2.0 client. If this value is set and `skip` is true, you MUST include this subject type when accepting the login request, or the request will fail. */
-    @JsonProperty("subject")
+    @get:JsonProperty("subject")
     val subject: kotlin.String,
 
-    @JsonProperty("oidc_context")
+    @get:JsonProperty("oidc_context")
     val oidcContext: OAuth2ConsentRequestOpenIDConnectContext? = null,
 
-    @JsonProperty("requested_access_token_audience")
+    @get:JsonProperty("requested_access_token_audience")
     val requestedAccessTokenAudience: kotlin.collections.List<kotlin.String>? = null,
 
-    @JsonProperty("requested_scope")
+    @get:JsonProperty("requested_scope")
     val requestedScope: kotlin.collections.List<kotlin.String>? = null,
 
     /* SessionID is the login session ID. If the user-agent reuses a login session (via cookie / remember flag) this ID will remain the same. If the user-agent did not have an existing authentication session (e.g. remember is false) this will be a new random value. This value is used as the \"sid\" parameter in the ID Token and in OIDC Front-/Back- channel logout. It's value can generally be used to associate consecutive login requests by a certain user. */
-    @JsonProperty("session_id")
+    @get:JsonProperty("session_id")
     val sessionId: kotlin.String? = null,
 
 )

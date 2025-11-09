@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class OAuth2RedirectTo(
 
     /* RedirectURL is the URL which you should redirect the user's browser to once the authentication process is completed. */
-    @JsonProperty("redirect_to")
+    @get:JsonProperty("redirect_to")
     val redirectTo: kotlin.String,
 
 )

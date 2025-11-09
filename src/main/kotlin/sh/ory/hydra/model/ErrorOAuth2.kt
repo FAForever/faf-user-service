@@ -30,23 +30,23 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class ErrorOAuth2(
 
     /* Error */
-    @JsonProperty("error")
+    @get:JsonProperty("error")
     val error: kotlin.String? = null,
 
     /* Error Debug Information  Only available in dev mode. */
-    @JsonProperty("error_debug")
+    @get:JsonProperty("error_debug")
     val errorDebug: kotlin.String? = null,
 
     /* Error Description */
-    @JsonProperty("error_description")
+    @get:JsonProperty("error_description")
     val errorDescription: kotlin.String? = null,
 
     /* Error Hint  Helps the user identify the error cause. */
-    @JsonProperty("error_hint")
+    @get:JsonProperty("error_hint")
     val errorHint: kotlin.String? = null,
 
     /* HTTP Status Code */
-    @JsonProperty("status_code")
+    @get:JsonProperty("status_code")
     val statusCode: kotlin.Long? = null,
 
 )

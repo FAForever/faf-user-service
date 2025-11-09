@@ -20,9 +20,11 @@ import com.fasterxml.jackson.annotation.JsonProperty
 /**
  *
  *
- * @param challenge Challenge is the identifier (\"logout challenge\") of the logout authentication request. It is used to identify the session.
+ * @param challenge Challenge is the identifier of the logout authentication request.
  * @param client
+ * @param expiresAt
  * @param requestUrl RequestURL is the original Logout URL requested.
+ * @param requestedAt
  * @param rpInitiated RPInitiated is set to true if the request was initiated by a Relying Party (RP), also known as an OAuth 2.0 Client.
  * @param sid SessionID is the login session ID that was requested to log out.
  * @param subject Subject is the user for whom the logout was request.
@@ -30,27 +32,33 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 data class OAuth2LogoutRequest(
 
-    /* Challenge is the identifier (\"logout challenge\") of the logout authentication request. It is used to identify the session. */
-    @JsonProperty("challenge")
+    /* Challenge is the identifier of the logout authentication request. */
+    @get:JsonProperty("challenge")
     val challenge: kotlin.String? = null,
 
-    @JsonProperty("client")
+    @get:JsonProperty("client")
     val client: OAuth2Client? = null,
 
+    @get:JsonProperty("expires_at")
+    val expiresAt: java.time.OffsetDateTime? = null,
+
     /* RequestURL is the original Logout URL requested. */
-    @JsonProperty("request_url")
+    @get:JsonProperty("request_url")
     val requestUrl: kotlin.String? = null,
 
+    @get:JsonProperty("requested_at")
+    val requestedAt: java.time.OffsetDateTime? = null,
+
     /* RPInitiated is set to true if the request was initiated by a Relying Party (RP), also known as an OAuth 2.0 Client. */
-    @JsonProperty("rp_initiated")
+    @get:JsonProperty("rp_initiated")
     val rpInitiated: kotlin.Boolean? = null,
 
     /* SessionID is the login session ID that was requested to log out. */
-    @JsonProperty("sid")
+    @get:JsonProperty("sid")
     val sid: kotlin.String? = null,
 
     /* Subject is the user for whom the logout was request. */
-    @JsonProperty("subject")
+    @get:JsonProperty("subject")
     val subject: kotlin.String? = null,
 
 )

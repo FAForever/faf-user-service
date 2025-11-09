@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory
 import sh.ory.hydra.model.AcceptOAuth2ConsentRequest
 import sh.ory.hydra.model.AcceptOAuth2ConsentRequestSession
 import sh.ory.hydra.model.AcceptOAuth2LoginRequest
-import sh.ory.hydra.model.GenericError
 import sh.ory.hydra.model.OAuth2ConsentRequest
 import sh.ory.hydra.model.OAuth2LoginRequest
 import sh.ory.hydra.model.RejectOAuth2Request
@@ -183,7 +182,7 @@ class HydraService(
     }
 
     fun denyConsentRequest(challenge: String): RedirectTo {
-        val redirectResponse = hydraClient.rejectConsentRequest(challenge, GenericError("scope_denied"))
+        val redirectResponse = hydraClient.rejectConsentRequest(challenge, RejectOAuth2Request("scope_denied"))
         return RedirectTo(redirectResponse.redirectTo)
     }
 

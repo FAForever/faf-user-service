@@ -40,6 +40,8 @@ services:
       - POSTGRES_USER=hydra
       - POSTGRES_PASSWORD=banana
       - POSTGRES_DB=hydra
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready", "-U", "postgres"]
       interval: 10s
@@ -47,7 +49,7 @@ services:
       retries: 5
 
   hydra-migrate:
-    image: oryd/hydra:v1.11.10
+    image: oryd/hydra:v25.4.0
     command: migrate -c /etc/config/hydra/hydra.yml sql -e --yes
     environment:
       - DSN=postgres://hydra:banana@hydra-db:5432/hydra?sslmode=disable
@@ -60,13 +62,15 @@ services:
         condition: service_healthy
 
   hydra:
-    image: oryd/hydra:v1.11.10
+    image: oryd/hydra:v25.4.0
     ports:
       - "4444:4444" # Public port
       - "4445:4445" # Admin port
-    command: serve -c /etc/config/hydra/hydra.yml all --dangerous-force-http
+    command: serve -c /etc/config/hydra/hydra.yml all --dev
     environment:
       - DSN=postgres://hydra:banana@hydra-db:5432/hydra?sslmode=disable
+      - STRATEGIES_ACCESS_TOKEN=jwt
+      - LOG_LEAK_SENSITIVE_VALUES=true
     volumes:
       - type: bind
         source: ./hydra.yml
@@ -83,19 +87,18 @@ services:
       retries: 5
 
   hydra-testdata:
-    image: oryd/hydra:v1.11.10
+    image: oryd/hydra:v25.4.0
     entrypoint: >
-      hydra clients create
+      hydra create oauth2-client
       --skip-tls-verify
       --endpoint http://hydra:4445
-      --fake-tls-termination
       --id faf-client
       --name faf-client
       --logo-uri https://faforever.com/images/faf-logo.png
-      --grant-types authorization_code,refresh_token
-      --response-types code
+      --grant-type authorization_code,refresh_token
+      --response-type code
       --scope openid,offline,public_profile,lobby,upload_map,upload_mod
-      --callbacks http://127.0.0.1
+      --redirect-uri http://127.0.0.1
       --token-endpoint-auth-method none
     depends_on:
       hydra:

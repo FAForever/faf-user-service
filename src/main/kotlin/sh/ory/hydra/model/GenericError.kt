@@ -33,35 +33,35 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class GenericError(
 
     /* Error message  The error's message. */
-    @JsonProperty("message")
+    @get:JsonProperty("message")
     val message: kotlin.String,
 
     /* The status code */
-    @JsonProperty("code")
+    @get:JsonProperty("code")
     val code: kotlin.Long? = null,
 
     /* Debug information  This field is often not exposed to protect against leaking sensitive information. */
-    @JsonProperty("debug")
+    @get:JsonProperty("debug")
     val debug: kotlin.String? = null,
 
     /* Further error details */
-    @JsonProperty("details")
+    @get:JsonProperty("details")
     val details: kotlin.Any? = null,
 
     /* The error ID  Useful when trying to identify various errors in application logic. */
-    @JsonProperty("id")
+    @get:JsonProperty("id")
     val id: kotlin.String? = null,
 
     /* A human-readable reason for the error */
-    @JsonProperty("reason")
+    @get:JsonProperty("reason")
     val reason: kotlin.String? = null,
 
     /* The request ID  The request ID is often exposed internally in order to trace errors across service architectures. This is often a UUID. */
-    @JsonProperty("request")
+    @get:JsonProperty("request")
     val request: kotlin.String? = null,
 
     /* The status description */
-    @JsonProperty("status")
+    @get:JsonProperty("status")
     val status: kotlin.String? = null,
 
 )

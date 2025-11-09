@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * A completed OAuth 2.0 Consent Session.
  *
  * @param consentRequest
+ * @param consentRequestId ConsentRequestID is the identifier of the consent request that initiated this consent session.
  * @param context
- * @param expiresAt
  * @param grantAccessTokenAudience
  * @param grantScope
  * @param handledAt
@@ -33,33 +33,34 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 data class OAuth2ConsentSession(
 
-    @JsonProperty("consent_request")
+    @get:JsonProperty("consent_request")
     val consentRequest: OAuth2ConsentRequest? = null,
 
-    @JsonProperty("context")
+    /* ConsentRequestID is the identifier of the consent request that initiated this consent session. */
+    @get:JsonProperty("consent_request_id")
+    val consentRequestId: kotlin.String? = null,
+
+    @get:JsonProperty("context")
     val context: kotlin.Any? = null,
 
-    @JsonProperty("expires_at")
-    val expiresAt: OAuth2ConsentSessionExpiresAt? = null,
-
-    @JsonProperty("grant_access_token_audience")
+    @get:JsonProperty("grant_access_token_audience")
     val grantAccessTokenAudience: kotlin.collections.List<kotlin.String>? = null,
 
-    @JsonProperty("grant_scope")
+    @get:JsonProperty("grant_scope")
     val grantScope: kotlin.collections.List<kotlin.String>? = null,
 
-    @JsonProperty("handled_at")
+    @get:JsonProperty("handled_at")
     val handledAt: java.time.OffsetDateTime? = null,
 
     /* Remember Consent  Remember, if set to true, tells ORY Hydra to remember this consent authorization and reuse it if the same client asks the same user for the same, or a subset of, scope. */
-    @JsonProperty("remember")
+    @get:JsonProperty("remember")
     val remember: kotlin.Boolean? = null,
 
     /* Remember Consent For  RememberFor sets how long the consent authorization should be remembered for in seconds. If set to `0`, the authorization will be remembered indefinitely. */
-    @JsonProperty("remember_for")
+    @get:JsonProperty("remember_for")
     val rememberFor: kotlin.Long? = null,
 
-    @JsonProperty("session")
+    @get:JsonProperty("session")
     val session: AcceptOAuth2ConsentRequestSession? = null,
 
 )

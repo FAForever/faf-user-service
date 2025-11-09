@@ -39,59 +39,59 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class IntrospectedOAuth2Token(
 
     /* Active is a boolean indicator of whether or not the presented token is currently active.  The specifics of a token's \"active\" state will vary depending on the implementation of the authorization server and the information it keeps about its tokens, but a \"true\" value return for the \"active\" property will generally indicate that a given token has been issued by this authorization server, has not been revoked by the resource owner, and is within its given time window of validity (e.g., after its issuance time and before its expiration time). */
-    @JsonProperty("active")
+    @get:JsonProperty("active")
     val active: kotlin.Boolean,
 
     /* Audience contains a list of the token's intended audiences. */
-    @JsonProperty("aud")
+    @get:JsonProperty("aud")
     val aud: kotlin.collections.List<kotlin.String>? = null,
 
     /* ID is aclient identifier for the OAuth 2.0 client that requested this token. */
-    @JsonProperty("client_id")
+    @get:JsonProperty("client_id")
     val clientId: kotlin.String? = null,
 
     /* Expires at is an integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this token will expire. */
-    @JsonProperty("exp")
+    @get:JsonProperty("exp")
     val exp: kotlin.Long? = null,
 
     /* Extra is arbitrary data set by the session. */
-    @JsonProperty("ext")
+    @get:JsonProperty("ext")
     val ext: kotlin.collections.Map<kotlin.String, kotlin.Any>? = null,
 
     /* Issued at is an integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this token was originally issued. */
-    @JsonProperty("iat")
+    @get:JsonProperty("iat")
     val iat: kotlin.Long? = null,
 
     /* IssuerURL is a string representing the issuer of this token */
-    @JsonProperty("iss")
+    @get:JsonProperty("iss")
     val iss: kotlin.String? = null,
 
     /* NotBefore is an integer timestamp, measured in the number of seconds since January 1 1970 UTC, indicating when this token is not to be used before. */
-    @JsonProperty("nbf")
+    @get:JsonProperty("nbf")
     val nbf: kotlin.Long? = null,
 
     /* ObfuscatedSubject is set when the subject identifier algorithm was set to \"pairwise\" during authorization. It is the `sub` value of the ID Token that was issued. */
-    @JsonProperty("obfuscated_subject")
+    @get:JsonProperty("obfuscated_subject")
     val obfuscatedSubject: kotlin.String? = null,
 
     /* Scope is a JSON string containing a space-separated list of scopes associated with this token. */
-    @JsonProperty("scope")
+    @get:JsonProperty("scope")
     val scope: kotlin.String? = null,
 
     /* Subject of the token, as defined in JWT [RFC7519]. Usually a machine-readable identifier of the resource owner who authorized this token. */
-    @JsonProperty("sub")
+    @get:JsonProperty("sub")
     val sub: kotlin.String? = null,
 
     /* TokenType is the introspected token's type, typically `Bearer`. */
-    @JsonProperty("token_type")
+    @get:JsonProperty("token_type")
     val tokenType: kotlin.String? = null,
 
     /* TokenUse is the introspected token's use, for example `access_token` or `refresh_token`. */
-    @JsonProperty("token_use")
+    @get:JsonProperty("token_use")
     val tokenUse: kotlin.String? = null,
 
     /* Username is a human-readable identifier for the resource owner who authorized this token. */
-    @JsonProperty("username")
+    @get:JsonProperty("username")
     val username: kotlin.String? = null,
 
 )

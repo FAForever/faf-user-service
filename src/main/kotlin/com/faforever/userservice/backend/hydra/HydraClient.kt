@@ -16,7 +16,6 @@ import jakarta.ws.rs.core.Response
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient
 import sh.ory.hydra.model.AcceptOAuth2ConsentRequest
 import sh.ory.hydra.model.AcceptOAuth2LoginRequest
-import sh.ory.hydra.model.GenericError
 import sh.ory.hydra.model.IntrospectedOAuth2Token
 import sh.ory.hydra.model.OAuth2ConsentRequest
 import sh.ory.hydra.model.OAuth2LoginRequest
@@ -77,7 +76,7 @@ interface HydraClient {
     @Path("/oauth2/auth/requests/consent/reject")
     fun rejectConsentRequest(
         @QueryParam("consent_challenge") @NotBlank challenge: String,
-        error: GenericError,
+        error: RejectOAuth2Request,
     ): OAuth2RedirectTo
 
     @DELETE

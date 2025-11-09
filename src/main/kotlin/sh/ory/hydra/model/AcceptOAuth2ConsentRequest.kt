@@ -23,7 +23,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @param context
  * @param grantAccessTokenAudience
  * @param grantScope
- * @param handledAt
  * @param remember Remember, if set to true, tells ORY Hydra to remember this consent authorization and reuse it if the same client asks the same user for the same, or a subset of, scope.
  * @param rememberFor RememberFor sets how long the consent authorization should be remembered for in seconds. If set to `0`, the authorization will be remembered indefinitely.
  * @param session
@@ -31,27 +30,24 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 data class AcceptOAuth2ConsentRequest(
 
-    @JsonProperty("context")
+    @get:JsonProperty("context")
     val context: kotlin.Any? = null,
 
-    @JsonProperty("grant_access_token_audience")
+    @get:JsonProperty("grant_access_token_audience")
     val grantAccessTokenAudience: kotlin.collections.List<kotlin.String>? = null,
 
-    @JsonProperty("grant_scope")
+    @get:JsonProperty("grant_scope")
     val grantScope: kotlin.collections.List<kotlin.String>? = null,
 
-    @JsonProperty("handled_at")
-    val handledAt: java.time.OffsetDateTime? = null,
-
     /* Remember, if set to true, tells ORY Hydra to remember this consent authorization and reuse it if the same client asks the same user for the same, or a subset of, scope. */
-    @JsonProperty("remember")
+    @get:JsonProperty("remember")
     val remember: kotlin.Boolean? = null,
 
     /* RememberFor sets how long the consent authorization should be remembered for in seconds. If set to `0`, the authorization will be remembered indefinitely. */
-    @JsonProperty("remember_for")
+    @get:JsonProperty("remember_for")
     val rememberFor: kotlin.Long? = null,
 
-    @JsonProperty("session")
+    @get:JsonProperty("session")
     val session: AcceptOAuth2ConsentRequestSession? = null,
 
 )

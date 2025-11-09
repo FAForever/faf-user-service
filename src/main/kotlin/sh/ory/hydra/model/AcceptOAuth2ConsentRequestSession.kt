@@ -27,11 +27,11 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class AcceptOAuth2ConsentRequestSession(
 
     /* AccessToken sets session data for the access and refresh token, as well as any future tokens issued by the refresh grant. Keep in mind that this data will be available to anyone performing OAuth 2.0 Challenge Introspection. If only your services can perform OAuth 2.0 Challenge Introspection, this is usually fine. But if third parties can access that endpoint as well, sensitive data from the session might be exposed to them. Use with care! */
-    @JsonProperty("access_token")
+    @get:JsonProperty("access_token")
     val accessToken: kotlin.Any? = null,
 
     /* IDToken sets session data for the OpenID Connect ID token. Keep in mind that the session'id payloads are readable by anyone that has access to the ID Challenge. Use with care! */
-    @JsonProperty("id_token")
+    @get:JsonProperty("id_token")
     val idToken: kotlin.Any? = null,
 
 )

@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 /**
  * OAuth 2.0 Clients are used to perform OAuth 2.0 and OpenID Connect flows. Usually, OAuth 2.0 clients are generated for applications which want to consume your OAuth 2.0 or OpenID Connect capabilities.
  *
- * @param accessTokenStrategy OAuth 2.0 Access Token Strategy  AccessTokenStrategy is the strategy used to generate access tokens. Valid options are `jwt` and `opaque`. `jwt` is a bad idea, see https://www.ory.sh/docs/hydra/advanced#json-web-tokens Setting the stragegy here overrides the global setting in `strategies.access_token`.
+ * @param accessTokenStrategy OAuth 2.0 Access Token Strategy  AccessTokenStrategy is the strategy used to generate access tokens. Valid options are `jwt` and `opaque`. `jwt` is a bad idea, see https://www.ory.sh/docs/oauth2-oidc/jwt-access-token Setting the strategy here overrides the global setting in `strategies.access_token`.
  * @param allowedCorsOrigins
  * @param audience
  * @param authorizationCodeGrantAccessTokenLifespan Specify a time duration in milliseconds, seconds, minutes, hours.
@@ -36,12 +36,15 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @param clientUri OAuth 2.0 Client URI  ClientURI is a URL string of a web page providing information about the client. If present, the server SHOULD display this URL to the end-user in a clickable fashion.
  * @param contacts
  * @param createdAt OAuth 2.0 Client Creation Date  CreatedAt returns the timestamp of the client's creation.
+ * @param deviceAuthorizationGrantAccessTokenLifespan Specify a time duration in milliseconds, seconds, minutes, hours.
+ * @param deviceAuthorizationGrantIdTokenLifespan Specify a time duration in milliseconds, seconds, minutes, hours.
+ * @param deviceAuthorizationGrantRefreshTokenLifespan Specify a time duration in milliseconds, seconds, minutes, hours.
  * @param frontchannelLogoutSessionRequired OpenID Connect Front-Channel Logout Session Required  Boolean value specifying whether the RP requires that iss (issuer) and sid (session ID) query parameters be included to identify the RP session with the OP when the frontchannel_logout_uri is used. If omitted, the default value is false.
  * @param frontchannelLogoutUri OpenID Connect Front-Channel Logout URI  RP URL that will cause the RP to log itself out when rendered in an iframe by the OP. An iss (issuer) query parameter and a sid (session ID) query parameter MAY be included by the OP to enable the RP to validate the request and to determine which of the potentially multiple sessions is to be logged out; if either is included, both MUST be.
  * @param grantTypes
  * @param implicitGrantAccessTokenLifespan Specify a time duration in milliseconds, seconds, minutes, hours.
  * @param implicitGrantIdTokenLifespan Specify a time duration in milliseconds, seconds, minutes, hours.
- * @param jwks OAuth 2.0 Client JSON Web Key Set  Client's JSON Web Key Set [JWK] document, passed by value. The semantics of the jwks parameter are the same as the jwks_uri parameter, other than that the JWK Set is passed by value, rather than by reference. This parameter is intended only to be used by Clients that, for some reason, are unable to use the jwks_uri parameter, for instance, by native applications that might not have a location to host the contents of the JWK Set. If a Client can use jwks_uri, it MUST NOT use jwks. One significant downside of jwks is that it does not enable key rotation (which jwks_uri does, as described in Section 10 of OpenID Connect Core 1.0 [OpenID.Core]). The jwks_uri and jwks parameters MUST NOT be used together.
+ * @param jwks
  * @param jwksUri OAuth 2.0 Client JSON Web Key Set URL  URL for the Client's JSON Web Key Set [JWK] document. If the Client signs requests to the Server, it contains the signing key(s) the Server uses to validate signatures from the Client. The JWK Set MAY also contain the Client's encryption keys(s), which are used by the Server to encrypt responses to the Client. When both signing and encryption keys are made available, a use (Key Use) parameter value is REQUIRED for all keys in the referenced JWK Set to indicate each key's intended usage. Although some algorithms allow the same key to be used for both signatures and encryption, doing so is NOT RECOMMENDED, as it is less secure. The JWK x5c parameter MAY be used to provide X.509 representations of keys provided. When used, the bare key values MUST still be present and MUST match those in the certificate.
  * @param jwtBearerGrantAccessTokenLifespan Specify a time duration in milliseconds, seconds, minutes, hours.
  * @param logoUri OAuth 2.0 Client Logo URI  A URL string referencing the client's logo.
@@ -72,187 +75,198 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 data class OAuth2Client(
 
-    /* OAuth 2.0 Access Token Strategy  AccessTokenStrategy is the strategy used to generate access tokens. Valid options are `jwt` and `opaque`. `jwt` is a bad idea, see https://www.ory.sh/docs/hydra/advanced#json-web-tokens Setting the stragegy here overrides the global setting in `strategies.access_token`. */
-    @JsonProperty("access_token_strategy")
+    /* OAuth 2.0 Access Token Strategy  AccessTokenStrategy is the strategy used to generate access tokens. Valid options are `jwt` and `opaque`. `jwt` is a bad idea, see https://www.ory.sh/docs/oauth2-oidc/jwt-access-token Setting the strategy here overrides the global setting in `strategies.access_token`. */
+    @get:JsonProperty("access_token_strategy")
     val accessTokenStrategy: kotlin.String? = null,
 
-    @JsonProperty("allowed_cors_origins")
+    @get:JsonProperty("allowed_cors_origins")
     val allowedCorsOrigins: kotlin.collections.List<kotlin.String>? = null,
 
-    @JsonProperty("audience")
+    @get:JsonProperty("audience")
     val audience: kotlin.collections.List<kotlin.String>? = null,
 
     /* Specify a time duration in milliseconds, seconds, minutes, hours. */
-    @JsonProperty("authorization_code_grant_access_token_lifespan")
+    @get:JsonProperty("authorization_code_grant_access_token_lifespan")
     val authorizationCodeGrantAccessTokenLifespan: kotlin.String? = null,
 
     /* Specify a time duration in milliseconds, seconds, minutes, hours. */
-    @JsonProperty("authorization_code_grant_id_token_lifespan")
+    @get:JsonProperty("authorization_code_grant_id_token_lifespan")
     val authorizationCodeGrantIdTokenLifespan: kotlin.String? = null,
 
     /* Specify a time duration in milliseconds, seconds, minutes, hours. */
-    @JsonProperty("authorization_code_grant_refresh_token_lifespan")
+    @get:JsonProperty("authorization_code_grant_refresh_token_lifespan")
     val authorizationCodeGrantRefreshTokenLifespan: kotlin.String? = null,
 
     /* OpenID Connect Back-Channel Logout Session Required  Boolean value specifying whether the RP requires that a sid (session ID) Claim be included in the Logout Token to identify the RP session with the OP when the backchannel_logout_uri is used. If omitted, the default value is false. */
-    @JsonProperty("backchannel_logout_session_required")
+    @get:JsonProperty("backchannel_logout_session_required")
     val backchannelLogoutSessionRequired: kotlin.Boolean? = null,
 
     /* OpenID Connect Back-Channel Logout URI  RP URL that will cause the RP to log itself out when sent a Logout Token by the OP. */
-    @JsonProperty("backchannel_logout_uri")
+    @get:JsonProperty("backchannel_logout_uri")
     val backchannelLogoutUri: kotlin.String? = null,
 
     /* Specify a time duration in milliseconds, seconds, minutes, hours. */
-    @JsonProperty("client_credentials_grant_access_token_lifespan")
+    @get:JsonProperty("client_credentials_grant_access_token_lifespan")
     val clientCredentialsGrantAccessTokenLifespan: kotlin.String? = null,
 
     /* OAuth 2.0 Client ID  The ID is immutable. If no ID is provided, a UUID4 will be generated. */
-    @JsonProperty("client_id")
+    @get:JsonProperty("client_id")
     val clientId: kotlin.String? = null,
 
     /* OAuth 2.0 Client Name  The human-readable name of the client to be presented to the end-user during authorization. */
-    @JsonProperty("client_name")
+    @get:JsonProperty("client_name")
     val clientName: kotlin.String? = null,
 
     /* OAuth 2.0 Client Secret  The secret will be included in the create request as cleartext, and then never again. The secret is kept in hashed format and is not recoverable once lost. */
-    @JsonProperty("client_secret")
+    @get:JsonProperty("client_secret")
     val clientSecret: kotlin.String? = null,
 
     /* OAuth 2.0 Client Secret Expires At  The field is currently not supported and its value is always 0. */
-    @JsonProperty("client_secret_expires_at")
+    @get:JsonProperty("client_secret_expires_at")
     val clientSecretExpiresAt: kotlin.Long? = null,
 
     /* OAuth 2.0 Client URI  ClientURI is a URL string of a web page providing information about the client. If present, the server SHOULD display this URL to the end-user in a clickable fashion. */
-    @JsonProperty("client_uri")
+    @get:JsonProperty("client_uri")
     val clientUri: kotlin.String? = null,
 
-    @JsonProperty("contacts")
+    @get:JsonProperty("contacts")
     val contacts: kotlin.collections.List<kotlin.String>? = null,
 
     /* OAuth 2.0 Client Creation Date  CreatedAt returns the timestamp of the client's creation. */
-    @JsonProperty("created_at")
+    @get:JsonProperty("created_at")
     val createdAt: java.time.OffsetDateTime? = null,
 
+    /* Specify a time duration in milliseconds, seconds, minutes, hours. */
+    @get:JsonProperty("device_authorization_grant_access_token_lifespan")
+    val deviceAuthorizationGrantAccessTokenLifespan: kotlin.String? = null,
+
+    /* Specify a time duration in milliseconds, seconds, minutes, hours. */
+    @get:JsonProperty("device_authorization_grant_id_token_lifespan")
+    val deviceAuthorizationGrantIdTokenLifespan: kotlin.String? = null,
+
+    /* Specify a time duration in milliseconds, seconds, minutes, hours. */
+    @get:JsonProperty("device_authorization_grant_refresh_token_lifespan")
+    val deviceAuthorizationGrantRefreshTokenLifespan: kotlin.String? = null,
+
     /* OpenID Connect Front-Channel Logout Session Required  Boolean value specifying whether the RP requires that iss (issuer) and sid (session ID) query parameters be included to identify the RP session with the OP when the frontchannel_logout_uri is used. If omitted, the default value is false. */
-    @JsonProperty("frontchannel_logout_session_required")
+    @get:JsonProperty("frontchannel_logout_session_required")
     val frontchannelLogoutSessionRequired: kotlin.Boolean? = null,
 
     /* OpenID Connect Front-Channel Logout URI  RP URL that will cause the RP to log itself out when rendered in an iframe by the OP. An iss (issuer) query parameter and a sid (session ID) query parameter MAY be included by the OP to enable the RP to validate the request and to determine which of the potentially multiple sessions is to be logged out; if either is included, both MUST be. */
-    @JsonProperty("frontchannel_logout_uri")
+    @get:JsonProperty("frontchannel_logout_uri")
     val frontchannelLogoutUri: kotlin.String? = null,
 
-    @JsonProperty("grant_types")
+    @get:JsonProperty("grant_types")
     val grantTypes: kotlin.collections.List<kotlin.String>? = null,
 
     /* Specify a time duration in milliseconds, seconds, minutes, hours. */
-    @JsonProperty("implicit_grant_access_token_lifespan")
+    @get:JsonProperty("implicit_grant_access_token_lifespan")
     val implicitGrantAccessTokenLifespan: kotlin.String? = null,
 
     /* Specify a time duration in milliseconds, seconds, minutes, hours. */
-    @JsonProperty("implicit_grant_id_token_lifespan")
+    @get:JsonProperty("implicit_grant_id_token_lifespan")
     val implicitGrantIdTokenLifespan: kotlin.String? = null,
 
-    /* OAuth 2.0 Client JSON Web Key Set  Client's JSON Web Key Set [JWK] document, passed by value. The semantics of the jwks parameter are the same as the jwks_uri parameter, other than that the JWK Set is passed by value, rather than by reference. This parameter is intended only to be used by Clients that, for some reason, are unable to use the jwks_uri parameter, for instance, by native applications that might not have a location to host the contents of the JWK Set. If a Client can use jwks_uri, it MUST NOT use jwks. One significant downside of jwks is that it does not enable key rotation (which jwks_uri does, as described in Section 10 of OpenID Connect Core 1.0 [OpenID.Core]). The jwks_uri and jwks parameters MUST NOT be used together. */
-    @JsonProperty("jwks")
-    val jwks: kotlin.Any? = null,
+    @get:JsonProperty("jwks")
+    val jwks: JsonWebKeySet? = null,
 
     /* OAuth 2.0 Client JSON Web Key Set URL  URL for the Client's JSON Web Key Set [JWK] document. If the Client signs requests to the Server, it contains the signing key(s) the Server uses to validate signatures from the Client. The JWK Set MAY also contain the Client's encryption keys(s), which are used by the Server to encrypt responses to the Client. When both signing and encryption keys are made available, a use (Key Use) parameter value is REQUIRED for all keys in the referenced JWK Set to indicate each key's intended usage. Although some algorithms allow the same key to be used for both signatures and encryption, doing so is NOT RECOMMENDED, as it is less secure. The JWK x5c parameter MAY be used to provide X.509 representations of keys provided. When used, the bare key values MUST still be present and MUST match those in the certificate. */
-    @JsonProperty("jwks_uri")
+    @get:JsonProperty("jwks_uri")
     val jwksUri: kotlin.String? = null,
 
     /* Specify a time duration in milliseconds, seconds, minutes, hours. */
-    @JsonProperty("jwt_bearer_grant_access_token_lifespan")
+    @get:JsonProperty("jwt_bearer_grant_access_token_lifespan")
     val jwtBearerGrantAccessTokenLifespan: kotlin.String? = null,
 
     /* OAuth 2.0 Client Logo URI  A URL string referencing the client's logo. */
-    @JsonProperty("logo_uri")
+    @get:JsonProperty("logo_uri")
     val logoUri: kotlin.String? = null,
 
-    @JsonProperty("metadata")
+    @get:JsonProperty("metadata")
     val metadata: kotlin.Any? = null,
 
     /* OAuth 2.0 Client Owner  Owner is a string identifying the owner of the OAuth 2.0 Client. */
-    @JsonProperty("owner")
+    @get:JsonProperty("owner")
     val owner: kotlin.String? = null,
 
     /* OAuth 2.0 Client Policy URI  PolicyURI is a URL string that points to a human-readable privacy policy document that describes how the deployment organization collects, uses, retains, and discloses personal data. */
-    @JsonProperty("policy_uri")
+    @get:JsonProperty("policy_uri")
     val policyUri: kotlin.String? = null,
 
-    @JsonProperty("post_logout_redirect_uris")
+    @get:JsonProperty("post_logout_redirect_uris")
     val postLogoutRedirectUris: kotlin.collections.List<kotlin.String>? = null,
 
-    @JsonProperty("redirect_uris")
+    @get:JsonProperty("redirect_uris")
     val redirectUris: kotlin.collections.List<kotlin.String>? = null,
 
     /* Specify a time duration in milliseconds, seconds, minutes, hours. */
-    @JsonProperty("refresh_token_grant_access_token_lifespan")
+    @get:JsonProperty("refresh_token_grant_access_token_lifespan")
     val refreshTokenGrantAccessTokenLifespan: kotlin.String? = null,
 
     /* Specify a time duration in milliseconds, seconds, minutes, hours. */
-    @JsonProperty("refresh_token_grant_id_token_lifespan")
+    @get:JsonProperty("refresh_token_grant_id_token_lifespan")
     val refreshTokenGrantIdTokenLifespan: kotlin.String? = null,
 
     /* Specify a time duration in milliseconds, seconds, minutes, hours. */
-    @JsonProperty("refresh_token_grant_refresh_token_lifespan")
+    @get:JsonProperty("refresh_token_grant_refresh_token_lifespan")
     val refreshTokenGrantRefreshTokenLifespan: kotlin.String? = null,
 
     /* OpenID Connect Dynamic Client Registration Access Token  RegistrationAccessToken can be used to update, get, or delete the OAuth2 Client. It is sent when creating a client using Dynamic Client Registration. */
-    @JsonProperty("registration_access_token")
+    @get:JsonProperty("registration_access_token")
     val registrationAccessToken: kotlin.String? = null,
 
     /* OpenID Connect Dynamic Client Registration URL  RegistrationClientURI is the URL used to update, get, or delete the OAuth2 Client. */
-    @JsonProperty("registration_client_uri")
+    @get:JsonProperty("registration_client_uri")
     val registrationClientUri: kotlin.String? = null,
 
     /* OpenID Connect Request Object Signing Algorithm  JWS [JWS] alg algorithm [JWA] that MUST be used for signing Request Objects sent to the OP. All Request Objects from this Client MUST be rejected, if not signed with this algorithm. */
-    @JsonProperty("request_object_signing_alg")
+    @get:JsonProperty("request_object_signing_alg")
     val requestObjectSigningAlg: kotlin.String? = null,
 
-    @JsonProperty("request_uris")
+    @get:JsonProperty("request_uris")
     val requestUris: kotlin.collections.List<kotlin.String>? = null,
 
-    @JsonProperty("response_types")
+    @get:JsonProperty("response_types")
     val responseTypes: kotlin.collections.List<kotlin.String>? = null,
 
     /* OAuth 2.0 Client Scope  Scope is a string containing a space-separated list of scope values (as described in Section 3.3 of OAuth 2.0 [RFC6749]) that the client can use when requesting access tokens. */
-    @JsonProperty("scope")
+    @get:JsonProperty("scope")
     val scope: kotlin.String? = null,
 
     /* OpenID Connect Sector Identifier URI  URL using the https scheme to be used in calculating Pseudonymous Identifiers by the OP. The URL references a file with a single JSON array of redirect_uri values. */
-    @JsonProperty("sector_identifier_uri")
+    @get:JsonProperty("sector_identifier_uri")
     val sectorIdentifierUri: kotlin.String? = null,
 
     /* SkipConsent skips the consent screen for this client. This field can only be set from the admin API. */
-    @JsonProperty("skip_consent")
+    @get:JsonProperty("skip_consent")
     val skipConsent: kotlin.Boolean? = null,
 
     /* SkipLogoutConsent skips the logout consent screen for this client. This field can only be set from the admin API. */
-    @JsonProperty("skip_logout_consent")
+    @get:JsonProperty("skip_logout_consent")
     val skipLogoutConsent: kotlin.Boolean? = null,
 
     /* OpenID Connect Subject Type  The `subject_types_supported` Discovery parameter contains a list of the supported subject_type values for this server. Valid types include `pairwise` and `public`. */
-    @JsonProperty("subject_type")
+    @get:JsonProperty("subject_type")
     val subjectType: kotlin.String? = null,
 
     /* OAuth 2.0 Token Endpoint Authentication Method  Requested Client Authentication method for the Token Endpoint. The options are:  `client_secret_basic`: (default) Send `client_id` and `client_secret` as `application/x-www-form-urlencoded` encoded in the HTTP Authorization header. `client_secret_post`: Send `client_id` and `client_secret` as `application/x-www-form-urlencoded` in the HTTP body. `private_key_jwt`: Use JSON Web Tokens to authenticate the client. `none`: Used for public clients (native apps, mobile apps) which can not have secrets. */
-    @JsonProperty("token_endpoint_auth_method")
+    @get:JsonProperty("token_endpoint_auth_method")
     val tokenEndpointAuthMethod: kotlin.String? = "client_secret_basic",
 
     /* OAuth 2.0 Token Endpoint Signing Algorithm  Requested Client Authentication signing algorithm for the Token Endpoint. */
-    @JsonProperty("token_endpoint_auth_signing_alg")
+    @get:JsonProperty("token_endpoint_auth_signing_alg")
     val tokenEndpointAuthSigningAlg: kotlin.String? = null,
 
     /* OAuth 2.0 Client Terms of Service URI  A URL string pointing to a human-readable terms of service document for the client that describes a contractual relationship between the end-user and the client that the end-user accepts when authorizing the client. */
-    @JsonProperty("tos_uri")
+    @get:JsonProperty("tos_uri")
     val tosUri: kotlin.String? = null,
 
     /* OAuth 2.0 Client Last Update Date  UpdatedAt returns the timestamp of the last update. */
-    @JsonProperty("updated_at")
+    @get:JsonProperty("updated_at")
     val updatedAt: java.time.OffsetDateTime? = null,
 
     /* OpenID Connect Request Userinfo Signed Response Algorithm  JWS alg algorithm [JWA] REQUIRED for signing UserInfo Responses. If this is specified, the response will be JWT [JWT] serialized, and signed using JWS. The default, if omitted, is for the UserInfo Response to return the Claims as a UTF-8 encoded JSON object using the application/json content-type. */
-    @JsonProperty("userinfo_signed_response_alg")
+    @get:JsonProperty("userinfo_signed_response_alg")
     val userinfoSignedResponseAlg: kotlin.String? = null,
 
 )
