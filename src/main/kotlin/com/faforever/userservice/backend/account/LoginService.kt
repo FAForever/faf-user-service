@@ -95,6 +95,7 @@ class LoginServiceImpl(
             return LoginResult.RecoverableLoginOrCredentialsMismatch
         }
 
+        val lastLogin = loginLogRepository.findLastLoginTime(user.id)
         logLogin(usernameOrEmail, user, ip)
 
         val activeGlobalBan = findActiveGlobalBan(user)
@@ -103,7 +104,7 @@ class LoginServiceImpl(
             return LoginResult.UserBanned(activeGlobalBan.reason, activeGlobalBan.expiresAt)
         }
 
-        val missedGlobalBan = findMissedGlobalBan(user)
+        val missedGlobalBan = findMissedGlobalBan(user, lastLogin)
         if (missedGlobalBan != null) {
             LOG.debug("User '{}' missed a ban {} and needs to be informed about it", usernameOrEmail, missedGlobalBan)
             return LoginResult.MissedBan(
@@ -135,14 +136,13 @@ class LoginServiceImpl(
         banRepository.findGlobalBansByPlayerId(user.id)
             .firstOrNull { it.isActive }
 
-    private fun findMissedGlobalBan(user: User): Ban? {
+    private fun findMissedGlobalBan(user: User, lastLogin: LocalDateTime?): Ban? {
         val lastRelevantBan = banRepository.findGlobalBansByPlayerId(user.id)
             .firstOrNull {
                 it.revokeTime == null && it.expiresAt != null &&
                     it.expiresAt!!.isAfter(OffsetDateTime.now().minusDays(90))
             } ?: return null
 
-        val lastLogin = loginLogRepository.findLastLoginTime(user.id)
         return if (lastLogin == null || lastLogin.isBefore(lastRelevantBan.createTime)) {
             lastRelevantBan
         } else {
