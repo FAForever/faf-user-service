@@ -10,7 +10,6 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
 enum class BanLevel {
@@ -42,7 +41,7 @@ data class Ban(
     @Column(name = "revoke_author_id")
     val revokeAuthorId: Int?,
     @Column(name = "create_time")
-    val createTime: LocalDateTime,
+    val createTime: OffsetDateTime,
 ) : PanacheEntityBase {
 
     val isActive: Boolean

@@ -41,7 +41,7 @@ sealed interface LoginResult {
     object RecoverableLoginOrCredentialsMismatch : RecoverableLoginFailure
     data class MissedBan(
         val reason: String,
-        val startTime: LocalDateTime,
+        val startTime: OffsetDateTime,
         val endTime: OffsetDateTime,
     ) : RecoverableLoginFailure
 
@@ -143,7 +143,7 @@ class LoginServiceImpl(
                     it.expiresAt!!.isAfter(OffsetDateTime.now().minusDays(90))
             } ?: return null
 
-        return if (lastLogin == null || lastLogin.isBefore(lastRelevantBan.createTime)) {
+        return if (lastLogin == null || lastLogin.isBefore(lastRelevantBan.createTime.toLocalDateTime())) {
             lastRelevantBan
         } else {
             null

@@ -96,7 +96,7 @@ class LoginServiceTest {
                     null,
                     null,
                     null,
-                    LocalDateTime.now(),
+                    OffsetDateTime.now(),
                 ),
             ),
         )
@@ -122,7 +122,7 @@ class LoginServiceTest {
                     null,
                     null,
                     null,
-                    LocalDateTime.now(),
+                    OffsetDateTime.now(),
                 ),
             ),
         )
@@ -174,7 +174,7 @@ class LoginServiceTest {
                     null,
                     null,
                     null,
-                    LocalDateTime.now(),
+                    OffsetDateTime.now(),
                 ),
             ),
         )
@@ -200,7 +200,7 @@ class LoginServiceTest {
                     null,
                     null,
                     null,
-                    LocalDateTime.now().minusDays(1),
+                    OffsetDateTime.now().minusDays(1),
                 ),
             ),
         )
@@ -227,7 +227,7 @@ class LoginServiceTest {
                     null,
                     null,
                     null,
-                    LocalDateTime.now().minusDays(1),
+                    OffsetDateTime.now().minusDays(1),
                 ),
             ),
         )
