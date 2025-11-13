@@ -28,7 +28,6 @@ input {
 }
 
 .error {
-    text-align: center;
     background-color: white;
     border: 1px solid var(--lumo-primary-color);
     font-weight: bold;
