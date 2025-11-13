@@ -85,7 +85,7 @@ class LoginServiceTest {
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
         whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
             listOf(
-                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, null, null, null, null),
+                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, null, null, null, null, LocalDateTime.now()),
             ),
         )
 
@@ -99,7 +99,7 @@ class LoginServiceTest {
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
         whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
             listOf(
-                Ban(1, 1, 100, BanLevel.GLOBAL, "test", null, null, null, null, null),
+                Ban(1, 1, 100, BanLevel.GLOBAL, "test", null, null, null, null, null, LocalDateTime.now()),
             ),
         )
 
@@ -150,6 +150,7 @@ class LoginServiceTest {
                     null,
                     null,
                     null,
+                    LocalDateTime.now(),
                 ),
             ),
         )
@@ -170,15 +171,44 @@ class LoginServiceTest {
                     100,
                     BanLevel.GLOBAL,
                     "test",
-                    OffsetDateTime.MIN,
-                    OffsetDateTime.now().minusDays(1),
+                    OffsetDateTime.now().minusHours(1),
                     null,
                     null,
                     null,
+                    null,
+                    LocalDateTime.now().minusDays(1),
                 ),
             ),
         )
         whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
+        whenever(loginLogRepository.findLastLoginTime(anyInt())).thenReturn(LocalDateTime.now().minusDays(2))
+        whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
+
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)
+        assertThat(result, instanceOf(LoginResult.MissedBan::class.java))
+    }
+
+    @Test
+    fun loginWithPreviouslyBannedUserAfterAcknowledgement() {
+        whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
+            listOf(
+                Ban(
+                    1,
+                    1,
+                    100,
+                    BanLevel.GLOBAL,
+                    "test",
+                    OffsetDateTime.now().minusHours(1),
+                    null,
+                    null,
+                    null,
+                    null,
+                    LocalDateTime.now().minusDays(1),
+                ),
+            ),
+        )
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
+        whenever(loginLogRepository.findLastLoginTime(anyInt())).thenReturn(LocalDateTime.now())
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
 
         val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)

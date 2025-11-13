@@ -167,6 +167,12 @@ class LoginView(
         errorMessage.text = when (loginError) {
             is LoginResult.RecoverableLoginOrCredentialsMismatch -> getTranslation("login.badCredentials")
             is LoginResult.ThrottlingActive -> getTranslation("login.throttled")
+            is LoginResult.MissedBan -> {
+                val intro = "${getTranslation("ban.missed.intro", loginError.startTime)} ${loginError.endTime}"
+                val reason = "${getTranslation("ban.reason")} ${loginError.reason}"
+                val explanation = getTranslation("ban.missed")
+                "$intro $reason\n$explanation"
+            }
         }
         errorLayout.isVisible = true
     }

@@ -38,6 +38,9 @@ data class FailedAttemptsSummary(
 
 @ApplicationScoped
 class LoginLogRepository : PanacheRepository<LoginLog> {
+    fun findLastLoginTime(userId: Int?): LocalDateTime? =
+        find("userId = ?1", userId).firstResult()?.createTime
+    // or last result?
 
     fun findFailedAttemptsByIpAfterDate(ip: String, date: LocalDateTime): FailedAttemptsSummary? =
         getEntityManager().createQuery(
