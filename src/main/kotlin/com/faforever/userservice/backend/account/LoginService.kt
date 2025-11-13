@@ -39,6 +39,11 @@ sealed interface LoginResult {
     sealed interface RecoverableLoginFailure : LoginResult
     object ThrottlingActive : RecoverableLoginFailure
     object RecoverableLoginOrCredentialsMismatch : RecoverableLoginFailure
+    data class MissedBan(
+        val reason: String,
+        val startTime: LocalDateTime,
+        val endTime: OffsetDateTime,
+    ) : RecoverableLoginFailure
 
     sealed interface UnrecoverableLoginFailure : LoginResult
     object TechnicalError : UnrecoverableLoginFailure
@@ -93,10 +98,15 @@ class LoginServiceImpl(
         logLogin(usernameOrEmail, user, ip)
 
         val activeGlobalBan = findActiveGlobalBan(user)
-
         if (activeGlobalBan != null) {
             LOG.debug("User '{}' is banned by {}", usernameOrEmail, activeGlobalBan)
             return LoginResult.UserBanned(activeGlobalBan.reason, activeGlobalBan.expiresAt)
+        }
+
+        val missedGlobalBan = findMissedGlobalBan(user)
+        if (missedGlobalBan != null) {
+            LOG.debug("User '{}' missed a ban {} and needs to be informed about it", usernameOrEmail, missedGlobalBan)
+            return LoginResult.MissedBan(missedGlobalBan.reason, missedGlobalBan.createTime, missedGlobalBan.expiresAt!!)
         }
 
         if (requiresGameOwnership && !accountLinkRepository.hasOwnershipLink(user.id!!)) {
@@ -118,8 +128,18 @@ class LoginServiceImpl(
         loginLogRepository.persist(LoginLog(0, null, unknownLogin.take(100), ip.value, false))
 
     private fun findActiveGlobalBan(user: User): Ban? =
-        banRepository.findGlobalBansByPlayerId(user.id!!)
+        banRepository.findGlobalBansByPlayerId(user.id)
             .firstOrNull { it.isActive }
+
+    private fun findMissedGlobalBan(user: User): Ban? {
+        val lastRelevantBan = banRepository.findGlobalBansByPlayerId(user.id)
+            .firstOrNull { it.revokeTime == null && it.expiresAt != null &&
+                it.expiresAt!!.isAfter(OffsetDateTime.now().minusDays(90))} ?: return null
+
+        val lastLogin = loginLogRepository.findLastLoginTime(user.id)
+        return if (lastLogin == null || lastLogin.isBefore(lastRelevantBan.createTime))
+            lastRelevantBan else null
+    }
 
     private fun throttlingRequired(ip: IpAddress): Boolean {
         val failedAttemptsSummary = loginLogRepository.findFailedAttemptsByIpAfterDate(

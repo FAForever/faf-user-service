@@ -10,6 +10,7 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
 enum class BanLevel {
@@ -40,6 +41,8 @@ data class Ban(
     val revokeReason: String?,
     @Column(name = "revoke_author_id")
     val revokeAuthorId: Int?,
+    @Column(name = "create_time")
+    val createTime: LocalDateTime,
 ) : PanacheEntityBase {
 
     val isActive: Boolean
@@ -51,6 +54,8 @@ data class Ban(
 
 @ApplicationScoped
 class BanRepository : PanacheRepository<Ban> {
-    fun findGlobalBansByPlayerId(playerId: Int) =
-        find("playerId = ?1 and level = BanLevel.GLOBAL", playerId).list()
+    fun findGlobalBansByPlayerId(playerId: Int?): List<Ban> {
+        if (playerId == null) return listOf()
+        return find("playerId = ?1 and level = BanLevel.GLOBAL", playerId).list()
+    }
 }

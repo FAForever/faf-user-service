@@ -74,6 +74,7 @@ class HydraService(
         return when (val loginResult = loginService.login(usernameOrEmail, password, ip, requiresGameOwnership)) {
             is LoginResult.ThrottlingActive -> LoginResponse.FailedLogin(loginResult)
             is LoginResult.RecoverableLoginOrCredentialsMismatch -> LoginResponse.FailedLogin(loginResult)
+            is LoginResult.MissedBan -> LoginResponse.FailedLogin(loginResult)
             is LoginResult.UserNoGameOwnership -> {
                 rejectLoginRequest(
                     challenge,
