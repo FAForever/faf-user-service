@@ -85,7 +85,19 @@ class LoginServiceTest {
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
         whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
             listOf(
-                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, null, null, null, null, LocalDateTime.now()),
+                Ban(
+                    1,
+                    1,
+                    100,
+                    BanLevel.GLOBAL,
+                    "test",
+                    OffsetDateTime.MAX,
+                    null,
+                    null,
+                    null,
+                    null,
+                    LocalDateTime.now(),
+                ),
             ),
         )
 
@@ -99,7 +111,19 @@ class LoginServiceTest {
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
         whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
             listOf(
-                Ban(1, 1, 100, BanLevel.GLOBAL, "test", null, null, null, null, null, LocalDateTime.now()),
+                Ban(
+                    1,
+                    1,
+                    100,
+                    BanLevel.GLOBAL,
+                    "test",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    LocalDateTime.now(),
+                ),
             ),
         )
 
