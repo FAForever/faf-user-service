@@ -74,8 +74,8 @@ class LoginView(
 
     private val dateTimeFormatter: DateTimeFormatter = DateTimeFormatterBuilder()
         .append(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG))
-        .appendLiteral(" ")
-        .append(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
+        .append(DateTimeFormatter.ofPattern(" HH:mm"))
+        .appendLiteral(" (UTC)")
         .toFormatter(UI.getCurrent().locale)
 
     private val usernameOrEmail = TextField(null, getTranslation("login.usernameOrEmail")).apply {
