@@ -93,7 +93,6 @@ class LoginView(
     private val submit = Button(getTranslation("login.loginAction")) { login() }.apply {
         setWidthFull()
         addThemeVariants(ButtonVariant.LUMO_PRIMARY)
-        addClickShortcut(Key.ENTER)
     }
     private val loginLayout = CompactVerticalLayout(usernameOrEmail, password, submit).apply {
         width = "100%"
