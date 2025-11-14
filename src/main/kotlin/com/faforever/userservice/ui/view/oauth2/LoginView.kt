@@ -179,7 +179,7 @@ class LoginView(
             is LoginResult.ThrottlingActive -> getTranslation("login.throttled")
             is LoginResult.MissedBan -> {
                 val startTime = loginError.startTime.format(dateTimeFormatter)
-                val endTime = loginError.startTime.format(dateTimeFormatter)
+                val endTime = loginError.endTime.format(dateTimeFormatter)
                 val intro = getTranslation("ban.missed.intro", startTime, endTime)
                 val reason = "${getTranslation("ban.reason")} ${loginError.reason}"
                 val explanation = getTranslation("ban.missed")
