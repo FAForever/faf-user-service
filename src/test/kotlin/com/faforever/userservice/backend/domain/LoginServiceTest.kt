@@ -85,7 +85,19 @@ class LoginServiceTest {
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
         whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
             listOf(
-                Ban(1, 1, 100, BanLevel.GLOBAL, "test", OffsetDateTime.MAX, null, null, null, null),
+                Ban(
+                    1,
+                    1,
+                    100,
+                    BanLevel.GLOBAL,
+                    "test",
+                    OffsetDateTime.MAX,
+                    null,
+                    null,
+                    null,
+                    null,
+                    OffsetDateTime.now(),
+                ),
             ),
         )
 
@@ -99,7 +111,19 @@ class LoginServiceTest {
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
         whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
             listOf(
-                Ban(1, 1, 100, BanLevel.GLOBAL, "test", null, null, null, null, null),
+                Ban(
+                    1,
+                    1,
+                    100,
+                    BanLevel.GLOBAL,
+                    "test",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    OffsetDateTime.now(),
+                ),
             ),
         )
 
@@ -150,6 +174,7 @@ class LoginServiceTest {
                     null,
                     null,
                     null,
+                    OffsetDateTime.now(),
                 ),
             ),
         )
@@ -161,7 +186,7 @@ class LoginServiceTest {
     }
 
     @Test
-    fun loginWithPreviouslyBannedUser() {
+    fun loginAfterMissedBanExpired() {
         whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
             listOf(
                 Ban(
@@ -170,15 +195,98 @@ class LoginServiceTest {
                     100,
                     BanLevel.GLOBAL,
                     "test",
-                    OffsetDateTime.MIN,
+                    OffsetDateTime.now().minusHours(1),
+                    null,
+                    null,
+                    null,
+                    null,
                     OffsetDateTime.now().minusDays(1),
-                    null,
-                    null,
-                    null,
                 ),
             ),
         )
         whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
+        whenever(loginLogRepository.findLastLoginTime(anyInt())).thenReturn(LocalDateTime.now().minusDays(2))
+        whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
+
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)
+        assertThat(result, instanceOf(LoginResult.MissedBan::class.java))
+    }
+
+    @Test
+    fun loginAfterKnownBanExpired() {
+        whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
+            listOf(
+                Ban(
+                    1,
+                    1,
+                    100,
+                    BanLevel.GLOBAL,
+                    "test",
+                    OffsetDateTime.now().minusHours(1),
+                    null,
+                    null,
+                    null,
+                    null,
+                    OffsetDateTime.now().minusDays(1),
+                ),
+            ),
+        )
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
+        whenever(loginLogRepository.findLastLoginTime(anyInt())).thenReturn(LocalDateTime.now().minusHours(6))
+        whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
+
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)
+        assertThat(result, instanceOf(LoginResult.SuccessfulLogin::class.java))
+    }
+
+    @Test
+    fun loginAfterRecentBanExpiredWithFailedLoginLog() {
+        whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
+            listOf(
+                Ban(
+                    1,
+                    1,
+                    100,
+                    BanLevel.GLOBAL,
+                    "test",
+                    OffsetDateTime.now().minusHours(1),
+                    null,
+                    null,
+                    null,
+                    null,
+                    OffsetDateTime.now().minusDays(1),
+                ),
+            ),
+        )
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
+        whenever(loginLogRepository.findLastLoginTime(anyInt())).thenReturn(null)
+        whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
+
+        val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)
+        assertThat(result, instanceOf(LoginResult.MissedBan::class.java))
+    }
+
+    @Test
+    fun loginAfterOldBanExpiredWithFailedLoginLog() {
+        whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
+            listOf(
+                Ban(
+                    1,
+                    1,
+                    100,
+                    BanLevel.GLOBAL,
+                    "test",
+                    OffsetDateTime.now().minusDays(99),
+                    null,
+                    null,
+                    null,
+                    null,
+                    OffsetDateTime.now().minusDays(100),
+                ),
+            ),
+        )
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
+        whenever(loginLogRepository.findLastLoginTime(anyInt())).thenReturn(null)
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
 
         val result = loginService.login(USERNAME, PASSWORD, IP_ADDRESS, false)

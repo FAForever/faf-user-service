@@ -13,6 +13,7 @@ import com.faforever.userservice.ui.component.SocialIcons
 import com.faforever.userservice.ui.layout.CardLayout
 import com.faforever.userservice.ui.layout.CompactVerticalLayout
 import com.vaadin.flow.component.Key
+import com.vaadin.flow.component.UI
 import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
 import com.vaadin.flow.component.dialog.Dialog
@@ -29,6 +30,8 @@ import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
 import java.net.URI
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+import java.time.format.FormatStyle
 
 @Route("/oauth2/login", layout = CardLayout::class)
 class LoginView(
@@ -65,8 +68,15 @@ class LoginView(
         setWidthFull()
         addClassName("error")
         add(FontAwesomeIcon().apply { addClassNames("fas fa-exclamation-triangle") })
+        errorMessage.style.set("white-space", "pre-line")
         add(errorMessage)
     }
+
+    private val dateTimeFormatter: DateTimeFormatter = DateTimeFormatterBuilder()
+        .append(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG))
+        .append(DateTimeFormatter.ofPattern(" HH:mm"))
+        .appendLiteral(" (UTC)")
+        .toFormatter(UI.getCurrent().locale)
 
     private val usernameOrEmail = TextField(null, getTranslation("login.usernameOrEmail")).apply {
         setWidthFull()
@@ -83,7 +93,6 @@ class LoginView(
     private val submit = Button(getTranslation("login.loginAction")) { login() }.apply {
         setWidthFull()
         addThemeVariants(ButtonVariant.LUMO_PRIMARY)
-        addClickShortcut(Key.ENTER)
     }
     private val loginLayout = CompactVerticalLayout(usernameOrEmail, password, submit).apply {
         width = "100%"
@@ -167,6 +176,14 @@ class LoginView(
         errorMessage.text = when (loginError) {
             is LoginResult.RecoverableLoginOrCredentialsMismatch -> getTranslation("login.badCredentials")
             is LoginResult.ThrottlingActive -> getTranslation("login.throttled")
+            is LoginResult.MissedBan -> {
+                val startTime = loginError.startTime.format(dateTimeFormatter)
+                val endTime = loginError.endTime.format(dateTimeFormatter)
+                val intro = getTranslation("ban.missed.intro", startTime, endTime)
+                val reason = "${getTranslation("ban.reason")} ${loginError.reason}"
+                val explanation = getTranslation("ban.missed")
+                "$intro\n$reason\n$explanation"
+            }
         }
         errorLayout.isVisible = true
     }
@@ -190,7 +207,7 @@ class LoginView(
 
             is LoginResult.UserBanned -> {
                 header.setTitle(getTranslation("ban.title"))
-                val expiration = loginError.expiresAt?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) ?: getTranslation(
+                val expiration = loginError.expiresAt?.format(dateTimeFormatter) ?: getTranslation(
                     "ban.permanent",
                 )
                 val expirationText = "${getTranslation("ban.expiration")} $expiration."
