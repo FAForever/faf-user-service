@@ -19,6 +19,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
+import java.time.ZoneId
 
 @ConfigMapping(prefix = "security")
 interface SecurityProperties {
@@ -95,7 +96,7 @@ class LoginServiceImpl(
             return LoginResult.RecoverableLoginOrCredentialsMismatch
         }
 
-        val lastLogin = loginLogRepository.findLastLoginTime(user.id)
+        val lastLogin = loginLogRepository.findLastLoginTime(user.id)?.atZone(ZoneId.systemDefault())?.toOffsetDateTime()
         logLogin(usernameOrEmail, user, ip)
 
         val activeGlobalBan = findActiveGlobalBan(user)
@@ -104,7 +105,7 @@ class LoginServiceImpl(
             return LoginResult.UserBanned(activeGlobalBan.reason, activeGlobalBan.expiresAt)
         }
 
-        val missedGlobalBan = findMissedGlobalBan(user, lastLogin ?: LocalDateTime.now().minusDays(90))
+        val missedGlobalBan = findMissedGlobalBan(user, lastLogin ?: OffsetDateTime.now().minusDays(90))
         if (missedGlobalBan != null) {
             LOG.debug("User '{}' missed a ban {} and needs to be informed about it", usernameOrEmail, missedGlobalBan)
             return LoginResult.MissedBan(
@@ -136,10 +137,10 @@ class LoginServiceImpl(
         banRepository.findGlobalBansByPlayerId(user.id)
             .firstOrNull { it.isActive }
 
-    private fun findMissedGlobalBan(user: User, lastLogin: LocalDateTime): Ban? {
+    private fun findMissedGlobalBan(user: User, lastLogin: OffsetDateTime): Ban? {
         return banRepository.findGlobalBansByPlayerId(user.id)
             .firstOrNull {
-                it.revokeTime == null && it.expiresAt != null && it.createTime.toLocalDateTime().isAfter(lastLogin)
+                it.revokeTime == null && it.expiresAt != null && it.createTime.isAfter(lastLogin)
             }
     }
 
