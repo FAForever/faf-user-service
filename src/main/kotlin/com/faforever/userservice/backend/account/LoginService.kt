@@ -104,7 +104,7 @@ class LoginServiceImpl(
             return LoginResult.UserBanned(activeGlobalBan.reason, activeGlobalBan.expiresAt)
         }
 
-        val missedGlobalBan = findMissedGlobalBan(user, lastLogin)
+        val missedGlobalBan = findMissedGlobalBan(user, lastLogin ?: LocalDateTime.now().minusDays(90))
         if (missedGlobalBan != null) {
             LOG.debug("User '{}' missed a ban {} and needs to be informed about it", usernameOrEmail, missedGlobalBan)
             return LoginResult.MissedBan(
@@ -136,18 +136,11 @@ class LoginServiceImpl(
         banRepository.findGlobalBansByPlayerId(user.id)
             .firstOrNull { it.isActive }
 
-    private fun findMissedGlobalBan(user: User, lastLogin: LocalDateTime?): Ban? {
-        val lastRelevantBan = banRepository.findGlobalBansByPlayerId(user.id)
+    private fun findMissedGlobalBan(user: User, lastLogin: LocalDateTime): Ban? {
+        return banRepository.findGlobalBansByPlayerId(user.id)
             .firstOrNull {
-                it.revokeTime == null && it.expiresAt != null &&
-                    it.expiresAt!!.isAfter(OffsetDateTime.now().minusDays(90))
-            } ?: return null
-
-        return if (lastLogin == null || lastLogin.isBefore(lastRelevantBan.createTime.toLocalDateTime())) {
-            lastRelevantBan
-        } else {
-            null
-        }
+                it.revokeTime == null && it.expiresAt != null && it.createTime.toLocalDateTime().isAfter(lastLogin)
+            }
     }
 
     private fun throttlingRequired(ip: IpAddress): Boolean {
