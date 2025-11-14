@@ -96,7 +96,8 @@ class LoginServiceImpl(
             return LoginResult.RecoverableLoginOrCredentialsMismatch
         }
 
-        val lastLogin = loginLogRepository.findLastLoginTime(user.id)?.atZone(ZoneId.systemDefault())?.toOffsetDateTime()
+        val lastLogin = loginLogRepository.findLastLoginTime(user.id)
+            ?.atZone(ZoneId.systemDefault())?.toOffsetDateTime()
         logLogin(usernameOrEmail, user, ip)
 
         val activeGlobalBan = findActiveGlobalBan(user)
@@ -107,7 +108,11 @@ class LoginServiceImpl(
 
         val missedGlobalBan = findMissedGlobalBan(user, lastLogin ?: OffsetDateTime.now().minusDays(90))
         if (missedGlobalBan != null) {
-            LOG.debug("User '{}' missed a ban {} and needs to be informed about it. Login blocked.", usernameOrEmail, missedGlobalBan)
+            LOG.debug(
+                "User '{}' missed a ban {} and needs to be informed about it. Login blocked.",
+                usernameOrEmail,
+                missedGlobalBan,
+            )
             return LoginResult.MissedBan(
                 missedGlobalBan.reason,
                 missedGlobalBan.createTime,
