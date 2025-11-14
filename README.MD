@@ -26,14 +26,28 @@ For local development you need
 * a working Kotlin setup (e.g. install IntelliJ Community and download the required JDK from IntellIJ directly)
 * Docker Compose
 
-Setup all docker depencies along with test data by simply running:
+Setup all docker dependencies along with test data by simply running:
 ```shell
 docker compose up -d
 ```
-This will insert the faf db testdata into the faf-db and a faf-client OAuhth client into Ory Hydra.
 
+This will create an oauth client with client id `faf-client` and redirect url `http://127.0.0.1` and all the db [testdata](https://raw.githubusercontent.com/FAForever/db/refs/heads/develop/test-data.sql)
 
 Hint: The docker compose stack is **not** persisting to disk. Deleting containers manually or via `docker compose down` will wipe all data.
+
+Once the dependencies are running, start the user service with:
+```shell
+./gradlew quarkusDev
+```
+
+To start a login flow, paste `http://127.0.0.1:4444/oauth2/auth?client_id=faf-client&response_type=code&redirect_uri=http://127.0.0.1&state=random-state-string` in your browser.
+
+
+### Troubleshooting
+If you have previously set up faf-db in a different container, running `docker compose up -d` will cause conflicts, because port 3306 is already bound. Simply stop the other container first.
+
+Quarkus tries to automatically download and install `node.js` and `npm` if necessary, but this might fail. Install `node.js` and `npm` on your system if you run into this problem.
+
 
 ## Architecture considerations
 
