@@ -40,6 +40,8 @@ data class Ban(
     val revokeReason: String?,
     @Column(name = "revoke_author_id")
     val revokeAuthorId: Long?,
+    @Column(name = "create_time")
+    val createTime: OffsetDateTime,
 ) : PanacheEntityBase {
 
     val isActive: Boolean
@@ -51,6 +53,8 @@ data class Ban(
 
 @ApplicationScoped
 class BanRepository : PanacheRepository<Ban> {
-    fun findGlobalBansByPlayerId(playerId: Int) =
-        find("playerId = ?1 and level = BanLevel.GLOBAL", playerId).list()
+    fun findGlobalBansByPlayerId(playerId: Int?): List<Ban> {
+        if (playerId == null) return listOf()
+        return find("playerId = ?1 and level = BanLevel.GLOBAL", playerId).list()
+    }
 }
