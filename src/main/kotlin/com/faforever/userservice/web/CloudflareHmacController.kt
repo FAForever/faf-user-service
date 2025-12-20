@@ -25,7 +25,7 @@ class CloudflareHmacController(
     )
 
     data class HmacToken(
-        val token: String
+        val token: String,
     )
 
     @GET
