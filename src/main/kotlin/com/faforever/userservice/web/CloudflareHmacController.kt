@@ -2,6 +2,7 @@ package com.faforever.userservice.web
 
 import com.faforever.userservice.backend.cloudflare.CloudflareService
 import com.faforever.userservice.backend.security.FafRole
+import com.faforever.userservice.backend.security.HmacService
 import com.faforever.userservice.backend.security.OAuthScope
 import com.faforever.userservice.config.FafProperties
 import io.quarkus.security.PermissionsAllowed
@@ -15,11 +16,16 @@ import java.net.URI
 @ApplicationScoped
 class CloudflareHmacController(
     val cloudflareService: CloudflareService,
+    val hmacService: HmacService,
     val fafProperties: FafProperties,
 ) {
 
     data class HmacAccess(
         val accessUrl: URI,
+    )
+
+    data class HmacToken(
+        val token: String
     )
 
     @GET
@@ -68,5 +74,16 @@ class CloudflareHmacController(
         val accessUrl = UriBuilder.fromUri(accessUri).queryParam(chat.accessParam(), token).build()
 
         return HmacAccess(accessUrl)
+    }
+
+    @GET
+    @Path("/hmac/token")
+    @PermissionsAllowed("${FafRole.USER}:${OAuthScope.LOBBY}")
+    fun getGeneralHmacToken(): HmacToken {
+        val hmac = fafProperties.jwt().hmac()?.let {
+            hmacService.generateHmacToken(it.message(), it.secret())
+        } ?: ""
+
+        return HmacToken(hmac)
     }
 }
