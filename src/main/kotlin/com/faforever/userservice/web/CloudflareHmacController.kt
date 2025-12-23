@@ -77,8 +77,8 @@ class CloudflareHmacController(
     }
 
     @GET
-    @Path("/hmac/token")
-    @PermissionsAllowed("${FafRole.USER}:${OAuthScope.LOBBY}")
+    @Path("/challenge/token")
+    @PermissionsAllowed("${FafRole.USER}")
     fun getGeneralHmacToken(): HmacToken {
         val hmac = fafProperties.jwt().hmac()?.let {
             hmacService.generateHmacToken(it.message(), it.secret())
