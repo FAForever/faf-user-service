@@ -1,5 +1,6 @@
 package com.faforever.userservice.web
 
+import com.faforever.userservice.backend.security.FafPermissionsAugmentor
 import com.faforever.userservice.backend.security.FafRole
 import com.faforever.userservice.backend.security.OAuthScope
 import com.faforever.userservice.config.FafProperties
@@ -35,7 +36,7 @@ class CloudflareHmacControllerTest {
         }
 
         @Test
-        @TestSecurity(user = "test")
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         @FafRoleTest([FafRole.USER])
         @FafScopeTest([OAuthScope.LOBBY])
         fun canRetrieveAccessUrlWithScopeAndRole() {
@@ -46,21 +47,21 @@ class CloudflareHmacControllerTest {
         }
 
         @Test
-        @TestSecurity(user = "test")
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         @FafScopeTest([OAuthScope.LOBBY])
         fun cannotRetrieveAccessUrlWithOnlyScope() {
             RestAssured.get("/lobby/access").then().statusCode(403)
         }
 
         @Test
-        @TestSecurity(user = "test")
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         @FafRoleTest([FafRole.USER])
         fun cannotRetrieveAccessUrlWithOnlyRole() {
             RestAssured.get("/lobby/access").then().statusCode(403)
         }
 
         @Test
-        @TestSecurity(user = "test")
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         fun cannotRetrieveAccessUrlWithNoScopeAndNoRole() {
             RestAssured.get("/lobby/access").then().statusCode(403)
         }
@@ -72,7 +73,7 @@ class CloudflareHmacControllerTest {
     }
 
     @Nested
-    inner class WebsocketEndpointTest {
+    inner class ReplayEndpointTest {
         @Test
         @TestSecurity(authorizationEnabled = false)
         fun canRetrieveAccessUrl() {
@@ -85,7 +86,7 @@ class CloudflareHmacControllerTest {
         }
 
         @Test
-        @TestSecurity(user = "test")
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         @FafRoleTest([FafRole.USER])
         @FafScopeTest([OAuthScope.LOBBY])
         fun canRetrieveAccessUrlWithScopeAndRole() {
@@ -96,21 +97,21 @@ class CloudflareHmacControllerTest {
         }
 
         @Test
-        @TestSecurity(user = "test")
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         @FafScopeTest([OAuthScope.LOBBY])
         fun cannotRetrieveAccessUrlWithOnlyScope() {
             RestAssured.get("/replay/access").then().statusCode(403)
         }
 
         @Test
-        @TestSecurity(user = "test")
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         @FafRoleTest([FafRole.USER])
         fun cannotRetrieveAccessUrlWithOnlyRole() {
             RestAssured.get("/replay/access").then().statusCode(403)
         }
 
         @Test
-        @TestSecurity(user = "test")
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         fun cannotRetrieveAccessUrlWithNoScopeAndNoRole() {
             RestAssured.get("/replay/access").then().statusCode(403)
         }
@@ -135,7 +136,7 @@ class CloudflareHmacControllerTest {
         }
 
         @Test
-        @TestSecurity(user = "test")
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         @FafRoleTest([FafRole.USER])
         @FafScopeTest([OAuthScope.LOBBY])
         fun canRetrieveAccessUrlWithScopeAndRole() {
@@ -146,21 +147,21 @@ class CloudflareHmacControllerTest {
         }
 
         @Test
-        @TestSecurity(user = "test")
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         @FafScopeTest([OAuthScope.LOBBY])
         fun cannotRetrieveAccessUrlWithOnlyScope() {
             RestAssured.get("/chat/access").then().statusCode(403)
         }
 
         @Test
-        @TestSecurity(user = "test")
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         @FafRoleTest([FafRole.USER])
         fun cannotRetrieveAccessUrlWithOnlyRole() {
             RestAssured.get("/chat/access").then().statusCode(403)
         }
 
         @Test
-        @TestSecurity(user = "test")
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         fun cannotRetrieveAccessUrlWithNoScopeAndNoRole() {
             RestAssured.get("/chat/access").then().statusCode(403)
         }
@@ -168,6 +169,40 @@ class CloudflareHmacControllerTest {
         @Test
         fun cannotRetrieveAccessUrlUnAuthenticated() {
             RestAssured.get("/chat/access").then().statusCode(401)
+        }
+    }
+
+    @Nested
+    inner class ChallengeEndpointTest {
+        @Test
+        @TestSecurity(authorizationEnabled = false)
+        fun canRetrieveToken() {
+            RestAssured.given()
+                .get("/hmac/token")
+                .then()
+                .statusCode(200)
+                .body("token", matchesRegex("\\d{10}-.{43,}"))
+        }
+
+        @Test
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
+        @FafRoleTest([FafRole.USER])
+        fun canRetrieveTokenWithRole() {
+            RestAssured.given()
+                .get("/hmac/token")
+                .then()
+                .statusCode(200)
+        }
+
+        @Test
+        @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
+        fun cannotRetrieveTokenWithNoRole() {
+            RestAssured.get("/hmac/token").then().statusCode(403)
+        }
+
+        @Test
+        fun cannotRetrieveATokenUnAuthenticated() {
+            RestAssured.get("/hmac/token").then().statusCode(401)
         }
     }
 }

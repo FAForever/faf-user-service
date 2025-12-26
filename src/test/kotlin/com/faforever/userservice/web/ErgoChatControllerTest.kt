@@ -1,5 +1,6 @@
 package com.faforever.userservice.web
 
+import com.faforever.userservice.backend.security.FafPermissionsAugmentor
 import com.faforever.userservice.backend.security.FafRole
 import com.faforever.userservice.backend.security.HmacService
 import com.faforever.userservice.config.FafProperties
@@ -90,7 +91,7 @@ class ErgoChatControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "test-user")
+    @TestSecurity(user = "test-user", augmentors = [FafPermissionsAugmentor::class])
     fun requestTokenWithoutRoleFails() {
         RestAssured
             .given()
@@ -100,7 +101,7 @@ class ErgoChatControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "test-user")
+    @TestSecurity(user = "test-user", augmentors = [FafPermissionsAugmentor::class])
     @FafRoleTest([FafRole.USER])
     fun requestAndAuthenticateIrcToken() {
         val token: String =
@@ -130,7 +131,7 @@ class ErgoChatControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "test-user")
+    @TestSecurity(user = "test-user", augmentors = [FafPermissionsAugmentor::class])
     @FafRoleTest([FafRole.USER])
     fun requestAndAuthenticateIrcTokenExpired() {
         val token: String =
@@ -162,7 +163,7 @@ class ErgoChatControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "test-user")
+    @TestSecurity(user = "test-user", augmentors = [FafPermissionsAugmentor::class])
     @FafRoleTest([FafRole.USER])
     fun requestAndAuthenticateIrcTokenUserMismatch() {
         val token: String =

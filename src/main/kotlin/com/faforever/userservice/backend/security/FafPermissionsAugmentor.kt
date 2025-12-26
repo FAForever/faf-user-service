@@ -24,18 +24,18 @@ class FafPermissionsAugmentor : SecurityIdentityAugmentor {
             when (val principal = identity.principal) {
                 is JsonWebToken -> {
                     val roles = principal.claim<Map<String, Any>>("ext")
-                        .map { it["roles"] as List<JsonString> }
+                        .map { it["roles"] as Collection<JsonString> }
                         .map { it.map { jsonString -> jsonString.string } }
                         .map { it.toSet() }
                         .orElse(setOf())
 
-                    val scopes = principal.claim<List<JsonString>>("scp")
+                    val scopes = principal.claim<Collection<JsonString>>("scp")
                         .map { it.map { jsonString -> jsonString.string }.toSet() }
                         .orElse(setOf())
 
                     builder.addPermissionChecker { requiredPermission ->
                         val hasRole = roles.contains(requiredPermission.name)
-                        val hasScopes = requiredPermission.actions.split(",").all { scopes.contains(it) }
+                        val hasScopes = requiredPermission.actions?.split(",")?.all { scopes.contains(it) } ?: true
                         Uni.createFrom().item(hasRole && hasScopes)
                     }
 

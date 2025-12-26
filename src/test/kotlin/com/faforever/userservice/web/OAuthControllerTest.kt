@@ -2,6 +2,7 @@ package com.faforever.userservice.web
 
 import com.faforever.userservice.backend.hydra.HydraClient
 import com.faforever.userservice.backend.hydra.RevokeRefreshTokensRequest
+import com.faforever.userservice.backend.security.FafPermissionsAugmentor
 import com.faforever.userservice.backend.security.FafRole
 import com.faforever.userservice.backend.security.OAuthScope
 import com.faforever.userservice.web.util.FafRoleTest
@@ -69,7 +70,7 @@ class OAuthControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
+    @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
     @FafRoleTest([FafRole.ADMIN_ACCOUNT_BAN])
     @FafScopeTest([OAuthScope.ADMINISTRATIVE_ACTION])
     fun canRevokeRefreshTokenWithScopeAndRole() {
@@ -82,21 +83,21 @@ class OAuthControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
+    @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
     @FafScopeTest([OAuthScope.ADMINISTRATIVE_ACTION])
     fun cannotRevokeRefreshTokenWithOnlyScope() {
         RestAssured.post("revokeTokens").then().statusCode(403)
     }
 
     @Test
-    @TestSecurity(user = "test")
+    @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
     @FafRoleTest([FafRole.ADMIN_ACCOUNT_BAN])
     fun cannotRevokeRefreshTokenWithOnlyRole() {
         RestAssured.post("revokeTokens").then().statusCode(403)
     }
 
     @Test
-    @TestSecurity(user = "test")
+    @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
     fun cannotRevokeRefreshTokenWithNoScopeAndNoRole() {
         RestAssured.post("revokeTokens").then().statusCode(403)
     }
