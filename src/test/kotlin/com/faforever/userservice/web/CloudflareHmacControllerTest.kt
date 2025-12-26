@@ -178,7 +178,7 @@ class CloudflareHmacControllerTest {
         @TestSecurity(authorizationEnabled = false)
         fun canRetrieveToken() {
             RestAssured.given()
-                .get("/hmac/token")
+                .get("/challenge/token")
                 .then()
                 .statusCode(200)
                 .body("token", matchesRegex("\\d{10}-.{43,}"))
@@ -189,7 +189,7 @@ class CloudflareHmacControllerTest {
         @FafRoleTest([FafRole.USER])
         fun canRetrieveTokenWithRole() {
             RestAssured.given()
-                .get("/hmac/token")
+                .get("/challenge/token")
                 .then()
                 .statusCode(200)
         }
@@ -197,12 +197,12 @@ class CloudflareHmacControllerTest {
         @Test
         @TestSecurity(user = "test", augmentors = [FafPermissionsAugmentor::class])
         fun cannotRetrieveTokenWithNoRole() {
-            RestAssured.get("/hmac/token").then().statusCode(403)
+            RestAssured.get("/challenge/token").then().statusCode(403)
         }
 
         @Test
         fun cannotRetrieveATokenUnAuthenticated() {
-            RestAssured.get("/hmac/token").then().statusCode(401)
+            RestAssured.get("/challenge/token").then().statusCode(401)
         }
     }
 }
