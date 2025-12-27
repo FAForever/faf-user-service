@@ -88,8 +88,6 @@ class RecoverViaEmailView(
         val possibleIdentifier = event?.location?.queryParameters?.parameters?.get("identifier")?.get(0)
         if (!possibleIdentifier.isNullOrBlank()) {
             usernameOrEmail.value = possibleIdentifier
-            usernameOrEmail.isReadOnly = true
-            requestEmail()
         }
     }
 }
