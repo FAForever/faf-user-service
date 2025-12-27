@@ -9,7 +9,6 @@ import com.faforever.userservice.backend.domain.LoginLog
 import com.faforever.userservice.backend.domain.LoginLogRepository
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
-import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.security.PasswordEncoder
 import io.smallrye.config.ConfigMapping
 import jakarta.enterprise.context.ApplicationScoped
@@ -76,7 +75,6 @@ class LoginServiceImpl(
     private val accountLinkRepository: AccountLinkRepository,
     private val passwordEncoder: PasswordEncoder,
     private val banRepository: BanRepository,
-    private val hydraService: HydraService,
 ) : LoginService {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(LoginServiceImpl::class.java)
@@ -96,7 +94,7 @@ class LoginServiceImpl(
             return LoginResult.RecoverableLoginOrCredentialsMismatch
         }
 
-        val lastLogin = loginLogRepository.findLastLoginTime(user.id)
+        val lastLogin = loginLogRepository.findLastLoginTime(user.id!!)
             ?.atZone(ZoneId.systemDefault())?.toOffsetDateTime()
         logLogin(usernameOrEmail, user, ip)
 
@@ -139,11 +137,11 @@ class LoginServiceImpl(
         loginLogRepository.persist(LoginLog(0, null, unknownLogin.take(100), ip.value, false))
 
     private fun findActiveGlobalBan(user: User): Ban? =
-        banRepository.findGlobalBansByPlayerId(user.id)
+        banRepository.findGlobalBansByPlayerId(user.id!!)
             .firstOrNull { it.isActive }
 
     private fun findMissedGlobalBan(user: User, lastLogin: OffsetDateTime): Ban? {
-        return banRepository.findGlobalBansByPlayerId(user.id)
+        return banRepository.findGlobalBansByPlayerId(user.id!!)
             .firstOrNull {
                 it.revokeTime == null && it.expiresAt != null && it.createTime.isAfter(lastLogin)
             }

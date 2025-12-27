@@ -53,8 +53,7 @@ data class Ban(
 
 @ApplicationScoped
 class BanRepository : PanacheRepository<Ban> {
-    fun findGlobalBansByPlayerId(playerId: Int?): List<Ban> {
-        if (playerId == null) return listOf()
+    fun findGlobalBansByPlayerId(playerId: Int): List<Ban> {
         return find("playerId = ?1 and level = BanLevel.GLOBAL", playerId).list()
     }
 }

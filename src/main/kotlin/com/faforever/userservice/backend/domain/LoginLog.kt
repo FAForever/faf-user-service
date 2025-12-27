@@ -38,10 +38,7 @@ data class FailedAttemptsSummary(
 
 @ApplicationScoped
 class LoginLogRepository : PanacheRepository<LoginLog> {
-    fun findLastLoginTime(userId: Int?): LocalDateTime? {
-        if (userId == null) {
-            return null
-        }
+    fun findLastLoginTime(userId: Int): LocalDateTime? {
         return find("userId = ?1 order by createTime desc", userId).firstResult()?.createTime
     }
 
