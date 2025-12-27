@@ -50,6 +50,8 @@ dependencies {
     implementation("com.vaadin:vaadin-core")
     implementation("com.vaadin:vaadin-core-jandex")
     implementation("com.vaadin:vaadin-quarkus")
+    implementation("com.vaadin:vaadin-dev")
+    implementation("com.nimbusds:nimbus-jose-jwt")
 
     testImplementation("io.quarkus:quarkus-junit5-mockito")
     testImplementation("io.rest-assured:rest-assured")

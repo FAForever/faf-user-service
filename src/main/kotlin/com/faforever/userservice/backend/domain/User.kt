@@ -37,7 +37,7 @@ data class AccountLink(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: String,
     @Column(name = "user_id")
-    val userId: Long?,
+    val userId: Int?,
     val ownership: Boolean,
 ) : PanacheEntityBase {
 
@@ -50,7 +50,7 @@ data class AccountLink(
 data class Permission(
     @Id
     @GeneratedValue
-    val id: Long,
+    val id: Int,
     @Column(name = "technical_name")
     val technicalName: String,
     @Column(name = "create_time")
