@@ -40,12 +40,10 @@ class LoginView(
     private val vaadinIpService: VaadinIpService,
     private val fafProperties: FafProperties,
     private val tosService: TosService,
-) :
-    CompactVerticalLayout(), BeforeEnterObserver {
+) : CompactVerticalLayout(), BeforeEnterObserver {
 
     private val footer = VerticalLayout().apply {
-        val passwordReset =
-            Anchor(fafProperties.account().passwordResetUrl(), getTranslation("login.forgotPassword"))
+        val passwordReset = Anchor(fafProperties.account().passwordResetUrl(), getTranslation("login.forgotPassword"))
         val registerAccount =
             Anchor(fafProperties.account().registerAccountUrl(), getTranslation("login.registerAccount"))
 
@@ -73,11 +71,9 @@ class LoginView(
         add(errorMessage)
     }
 
-    private val dateTimeFormatter: DateTimeFormatter = DateTimeFormatterBuilder()
-        .append(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG))
-        .append(DateTimeFormatter.ofPattern(" HH:mm"))
-        .appendLiteral(" (UTC)")
-        .toFormatter(UI.getCurrent().locale)
+    private val dateTimeFormatter: DateTimeFormatter =
+        DateTimeFormatterBuilder().append(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG))
+            .append(DateTimeFormatter.ofPattern(" HH:mm")).appendLiteral(" (UTC)").toFormatter(UI.getCurrent().locale)
 
     private val usernameOrEmail = TextField(null, getTranslation("login.usernameOrEmail")).apply {
         setWidthFull()
@@ -197,8 +193,8 @@ class LoginView(
         when (loginError) {
             is LoginResult.UserNoGameOwnership -> {
                 header.setTitle(getTranslation("verification.title"))
-                errorMessage.text = getTranslation("verification.reason") + " " +
-                    fafProperties.account().accountLinkUrl()
+                errorMessage.text =
+                    getTranslation("verification.reason") + " " + fafProperties.account().accountLinkUrl()
             }
 
             is LoginResult.TechnicalError -> {
@@ -208,9 +204,8 @@ class LoginView(
 
             is LoginResult.UserBanned -> {
                 header.setTitle(getTranslation("ban.title"))
-                val expiration = loginError.expiresAt?.atZoneSameInstant(ZoneOffset.UTC)?.format(dateTimeFormatter) ?: getTranslation(
-                    "ban.permanent",
-                )
+                val expiration = loginError.expiresAt?.atZoneSameInstant(ZoneOffset.UTC)?.format(dateTimeFormatter)
+                    ?: getTranslation("ban.permanent")
                 val expirationText = "${getTranslation("ban.expiration")} $expiration."
                 val reason = "${getTranslation("ban.reason")} ${loginError.reason}"
                 errorMessage.text = "$expirationText $reason"
