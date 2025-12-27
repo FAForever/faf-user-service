@@ -29,6 +29,7 @@ import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
 import java.net.URI
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.FormatStyle
@@ -177,8 +178,8 @@ class LoginView(
             is LoginResult.RecoverableLoginOrCredentialsMismatch -> getTranslation("login.badCredentials")
             is LoginResult.ThrottlingActive -> getTranslation("login.throttled")
             is LoginResult.MissedBan -> {
-                val startTime = loginError.startTime.format(dateTimeFormatter)
-                val endTime = loginError.endTime.format(dateTimeFormatter)
+                val startTime = loginError.startTime.atZoneSameInstant(ZoneOffset.UTC).format(dateTimeFormatter)
+                val endTime = loginError.endTime.atZoneSameInstant(ZoneOffset.UTC).format(dateTimeFormatter)
                 val intro = getTranslation("ban.missed.intro", startTime, endTime)
                 val reason = "${getTranslation("ban.reason")} ${loginError.reason}"
                 val explanation = getTranslation("ban.missed")
@@ -207,7 +208,7 @@ class LoginView(
 
             is LoginResult.UserBanned -> {
                 header.setTitle(getTranslation("ban.title"))
-                val expiration = loginError.expiresAt?.format(dateTimeFormatter) ?: getTranslation(
+                val expiration = loginError.expiresAt?.atZoneSameInstant(ZoneOffset.UTC)?.format(dateTimeFormatter) ?: getTranslation(
                     "ban.permanent",
                 )
                 val expirationText = "${getTranslation("ban.expiration")} $expiration."
