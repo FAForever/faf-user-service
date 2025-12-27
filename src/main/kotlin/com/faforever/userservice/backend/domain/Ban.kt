@@ -24,7 +24,7 @@ data class Ban(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int,
     @Column(name = "player_id")
-    val playerId: Long,
+    val playerId: Int,
     @Column(name = "author_id")
     val authorId: Int,
     @Enumerated(EnumType.STRING)
@@ -35,11 +35,11 @@ data class Ban(
     @Column(name = "revoke_time")
     val revokeTime: OffsetDateTime?,
     @Column(name = "report_id")
-    val reportId: Long?,
+    val reportId: Int?,
     @Column(name = "revoke_reason")
     val revokeReason: String?,
     @Column(name = "revoke_author_id")
-    val revokeAuthorId: Long?,
+    val revokeAuthorId: Int?,
 ) : PanacheEntityBase {
 
     val isActive: Boolean

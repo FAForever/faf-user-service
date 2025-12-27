@@ -16,7 +16,7 @@ import java.time.LocalDateTime
 data class LoginLog(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long,
+    val id: Int,
     @Column(name = "login_id")
     val userId: Int?,
     @Column(name = "login_string")

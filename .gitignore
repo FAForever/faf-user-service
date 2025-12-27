@@ -38,8 +38,7 @@ out/
 
 ### VS Code ###
 .vscode/
-/frontend/generated/
-/frontend/index.html
+/src/main/frontend/generated/
+/src/main/frontend/index.html
 /node_modules/
 /vite.generated.ts
-/frontend/themes/faforever/theme-editor.css
