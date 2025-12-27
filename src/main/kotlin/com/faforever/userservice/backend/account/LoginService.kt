@@ -9,7 +9,6 @@ import com.faforever.userservice.backend.domain.LoginLog
 import com.faforever.userservice.backend.domain.LoginLogRepository
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
-import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.security.PasswordEncoder
 import io.smallrye.config.ConfigMapping
 import jakarta.enterprise.context.ApplicationScoped
@@ -19,6 +18,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
+import java.time.ZoneId
 
 @ConfigMapping(prefix = "security")
 interface SecurityProperties {
@@ -39,6 +39,11 @@ sealed interface LoginResult {
     sealed interface RecoverableLoginFailure : LoginResult
     object ThrottlingActive : RecoverableLoginFailure
     object RecoverableLoginOrCredentialsMismatch : RecoverableLoginFailure
+    data class MissedBan(
+        val reason: String,
+        val startTime: OffsetDateTime,
+        val endTime: OffsetDateTime,
+    ) : RecoverableLoginFailure
 
     sealed interface UnrecoverableLoginFailure : LoginResult
     object TechnicalError : UnrecoverableLoginFailure
@@ -70,7 +75,6 @@ class LoginServiceImpl(
     private val accountLinkRepository: AccountLinkRepository,
     private val passwordEncoder: PasswordEncoder,
     private val banRepository: BanRepository,
-    private val hydraService: HydraService,
 ) : LoginService {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(LoginServiceImpl::class.java)
@@ -90,13 +94,28 @@ class LoginServiceImpl(
             return LoginResult.RecoverableLoginOrCredentialsMismatch
         }
 
+        val lastLogin = loginLogRepository.findLastLoginTime(user.id!!)
+            ?.atZone(ZoneId.systemDefault())?.toOffsetDateTime()
         logLogin(usernameOrEmail, user, ip)
 
         val activeGlobalBan = findActiveGlobalBan(user)
-
         if (activeGlobalBan != null) {
             LOG.debug("User '{}' is banned by {}", usernameOrEmail, activeGlobalBan)
             return LoginResult.UserBanned(activeGlobalBan.reason, activeGlobalBan.expiresAt)
+        }
+
+        val missedGlobalBan = findMissedGlobalBan(user, lastLogin ?: OffsetDateTime.now().minusDays(90))
+        if (missedGlobalBan != null) {
+            LOG.debug(
+                "User '{}' missed a ban {} and needs to be informed about it. Login blocked.",
+                usernameOrEmail,
+                missedGlobalBan,
+            )
+            return LoginResult.MissedBan(
+                missedGlobalBan.reason,
+                missedGlobalBan.createTime,
+                missedGlobalBan.expiresAt!!,
+            )
         }
 
         if (requiresGameOwnership && !accountLinkRepository.hasOwnershipLink(user.id!!)) {
@@ -120,6 +139,13 @@ class LoginServiceImpl(
     private fun findActiveGlobalBan(user: User): Ban? =
         banRepository.findGlobalBansByPlayerId(user.id!!)
             .firstOrNull { it.isActive }
+
+    private fun findMissedGlobalBan(user: User, lastLogin: OffsetDateTime): Ban? {
+        return banRepository.findGlobalBansByPlayerId(user.id!!)
+            .firstOrNull {
+                it.revokeTime == null && it.expiresAt != null && it.createTime.isAfter(lastLogin)
+            }
+    }
 
     private fun throttlingRequired(ip: IpAddress): Boolean {
         val failedAttemptsSummary = loginLogRepository.findFailedAttemptsByIpAfterDate(
