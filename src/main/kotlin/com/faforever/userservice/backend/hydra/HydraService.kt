@@ -15,6 +15,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import sh.ory.hydra.model.AcceptOAuth2ConsentRequest
 import sh.ory.hydra.model.AcceptOAuth2ConsentRequestSession
+import sh.ory.hydra.model.AcceptOAuth2DeviceAuthorizationRequest
 import sh.ory.hydra.model.AcceptOAuth2LoginRequest
 import sh.ory.hydra.model.OAuth2ConsentRequest
 import sh.ory.hydra.model.OAuth2LoginRequest
@@ -137,6 +138,14 @@ class HydraService(
             HttpRequest.newBuilder(URI.create(redirectResponse.redirectTo)).build(),
             BodyHandlers.discarding(),
         )
+    }
+
+    fun acceptDeviceRequest(challenge: String, userCode: String): RedirectTo {
+        val redirectResponse = hydraClient.acceptDeviceRequest(
+            challenge,
+            AcceptOAuth2DeviceAuthorizationRequest(userCode = userCode),
+        )
+        return RedirectTo(redirectResponse.redirectTo)
     }
 
     fun getConsentRequest(challenge: String): OAuth2ConsentRequest = hydraClient.getConsentRequest(challenge)

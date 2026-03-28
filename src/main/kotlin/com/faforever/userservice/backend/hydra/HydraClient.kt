@@ -15,6 +15,7 @@ import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient
 import sh.ory.hydra.model.AcceptOAuth2ConsentRequest
+import sh.ory.hydra.model.AcceptOAuth2DeviceAuthorizationRequest
 import sh.ory.hydra.model.AcceptOAuth2LoginRequest
 import sh.ory.hydra.model.IntrospectedOAuth2Token
 import sh.ory.hydra.model.OAuth2ConsentRequest
@@ -86,6 +87,13 @@ interface HydraClient {
         @QueryParam("all") all: Boolean?,
         @QueryParam("client") client: String?,
     ): Response
+
+    @PUT
+    @Path("/oauth2/auth/requests/device/accept")
+    fun acceptDeviceRequest(
+        @QueryParam("device_challenge") @NotBlank challenge: String,
+        acceptDeviceRequest: AcceptOAuth2DeviceAuthorizationRequest,
+    ): OAuth2RedirectTo
 
     @POST
     @Path("/oauth2/introspect")

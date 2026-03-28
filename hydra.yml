@@ -9,6 +9,9 @@ urls:
   consent: http://127.0.0.1:8080/oauth2/consent
   login: http://127.0.0.1:8080/oauth2/login
   logout: http://127.0.0.1:8080/oauth2/logout
+  device:
+    verification: http://127.0.0.1:8080/oauth2/device-login
+    success: http://127.0.0.1:8080/oauth2/device-done
 
 secrets:
   system:

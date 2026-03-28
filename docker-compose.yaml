@@ -95,7 +95,7 @@ services:
       --id faf-client
       --name faf-client
       --logo-uri https://faforever.com/images/faf-logo.png
-      --grant-type authorization_code,refresh_token
+      --grant-type authorization_code,refresh_token,urn:ietf:params:oauth:grant-type:device_code
       --response-type code
       --scope openid,offline,public_profile,lobby,upload_map,upload_mod
       --redirect-uri http://127.0.0.1
