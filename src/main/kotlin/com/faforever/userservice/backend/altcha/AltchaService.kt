@@ -7,6 +7,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import java.security.SecureRandom
+import java.time.Instant
 import java.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -36,11 +37,13 @@ class AltchaService(
         private const val ALGORITHM = "SHA-256"
         private const val HMAC_ALGORITHM = "HmacSHA256"
         private const val DEFAULT_MAX_NUMBER = 1_000_000
+        private const val CHALLENGE_VALIDITY_SECONDS = 600L
         val LOG: Logger = LoggerFactory.getLogger(AltchaService::class.java)
     }
 
     fun createChallenge(maxNumber: Int = DEFAULT_MAX_NUMBER): AltchaChallenge {
-        val salt = generateSalt()
+        val expires = Instant.now().plusSeconds(CHALLENGE_VALIDITY_SECONDS).epochSecond
+        val salt = "${generateSalt()}?expires=$expires"
         val number = SecureRandom().nextInt(maxNumber)
         val challenge = sha256("$salt$number")
         val signature = hmacSha256(challenge, fafProperties.altcha().hmacKey())
@@ -73,6 +76,11 @@ class AltchaService(
                 return false
             }
 
+            if (isSaltExpired(payload.salt)) {
+                LOG.debug("Altcha challenge has expired")
+                return false
+            }
+
             val expectedChallenge = sha256("${payload.salt}${payload.number}")
             if (expectedChallenge != payload.challenge) {
                 LOG.debug("Altcha challenge verification failed")
@@ -91,6 +99,11 @@ class AltchaService(
             LOG.debug("Altcha payload verification failed", e)
             false
         }
+    }
+
+    private fun isSaltExpired(salt: String): Boolean {
+        val expires = salt.substringAfter("?expires=", "").toLongOrNull() ?: return true
+        return Instant.now().epochSecond > expires
     }
 
     private fun sha256(input: String): String {

@@ -42,7 +42,7 @@ class RegisterView(
         var termsOfService: Boolean = false
         var privacyPolicy: Boolean = false
         var rules: Boolean = false
-        var recaptcha: String? = null
+        var altchaToken: String? = null
     }
 
     private val username =
@@ -165,8 +165,10 @@ class RegisterView(
         binder.forField(rules).asRequired(getTranslation("register.acknowledge.rules")).bind("rules")
 
         if (fafProperties.altcha().enabled()) {
-            binder.forField(altcha).withValidator({ token -> altchaService.verifyPayload(token) }, "")
-                .bind("recaptcha")
+            binder.forField(altcha).withValidator(
+                { token -> altchaService.verifyPayload(token) },
+                getTranslation("register.altcha.invalid"),
+            ).bind("altchaToken")
         }
 
         binder.addStatusChangeListener { submit.isEnabled = it.binder.isValid }

@@ -22,7 +22,7 @@ class FafAltcha extends LitElement {
         `;
     }
 
-    private handleStateChange(e: CustomEvent) {
+    private handleStateChange(e: CustomEvent<{ state: string; payload: string }>) {
         this.token = e.detail.state === "verified" ? e.detail.payload : "";
         this.dispatchEvent(new Event("token-changed"));
     }

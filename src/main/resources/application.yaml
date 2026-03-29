@@ -27,8 +27,8 @@ faf:
       minimum-days-between-username-change: ${MIN_DAYS_BETWEEN_NAME_CHANGE:30}
       username-reservation-time-in-months: ${NAME_RESERVATION_MONTHS:6}
   altcha:
-    enabled: ${ALTCHA_ENABLED:true}
-    hmac-key: ${ALTCHA_HMAC_KEY:changeme-replace-in-production}
+    enabled: ${ALTCHA_ENABLED:false}
+    hmac-key: ${ALTCHA_HMAC_KEY}
   jwt:
     secret: ${JWT_SECRET:banana}
     hmac:
@@ -112,6 +112,9 @@ quarkus:
         email-taken-mail-template-path: ${EMAIL_TAKEN_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-email-taken.html}
       password-reset:
         mail-template-path: ${PASSWORD_RESET_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-password-reset.html}
+    altcha:
+      enabled: true
+      hmac-key: dev-hmac-key-not-for-production
     irc:
       fixed:
         users:
