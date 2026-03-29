@@ -3,10 +3,10 @@ package com.faforever.userservice.ui.view.registration
 import com.faforever.userservice.backend.account.EmailStatusResponse
 import com.faforever.userservice.backend.account.RegistrationService
 import com.faforever.userservice.backend.account.UsernameStatus
-import com.faforever.userservice.backend.recaptcha.RecaptchaService
+import com.faforever.userservice.backend.altcha.AltchaService
 import com.faforever.userservice.config.FafProperties
+import com.faforever.userservice.ui.component.Altcha
 import com.faforever.userservice.ui.component.FafLogo
-import com.faforever.userservice.ui.component.ReCaptcha
 import com.faforever.userservice.ui.component.SocialIcons
 import com.faforever.userservice.ui.layout.CardLayout
 import com.faforever.userservice.ui.layout.CompactHorizontalLayout
@@ -32,7 +32,7 @@ import com.vaadin.flow.router.Route
 @Route("/register", layout = CardLayout::class)
 class RegisterView(
     private val registrationService: RegistrationService,
-    private val recaptchaService: RecaptchaService,
+    private val altchaService: AltchaService,
     fafProperties: FafProperties,
 ) :
     CompactVerticalLayout() {
@@ -76,7 +76,7 @@ class RegisterView(
         val rules = Checkbox(false).apply {
             addClassName("policy-checkbox")
         }
-        val reCaptcha = ReCaptcha(fafProperties.recaptcha().siteKey())
+        val altcha = Altcha("${fafProperties.selfUrl()}/altcha/challenge")
 
         val formHeaderLeft = FafLogo()
         val formHeaderRight = H2(getTranslation("register.title"))
@@ -129,8 +129,8 @@ class RegisterView(
 
         add(username, email, termsOfServiceLayout, privacyPolicyLayout, rulesLayout)
 
-        if (fafProperties.recaptcha().enabled()) {
-            add(reCaptcha)
+        if (fafProperties.altcha().enabled()) {
+            add(altcha)
         }
 
         add(submit)
@@ -164,8 +164,8 @@ class RegisterView(
 
         binder.forField(rules).asRequired(getTranslation("register.acknowledge.rules")).bind("rules")
 
-        if (fafProperties.recaptcha().enabled()) {
-            binder.forField(reCaptcha).withValidator({ token -> recaptchaService.validateResponse(token) }, "")
+        if (fafProperties.altcha().enabled()) {
+            binder.forField(altcha).withValidator({ token -> altchaService.verifyPayload(token) }, "")
                 .bind("recaptcha")
         }
 

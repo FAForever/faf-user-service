@@ -4,11 +4,11 @@ import com.vaadin.flow.component.AbstractSinglePropertyField
 import com.vaadin.flow.component.Tag
 import com.vaadin.flow.component.dependency.JsModule
 
-@Tag("faf-recaptcha")
-@JsModule("./src/faf-recaptcha.ts")
-class ReCaptcha(siteKey: String?) : AbstractSinglePropertyField<ReCaptcha, String>("token", "", false) {
+@Tag("faf-altcha")
+@JsModule("./src/faf-altcha.ts")
+class Altcha(challengeUrl: String) : AbstractSinglePropertyField<Altcha, String>("token", "", false) {
 
     init {
-        element.setProperty("siteKey", siteKey)
+        element.setProperty("challengeUrl", challengeUrl)
     }
 }
