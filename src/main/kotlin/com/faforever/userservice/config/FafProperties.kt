@@ -29,7 +29,7 @@ interface FafProperties {
 
     fun jwt(): Jwt
 
-    fun recaptcha(): Recaptcha
+    fun altcha(): Altcha
 
     fun lobby(): CloudflareHmacConfig
 
@@ -73,14 +73,10 @@ interface FafProperties {
         fun secret(): String
     }
 
-    interface Recaptcha {
+    interface Altcha {
         fun enabled(): Boolean
 
-        @NotBlank
-        fun secret(): String
-
-        @NotBlank
-        fun siteKey(): String
+        fun hmacKey(): String
     }
 
     interface Account {

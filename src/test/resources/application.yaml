@@ -1,4 +1,7 @@
 faf:
+  altcha:
+    enabled: true
+    hmac-key: test-hmac-key
   account:
     password-reset:
       mail-template-path: src/test/resources/mail/password-reset.html

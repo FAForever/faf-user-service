@@ -26,10 +26,9 @@ faf:
     username:
       minimum-days-between-username-change: ${MIN_DAYS_BETWEEN_NAME_CHANGE:30}
       username-reservation-time-in-months: ${NAME_RESERVATION_MONTHS:6}
-  recaptcha:
-    enabled: ${RECAPTCHA_ENABLED:true}
-    secret: ${RECAPTCHA_SECRET:6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe}
-    site-key: ${RECAPTCHA_SITE_KEY:6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI}
+  altcha:
+    enabled: ${ALTCHA_ENABLED:false}
+    hmac-key: ${ALTCHA_HMAC_KEY}
   jwt:
     secret: ${JWT_SECRET:banana}
     hmac:
@@ -69,8 +68,6 @@ quarkus:
   rest-client:
     faf-ory-hydra:
       url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
-    recaptcha:
-      url: https://www.google.com/recaptcha/api
   mailer:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:0}
@@ -88,11 +85,6 @@ quarkus:
     password: ${DB_PASSWORD:banana}
     jdbc:
       url: ${DB_URL:jdbc:mariadb://localhost:3306/faf?ssl=false}
-  cache:
-    caffeine:
-      "recaptcha":
-        expire-after-access: 1m
-        maximum-size: 25
   application:
     name: faf-user-service
   management:
@@ -120,6 +112,9 @@ quarkus:
         email-taken-mail-template-path: ${EMAIL_TAKEN_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-email-taken.html}
       password-reset:
         mail-template-path: ${PASSWORD_RESET_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-password-reset.html}
+    altcha:
+      enabled: true
+      hmac-key: dev-hmac-key-not-for-production
     irc:
       fixed:
         users:
