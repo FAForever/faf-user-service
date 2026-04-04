@@ -9,8 +9,6 @@ import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -56,14 +54,13 @@ class AltchaService(
 
     @Transactional
     fun createChallenge(maxNumber: Int = DEFAULT_MAX_NUMBER): AltchaChallengeResponse {
+        require(maxNumber > 0) { "maxNumber must be greater than 0" }
+
         val salt = generateSalt()
         val number = secureRandom.nextInt(maxNumber)
         val challenge = sha256("$salt$number")
         val signature = hmacSha256(challenge, fafProperties.altcha().hmacKey())
-        val expiresAt = LocalDateTime.ofInstant(
-            Instant.now().plusSeconds(CHALLENGE_VALIDITY_SECONDS),
-            ZoneOffset.UTC,
-        )
+        val expiresAt = Instant.now().plusSeconds(CHALLENGE_VALIDITY_SECONDS)
 
         challengeRepository.persist(AltchaChallenge(challenge = challenge, expiresAt = expiresAt))
 

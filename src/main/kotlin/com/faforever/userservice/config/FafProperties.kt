@@ -76,7 +76,6 @@ interface FafProperties {
     interface Altcha {
         fun enabled(): Boolean
 
-        @NotBlank
         fun hmacKey(): String
     }
 

@@ -7,14 +7,14 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.transaction.Transactional
-import java.time.LocalDateTime
+import java.time.Instant
 
 @Entity(name = "altcha_challenge")
 data class AltchaChallenge(
     @Id
     val challenge: String,
     @Column(name = "expires_at", nullable = false)
-    val expiresAt: LocalDateTime,
+    val expiresAt: Instant,
 )
 
 @ApplicationScoped
@@ -25,11 +25,11 @@ class AltchaChallengeRepository : PanacheRepositoryBase<AltchaChallenge, String>
      * Returns true if the challenge was found and deleted (i.e. valid and first use).
      */
     fun consumeChallenge(challenge: String): Boolean =
-        delete("challenge = ?1 and expiresAt > ?2", challenge, LocalDateTime.now()) > 0
+        delete("challenge = ?1 and expiresAt > ?2", challenge, Instant.now()) > 0
 
     @Transactional
     @Scheduled(every = "10m")
     fun deleteExpired() {
-        delete("expiresAt <= ?1", LocalDateTime.now())
+        delete("expiresAt <= ?1", Instant.now())
     }
 }
