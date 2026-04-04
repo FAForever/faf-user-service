@@ -1,11 +1,15 @@
 package com.faforever.userservice.backend.altcha
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.quarkus.test.InjectMock
 import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.whenever
 import java.security.MessageDigest
 import java.util.Base64
 
@@ -17,6 +21,9 @@ class AltchaServiceTest {
 
     @Inject
     private lateinit var objectMapper: ObjectMapper
+
+    @InjectMock
+    private lateinit var challengeRepository: AltchaChallengeRepository
 
     @Test
     fun verifyBlankPayloadReturnsFalse() {
@@ -36,8 +43,8 @@ class AltchaServiceTest {
 
     @Test
     fun verifyWrongNumberReturnsFalse() {
+        doNothing().whenever(challengeRepository).persist(any<AltchaChallenge>())
         val challenge = altchaService.createChallenge(maxNumber = 100)
-        // Use number outside valid range which won't match the challenge
         val payload = AltchaPayload(
             algorithm = challenge.algorithm,
             challenge = challenge.challenge,
@@ -51,6 +58,7 @@ class AltchaServiceTest {
 
     @Test
     fun verifyTamperedSignatureReturnsFalse() {
+        doNothing().whenever(challengeRepository).persist(any<AltchaChallenge>())
         val challenge = altchaService.createChallenge(maxNumber = 10)
         val solvedNumber = solveChallenge(challenge)
         val payload = AltchaPayload(
@@ -66,6 +74,8 @@ class AltchaServiceTest {
 
     @Test
     fun verifyFullRoundTripSucceeds() {
+        doNothing().whenever(challengeRepository).persist(any<AltchaChallenge>())
+        whenever(challengeRepository.consumeChallenge(any())).thenReturn(true)
         val challenge = altchaService.createChallenge(maxNumber = 10)
         val solvedNumber = solveChallenge(challenge)
         val payload = AltchaPayload(
@@ -79,7 +89,42 @@ class AltchaServiceTest {
         assertTrue(altchaService.verifyPayload(encoded))
     }
 
-    private fun solveChallenge(challenge: AltchaChallenge): Int {
+    @Test
+    fun verifyReplayReturnsFalse() {
+        doNothing().whenever(challengeRepository).persist(any<AltchaChallenge>())
+        whenever(challengeRepository.consumeChallenge(any())).thenReturn(true, false)
+        val challenge = altchaService.createChallenge(maxNumber = 10)
+        val solvedNumber = solveChallenge(challenge)
+        val payload = AltchaPayload(
+            algorithm = challenge.algorithm,
+            challenge = challenge.challenge,
+            number = solvedNumber,
+            salt = challenge.salt,
+            signature = challenge.signature,
+        )
+        val encoded = Base64.getEncoder().encodeToString(objectMapper.writeValueAsBytes(payload))
+        assertTrue(altchaService.verifyPayload(encoded))
+        assertFalse(altchaService.verifyPayload(encoded))
+    }
+
+    @Test
+    fun verifyExpiredChallengeReturnsFalse() {
+        doNothing().whenever(challengeRepository).persist(any<AltchaChallenge>())
+        whenever(challengeRepository.consumeChallenge(any())).thenReturn(false)
+        val challenge = altchaService.createChallenge(maxNumber = 10)
+        val solvedNumber = solveChallenge(challenge)
+        val payload = AltchaPayload(
+            algorithm = challenge.algorithm,
+            challenge = challenge.challenge,
+            number = solvedNumber,
+            salt = challenge.salt,
+            signature = challenge.signature,
+        )
+        val encoded = Base64.getEncoder().encodeToString(objectMapper.writeValueAsBytes(payload))
+        assertFalse(altchaService.verifyPayload(encoded))
+    }
+
+    private fun solveChallenge(challenge: AltchaChallengeResponse): Int {
         return (0..challenge.maxnumber).firstOrNull { n ->
             val digest = MessageDigest.getInstance("SHA-256")
             val hash = digest.digest("${challenge.salt}$n".toByteArray()).joinToString("") { "%02x".format(it) }

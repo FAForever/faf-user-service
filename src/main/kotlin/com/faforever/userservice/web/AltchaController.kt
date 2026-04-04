@@ -1,6 +1,6 @@
 package com.faforever.userservice.web
 
-import com.faforever.userservice.backend.altcha.AltchaChallenge
+import com.faforever.userservice.backend.altcha.AltchaChallengeResponse
 import com.faforever.userservice.backend.altcha.AltchaService
 import jakarta.annotation.security.PermitAll
 import jakarta.enterprise.context.ApplicationScoped
@@ -17,5 +17,5 @@ class AltchaController(private val altchaService: AltchaService) {
     @Path("/challenge")
     @PermitAll
     @Produces(MediaType.APPLICATION_JSON)
-    fun getChallenge(): AltchaChallenge = altchaService.createChallenge()
+    fun getChallenge(): AltchaChallengeResponse = altchaService.createChallenge()
 }
