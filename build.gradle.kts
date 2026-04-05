@@ -11,6 +11,13 @@ plugins {
     alias(libs.plugins.test.logger)
 }
 
+// Workaround: Quarkus plugin calls tasks.contains() which triggers realizePending() on all lazy tasks.
+// VaadinBuildFrontendTask's constructor calls tasks.withType(Jar, Action) which is forbidden in that
+// mutation-guarded context. Force eager realization here (at script eval time, no guard active) so
+// the task is already realized by the time Quarkus triggers it.
+// See: https://github.com/vaadin/flow/issues/17447
+tasks.getByName("vaadinBuildFrontend")
+
 defaultTasks("build")
 
 java {
@@ -65,7 +72,7 @@ tasks.withType<Test> {
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
+        jvmTarget.set(JvmTarget.JVM_25)
         javaParameters.set(true)
     }
 }

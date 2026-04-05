@@ -39,6 +39,10 @@
         "patch"
       ],
       "automerge": true
+    },
+    {
+      "matchPackageNames": ["com.vaadin", "vaadin"],
+      "enabled": false
     }
   ],
   "ignorePaths": [
