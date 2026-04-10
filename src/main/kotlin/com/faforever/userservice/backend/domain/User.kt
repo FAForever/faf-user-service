@@ -49,7 +49,7 @@ data class AccountLink(
 @Entity(name = "group_permission")
 data class Permission(
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int,
     @Column(name = "technical_name")
     val technicalName: String,
@@ -64,7 +64,7 @@ data class Permission(
 @Entity(name = "terms_of_service")
 data class TermsOfService(
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     val version: Short,
     @Column(name = "valid_from", nullable = false)
     val validFrom: LocalDateTime,

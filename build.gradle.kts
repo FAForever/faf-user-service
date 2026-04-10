@@ -33,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    implementation(enforcedPlatform(libs.vaadin.bom))
+    implementation(platform(libs.vaadin.bom))
     implementation(enforcedPlatform(libs.quarkus.bom))
 
     implementation("io.quarkus:quarkus-smallrye-health")

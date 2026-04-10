@@ -43,7 +43,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-U", "postgres"]
+      test: ["CMD", "pg_isready", "-U", "hydra", "-d", "hydra"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -81,25 +81,28 @@ services:
       hydra-migrate:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "hydra", "clients", "list", "--endpoint", "http://hydra:4445"]
+      test: ["CMD", "hydra", "list", "oauth2-clients", "--skip-tls-verify", "--endpoint", "http://127.0.0.1:4445", "-q"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   hydra-testdata:
     image: oryd/hydra:v25.4.0
-    entrypoint: >
-      hydra create oauth2-client
-      --skip-tls-verify
-      --endpoint http://hydra:4445
-      --id faf-client
-      --name faf-client
-      --logo-uri https://faforever.com/images/faf-logo.png
-      --grant-type authorization_code,refresh_token,urn:ietf:params:oauth:grant-type:device_code
-      --response-type code
-      --scope openid,offline,public_profile,lobby,upload_map,upload_mod
-      --redirect-uri http://127.0.0.1
-      --token-endpoint-auth-method none
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        hydra get oauth2-client faf-client --skip-tls-verify --endpoint http://hydra:4445 >/dev/null 2>&1 && exit 0;
+        exec hydra create oauth2-client
+        --skip-tls-verify
+        --endpoint http://hydra:4445
+        --id faf-client
+        --name faf-client
+        --logo-uri https://faforever.com/images/faf-logo.png
+        --grant-type authorization_code,refresh_token,urn:ietf:params:oauth:grant-type:device_code
+        --response-type code
+        --scope openid,offline,public_profile,lobby,upload_map,upload_mod
+        --redirect-uri http://127.0.0.1
+        --token-endpoint-auth-method none
     depends_on:
       hydra:
         condition: service_healthy
