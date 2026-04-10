@@ -33,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    implementation(enforcedPlatform(libs.vaadin.bom))
+    implementation(platform(libs.vaadin.bom))
     implementation(enforcedPlatform(libs.quarkus.bom))
 
     implementation("io.quarkus:quarkus-smallrye-health")
@@ -68,6 +68,10 @@ dependencies {
 
 tasks.withType<Test> {
     systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+}
+
+tasks.matching { "kaptGenerateStubs" in it.name }.configureEach {
+    dependsOn("quarkusGenerateCode", "quarkusGenerateCodeDev")
 }
 
 kotlin {
