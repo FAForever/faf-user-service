@@ -64,6 +64,7 @@ class RegisterView(
         }
 
     private val binder = Binder(RegistrationInfo::class.java)
+    private val altcha = Altcha("${fafProperties.selfUrl()}/altcha/challenge")
 
     init {
 
@@ -76,7 +77,6 @@ class RegisterView(
         val rules = Checkbox(false).apply {
             addClassName("policy-checkbox")
         }
-        val altcha = Altcha("${fafProperties.selfUrl()}/altcha/challenge")
 
         val formHeaderLeft = FafLogo()
         val formHeaderRight = H2(getTranslation("register.title"))
@@ -166,7 +166,7 @@ class RegisterView(
 
         if (fafProperties.altcha().enabled()) {
             binder.forField(altcha).withValidator(
-                { token -> altchaService.verifyPayload(token) },
+                { token -> altchaService.isPayloadSignatureValid(token) },
                 getTranslation("register.altcha.invalid"),
             ).bind("altchaToken")
         }
@@ -177,6 +177,10 @@ class RegisterView(
     private fun register() {
         val validationStatus = binder.validate()
         if (validationStatus.hasErrors()) {
+            return
+        }
+
+        if (!altchaService.verifyPayload(altcha.value)) {
             return
         }
 

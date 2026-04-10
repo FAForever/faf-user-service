@@ -73,6 +73,20 @@ class AltchaService(
         )
     }
 
+    /**
+     * Validates the proof-of-work math and HMAC signature without touching the database.
+     * Used by the form binder to enable/disable the submit button as the user fills the form.
+     * Does NOT protect against replay attacks — call [verifyPayload] at submit time for that.
+     */
+    fun isPayloadSignatureValid(payloadBase64: String): Boolean {
+        if (!fafProperties.altcha().enabled()) return true
+        return parseAndVerifySignature(payloadBase64) != null
+    }
+
+    /**
+     * Fully verifies the payload: validates math + HMAC and atomically consumes the challenge
+     * from the database to prevent replay attacks. Must be called exactly once at submit time.
+     */
     @Transactional
     fun verifyPayload(payloadBase64: String): Boolean {
         if (!fafProperties.altcha().enabled()) {
@@ -80,46 +94,51 @@ class AltchaService(
             return true
         }
 
-        if (payloadBase64.isBlank()) {
-            LOG.debug("Altcha payload is empty")
+        val payload = parseAndVerifySignature(payloadBase64) ?: return false
+
+        // The Altcha spec is stateless by design: the HMAC signature proves the server issued
+        // the challenge, so no server-side storage is needed. However, this does not prevent
+        // replay attacks. We therefore persist each issued challenge in the DB and consume it
+        // exactly once here. The signature check above is redundant but kept for spec compliance.
+        if (!challengeRepository.consumeChallenge(payload.challenge)) {
+            LOG.debug("Altcha challenge not found, expired, or already used")
             return false
         }
 
+        LOG.debug("Altcha validation successful")
+        return true
+    }
+
+    private fun parseAndVerifySignature(payloadBase64: String): AltchaPayload? {
+        if (payloadBase64.isBlank()) {
+            LOG.debug("Altcha payload is empty")
+            return null
+        }
         return try {
             val json = String(Base64.getDecoder().decode(payloadBase64))
             val payload = objectMapper.readValue(json, AltchaPayload::class.java)
 
             if (payload.algorithm != ALGORITHM) {
                 LOG.debug("Altcha payload uses unsupported algorithm: {}", payload.algorithm)
-                return false
+                return null
             }
 
             val expectedChallenge = sha256("${payload.salt}${payload.number}")
             if (expectedChallenge != payload.challenge) {
                 LOG.debug("Altcha challenge verification failed")
-                return false
+                return null
             }
 
-            // The Altcha spec is stateless by design: the HMAC signature proves the server issued
-            // the challenge, so no server-side storage is needed. However, this does not prevent
-            // replay attacks. We therefore persist each issued challenge in the DB and consume it
-            // exactly once here. The signature check is now redundant but kept for spec compliance.
             val expectedSignature = hmacSha256(payload.challenge, fafProperties.altcha().hmacKey())
             if (expectedSignature != payload.signature) {
                 LOG.debug("Altcha signature verification failed")
-                return false
+                return null
             }
 
-            if (!challengeRepository.consumeChallenge(payload.challenge)) {
-                LOG.debug("Altcha challenge not found, expired, or already used")
-                return false
-            }
-
-            LOG.debug("Altcha validation successful")
-            true
+            payload
         } catch (e: Exception) {
             LOG.debug("Altcha payload verification failed", e)
-            false
+            null
         }
     }
 
