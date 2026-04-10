@@ -107,11 +107,11 @@ quarkus:
     environment: ${FAF_ENVIRONMENT:dev}
     account:
       registration:
-        activation-mail-template-path: ${ACCOUNT_ACTIVATION_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-account-activation.html}
-        welcome-mail-template-path: ${WELCOME_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-welcome-to-faf.html}
-        email-taken-mail-template-path: ${EMAIL_TAKEN_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-email-taken.html}
+        activation-mail-template-path: ${ACCOUNT_ACTIVATION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-account-activation.html}
+        welcome-mail-template-path: ${WELCOME_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-welcome-to-faf.html}
+        email-taken-mail-template-path: ${EMAIL_TAKEN_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-email-taken.html}
       password-reset:
-        mail-template-path: ${PASSWORD_RESET_MAIL_TEMPLATE_PATH:../../../../src/main/mjml/dummy/test-password-reset.html}
+        mail-template-path: ${PASSWORD_RESET_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-password-reset.html}
     altcha:
       enabled: true
       hmac-key: dev-hmac-key-not-for-production
