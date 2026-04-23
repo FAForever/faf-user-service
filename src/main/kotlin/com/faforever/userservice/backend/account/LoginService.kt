@@ -64,6 +64,12 @@ interface LoginService {
 
     fun login(usernameOrEmail: String, password: String, ip: IpAddress, requiresGameOwnership: Boolean): LoginResult
 
+    /**
+     * UCP-only login: same credential and throttling rules as [login], but does not block on global bans,
+     * missed bans, or game ownership (banned users must still access the control panel).
+     */
+    fun loginForUcp(usernameOrEmail: String, password: String, ip: IpAddress): LoginResult
+
     fun resetPassword(userId: Int, newPassword: String)
 }
 
@@ -127,6 +133,23 @@ class LoginServiceImpl(
         }
 
         LOG.debug("User '{}' logged in successfully", usernameOrEmail)
+        return LoginResult.SuccessfulLogin(user.id!!, user.username)
+    }
+
+    @Transactional
+    override fun loginForUcp(usernameOrEmail: String, password: String, ip: IpAddress): LoginResult {
+        if (throttlingRequired(ip)) {
+            return LoginResult.ThrottlingActive
+        }
+
+        val user = userRepository.findByUsernameOrEmail(usernameOrEmail)
+        if (user == null || !passwordEncoder.matches(password, user.password)) {
+            logFailedLogin(usernameOrEmail, ip)
+            return LoginResult.RecoverableLoginOrCredentialsMismatch
+        }
+
+        logLogin(usernameOrEmail, user, ip)
+        LOG.debug("User '{}' logged in to UCP successfully", usernameOrEmail)
         return LoginResult.SuccessfulLogin(user.id!!, user.username)
     }
 
