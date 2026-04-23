@@ -80,6 +80,68 @@ class LoginServiceTest {
     }
 
     @Test
+    fun loginForUcpSucceedsWhenGloballyBanned() {
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
+        whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
+        whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
+            listOf(
+                Ban(
+                    1,
+                    1,
+                    100,
+                    BanLevel.GLOBAL,
+                    "test",
+                    OffsetDateTime.MAX,
+                    null,
+                    null,
+                    null,
+                    null,
+                    OffsetDateTime.now(),
+                ),
+            ),
+        )
+
+        val result = loginService.loginForUcp(USERNAME, PASSWORD, IP_ADDRESS)
+        assertThat(result, instanceOf(LoginResult.SuccessfulLogin::class.java))
+    }
+
+    @Test
+    fun loginForUcpSucceedsWhenMissedBanWouldBlockLobbyLogin() {
+        whenever(banRepository.findGlobalBansByPlayerId(anyInt())).thenReturn(
+            listOf(
+                Ban(
+                    1,
+                    1,
+                    100,
+                    BanLevel.GLOBAL,
+                    "test",
+                    OffsetDateTime.now().minusHours(1),
+                    null,
+                    null,
+                    null,
+                    null,
+                    OffsetDateTime.now().minusDays(1),
+                ),
+            ),
+        )
+        whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
+        whenever(loginLogRepository.findLastLoginTime(anyInt())).thenReturn(LocalDateTime.now().minusDays(2))
+        whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
+
+        val result = loginService.loginForUcp(USERNAME, PASSWORD, IP_ADDRESS)
+        assertThat(result, instanceOf(LoginResult.SuccessfulLogin::class.java))
+    }
+
+    @Test
+    fun loginForUcpWithInvalidPassword() {
+        whenever(userRepository.findByUsernameOrEmail(any())).thenReturn(USER)
+        whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(false)
+
+        val result = loginService.loginForUcp(USERNAME, PASSWORD, IP_ADDRESS)
+        assertThat(result, instanceOf(LoginResult.RecoverableLoginOrCredentialsMismatch::class.java))
+    }
+
+    @Test
     fun loginWithBannedUser() {
         whenever(userRepository.findByUsernameOrEmail(anyString())).thenReturn(USER)
         whenever(passwordEncoder.matches(anyString(), anyString())).thenReturn(true)
