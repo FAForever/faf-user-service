@@ -24,9 +24,6 @@ class UcpFriendsFoesView : UcpPlaceholderView("ucp.nav.friendsFoes")
 @Route(value = "/ucp/avatars", layout = UcpLayout::class)
 class UcpAvatarsView : UcpPlaceholderView("ucp.nav.avatars")
 
-@Route(value = "/ucp/permissions", layout = UcpLayout::class)
-class UcpPermissionsView : UcpPlaceholderView("ucp.nav.permissions")
-
 @Route(value = "/ucp/ban-history", layout = UcpLayout::class)
 class UcpBanHistoryView : UcpPlaceholderView("ucp.nav.banHistory")
 
