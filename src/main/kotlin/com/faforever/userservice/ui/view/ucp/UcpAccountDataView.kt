@@ -5,6 +5,8 @@ import com.faforever.userservice.backend.ucp.UcpSessionService
 import com.faforever.userservice.ui.layout.UcpLayout
 import com.vaadin.flow.component.html.H3
 import com.vaadin.flow.component.html.Span
+import com.vaadin.flow.component.html.Image
+import com.vaadin.flow.component.formlayout.FormLayout
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.Route
@@ -30,22 +32,35 @@ class UcpAccountDataView (
     }
 
     private fun addAccountInfo(accountData: com.faforever.userservice.backend.ucp.AccountData) {
-        val infoLayout = VerticalLayout().apply {
-            setPadding(false)
+        val infoLayout = HorizontalLayout().apply {
             setWidthFull()
+            alignItems = com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.CENTER
         }
 
-        infoLayout.add(createInfoRow("ucp.accountData.username", accountData.username))
-        infoLayout.add(createInfoRow("ucp.accountData.email", accountData.email))
+        // Left side: form (username + email)
+        val formLayout = FormLayout().apply {
+            responsiveSteps = listOf(
+                FormLayout.ResponsiveStep("0", 1)
+            )
+
+            addFormItem(Span(accountData.username), getTranslation("ucp.accountData.username"))
+            addFormItem(Span(accountData.email), getTranslation("ucp.accountData.email"))
+        }
+
+        // Right side: avatar
+        val avatar = if (accountData.avatarUrl != null) {
+            Image(accountData.avatarUrl, "Avatar").apply {
+                setWidth("100px")
+                setHeight("100px")
+                style.set("object-fit", "contain")
+            }
+        } else null
+
+        infoLayout.add(formLayout)
+        if (avatar != null) {
+            infoLayout.add(avatar)
+        }
 
         add(infoLayout)
-    }
-
-    private fun createInfoRow(labelKey: String, value: String): HorizontalLayout {
-        return HorizontalLayout().apply {
-            setWidthFull()
-            add(Span(getTranslation(labelKey)).apply { element.style.set("font-weight", "bold") })
-            add(Span(value))
-        }
     }
 }
