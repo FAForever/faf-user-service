@@ -1,8 +1,8 @@
 package com.faforever.userservice.backend.ucp
 
 import com.faforever.userservice.backend.domain.Avatar
-import com.faforever.userservice.backend.domain.AvatarList
-import com.faforever.userservice.backend.domain.AvatarListRepository
+import com.faforever.userservice.backend.domain.AvatarAssignment
+import com.faforever.userservice.backend.domain.AvatarAssignmentRepository
 import com.faforever.userservice.backend.domain.AvatarRepository
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
@@ -29,9 +29,9 @@ class UcpAccountDataServiceTest {
             acceptedTos = null,
         )
 
-        private val AVATAR = Avatar(id = 1, idUser = USER_ID, idAvatar = 2, selected = true)
+        private val AVATAR_ASSIGNMENT = AvatarAssignment(id = 1, idUser = USER_ID, idAvatar = 2, selected = true)
 
-        private val AVATAR_LIST = AvatarList(
+        private val AVATAR = Avatar(
             id = 2,
             tooltip = "UEF",
             createTime = null,
@@ -49,10 +49,10 @@ class UcpAccountDataServiceTest {
     private lateinit var userRepository: UserRepository
 
     @InjectMock
-    private lateinit var avatarRepository: AvatarRepository
+    private lateinit var avatarAssignmentRepository: AvatarAssignmentRepository
 
     @InjectMock
-    private lateinit var avatarListRepository: AvatarListRepository
+    private lateinit var avatarRepository: AvatarRepository
 
     @Test
     fun returnsNullForUnknownUser() {
@@ -76,12 +76,12 @@ class UcpAccountDataServiceTest {
     @Test
     fun returnsAccountDataWithAvatar() {
         whenever(userRepository.findById(USER_ID)).thenReturn(USER)
-        whenever(avatarRepository.findSelectedAvatarByUserId(USER_ID)).thenReturn(AVATAR)
-        whenever(avatarListRepository.findById(AVATAR.idAvatar)).thenReturn(AVATAR_LIST)
+        whenever(avatarAssignmentRepository.findSelectedAvatarByUserId(USER_ID)).thenReturn(AVATAR_ASSIGNMENT)
+        whenever(avatarRepository.findById(AVATAR_ASSIGNMENT.idAvatar)).thenReturn(AVATAR)
 
         val result = requireNotNull(ucpAccountDataService.getAccountData(USER_ID))
 
-        assertEquals(AVATAR_LIST.url, result.avatarUrl)
-        assertEquals(AVATAR_LIST.tooltip, result.avatarTooltip)
+        assertEquals(AVATAR.url, result.avatarUrl)
+        assertEquals(AVATAR.tooltip, result.avatarTooltip)
     }
 }
