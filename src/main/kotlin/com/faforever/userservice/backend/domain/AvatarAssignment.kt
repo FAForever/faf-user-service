@@ -13,7 +13,7 @@ import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
 
 @Entity(name = "avatars_list")
-data class AvatarList(
+data class Avatar(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int,
@@ -32,7 +32,7 @@ data class AvatarList(
 ) : PanacheEntityBase
 
 @Entity(name = "avatars")
-data class Avatar(
+data class AvatarAssignment(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int,
@@ -44,10 +44,10 @@ data class Avatar(
 ) : PanacheEntityBase
 
 @ApplicationScoped
-class AvatarListRepository : PanacheRepositoryBase<AvatarList, Int>
+class AvatarRepository : PanacheRepositoryBase<Avatar, Int>
 
 @ApplicationScoped
-class AvatarRepository : PanacheRepositoryBase<Avatar, Int> {
-    fun findSelectedAvatarByUserId(userId: Int): Avatar? =
+class AvatarAssignmentRepository : PanacheRepositoryBase<AvatarAssignment, Int> {
+    fun findSelectedAvatarByUserId(userId: Int): AvatarAssignment? =
         find("idUser = ?1 and selected = true", userId).firstResult()
 }
