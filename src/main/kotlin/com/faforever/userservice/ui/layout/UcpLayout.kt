@@ -10,6 +10,7 @@ import com.faforever.userservice.ui.view.ucp.UcpChangePasswordView
 import com.faforever.userservice.ui.view.ucp.UcpChangeUsernameView
 import com.faforever.userservice.ui.view.ucp.UcpDeleteAccountView
 import com.faforever.userservice.ui.view.ucp.UcpFriendsFoesView
+import com.faforever.userservice.ui.view.ucp.UcpGroupsView
 import com.faforever.userservice.ui.view.ucp.UcpLoginView
 import com.faforever.userservice.ui.view.ucp.UcpPermissionsView
 import com.vaadin.flow.component.Component
@@ -52,6 +53,7 @@ class UcpLayout(
         nav.addItem(navItem("ucp.nav.friendsFoes", VaadinIcon.HEART, UcpFriendsFoesView::class.java))
         nav.addItem(navItem("ucp.nav.avatars", VaadinIcon.PICTURE, UcpAvatarsView::class.java))
         nav.addItem(navItem("ucp.nav.permissions", VaadinIcon.KEY_O, UcpPermissionsView::class.java))
+        nav.addItem(navItem("ucp.nav.groups", VaadinIcon.GROUP, UcpGroupsView::class.java))
         nav.addItem(navItem("ucp.nav.banHistory", VaadinIcon.BAN, UcpBanHistoryView::class.java))
         nav.addItem(navItem("ucp.nav.deleteAccount", VaadinIcon.EXIT_O, UcpDeleteAccountView::class.java))
         addToDrawer(nav)
