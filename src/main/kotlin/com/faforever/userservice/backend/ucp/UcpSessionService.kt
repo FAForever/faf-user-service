@@ -2,32 +2,45 @@ package com.faforever.userservice.backend.ucp
 
 import com.vaadin.flow.server.VaadinSession
 import jakarta.enterprise.context.ApplicationScoped
+import java.security.Principal
 
 data class UcpUser(
     val userId: Int,
     val userName: String,
-)
+) : Principal {
+    override fun getName(): String = userName
+}
 
 @ApplicationScoped
 class UcpSessionService {
 
-    fun getCurrentUser(): UcpUser? {
-        val session = VaadinSession.getCurrent() ?: return null
-        return session.getAttribute(SESSION_ATTR) as? UcpUser
-    }
+    fun getCurrentUser(): UcpUser =
+        getCurrentUserOrNull()
+            ?: throw IllegalStateException("Unauthenticated UCP user in Vaadin session")
+
+    fun getCurrentUserOrNull(): UcpUser? =
+        VaadinSession.getCurrent()?.getAttribute(SESSION_ATTR) as? UcpUser
 
     fun setCurrentUser(user: UcpUser) {
-        val session = VaadinSession.getCurrent() ?: return
-        session.setAttribute(SESSION_ATTR, user)
+        currentSession().setAttribute(SESSION_ATTR, user)
     }
 
     fun clear() {
-        VaadinSession.getCurrent()?.setAttribute(SESSION_ATTR, null)
+        currentSession().setAttribute(SESSION_ATTR, null)
     }
 
-    fun isLoggedIn(): Boolean = getCurrentUser() != null
+    fun logout() {
+        clear()
+        currentSession().session.invalidate()
+    }
+
+    fun isLoggedIn(): Boolean = getCurrentUserOrNull() != null
+
+    private fun currentSession(): VaadinSession =
+        VaadinSession.getCurrent()
+            ?: throw IllegalStateException("No VaadinSession is active for UCP session access")
 
     companion object {
-        private const val SESSION_ATTR = "ucp.currentUser"
+        const val SESSION_ATTR = "ucp.currentUser"
     }
 }

@@ -19,8 +19,13 @@ class UcpAccountDataService(
     private val avatarAssignmentRepository: AvatarAssignmentRepository,
     private val avatarRepository: AvatarRepository,
 ) {
-    fun getAccountData(userId: Int): AccountData? {
-        val user = userRepository.findById(userId) ?: return null
+    fun getAccountData(userId: Int): AccountData {
+        val user = requireNotNull(userRepository.findById(userId)) {
+            "Expected authenticated UCP user with id '$userId' to exist"
+        }
+        val persistedUserId = requireNotNull(user.id) {
+            "User '$userId' has no persistent id"
+        }
 
         // Get equipped avatar (where selected = true)
         val equippedAvatar = avatarAssignmentRepository.findSelectedAvatarByUserId(userId)
@@ -31,7 +36,7 @@ class UcpAccountDataService(
         val avatarTooltip = avatarDetails?.tooltip
 
         return AccountData(
-            userId = user.id ?: return null,
+            userId = persistedUserId,
             username = user.username,
             email = user.email,
             avatarUrl = avatarUrl,

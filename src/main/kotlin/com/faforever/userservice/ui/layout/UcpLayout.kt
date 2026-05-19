@@ -11,7 +11,6 @@ import com.faforever.userservice.ui.view.ucp.UcpChangeUsernameView
 import com.faforever.userservice.ui.view.ucp.UcpDeleteAccountView
 import com.faforever.userservice.ui.view.ucp.UcpFriendsFoesView
 import com.faforever.userservice.ui.view.ucp.UcpGroupsView
-import com.faforever.userservice.ui.view.ucp.UcpLoginView
 import com.faforever.userservice.ui.view.ucp.UcpPermissionsView
 import com.vaadin.flow.component.Component
 import com.vaadin.flow.component.UI
@@ -25,17 +24,16 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.component.sidenav.SideNav
 import com.vaadin.flow.component.sidenav.SideNavItem
-import com.vaadin.flow.router.BeforeEnterEvent
-import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.RouterLayout
+import jakarta.annotation.security.PermitAll
 import jakarta.enterprise.context.Dependent
 
 @Dependent
+@PermitAll
 class UcpLayout(
     private val ucpSessionService: UcpSessionService,
 ) : AppLayout(),
-    RouterLayout,
-    BeforeEnterObserver {
+    RouterLayout {
 
     init {
         val toggle = DrawerToggle()
@@ -60,8 +58,8 @@ class UcpLayout(
 
         val logout =
             Button(getTranslation("ucp.logout")) {
-                ucpSessionService.clear()
-                UI.getCurrent().navigate(UcpLoginView::class.java)
+                UI.getCurrent().page.setLocation("/ucp/login")
+                ucpSessionService.logout()
             }.apply {
                 setWidthFull()
                 addThemeVariants(ButtonVariant.LUMO_TERTIARY)
@@ -74,12 +72,6 @@ class UcpLayout(
                 alignItems = FlexComponent.Alignment.STRETCH
             }
         addToDrawer(logoutWrap)
-    }
-
-    override fun beforeEnter(event: BeforeEnterEvent) {
-        if (!ucpSessionService.isLoggedIn()) {
-            event.rerouteTo(UcpLoginView::class.java)
-        }
     }
 
     private fun navItem(i18nKey: String, icon: VaadinIcon, target: Class<out Component>): SideNavItem {
