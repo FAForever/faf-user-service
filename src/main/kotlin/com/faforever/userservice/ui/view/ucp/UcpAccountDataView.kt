@@ -14,13 +14,17 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
+import jakarta.annotation.security.PermitAll
 
 @Route(value = "/ucp", layout = UcpLayout::class)
+@PermitAll
 class UcpAccountDataView(
     private val ucpSessionService: UcpSessionService,
     private val ucpAccountDataService: UcpAccountDataService,
 ) : VerticalLayout(),
     BeforeEnterObserver {
+
+    private var accountRow: HorizontalLayout? = null
 
     init {
         setPadding(true)
@@ -29,16 +33,17 @@ class UcpAccountDataView(
     }
 
     override fun beforeEnter(event: BeforeEnterEvent) {
-        val user = ucpSessionService.getCurrentUser() ?: return
-        val accountData = ucpAccountDataService.getAccountData(user.userId) ?: return
+        val user = ucpSessionService.getCurrentUser()
+        val accountData = ucpAccountDataService.getAccountData(user.userId)
         addAccountInfo(accountData)
     }
 
     private fun addAccountInfo(accountData: AccountData) {
         val formLayout = FormLayout().apply {
-            responsiveSteps = listOf(FormLayout.ResponsiveStep("0", 1))
-            addFormItem(Span(accountData.username), getTranslation("ucp.accountData.username"))
-            addFormItem(Span(accountData.email), getTranslation("ucp.accountData.email"))
+            setAutoResponsive(true)
+            setMaxColumns(1)
+            addFormRow().addFormItem(Span(accountData.username), getTranslation("ucp.accountData.username"))
+            addFormRow().addFormItem(Span(accountData.email), getTranslation("ucp.accountData.email"))
         }
 
         val row = HorizontalLayout(formLayout).apply {
@@ -56,6 +61,8 @@ class UcpAccountDataView(
             row.add(avatar)
         }
 
+        accountRow?.let { remove(it) }
+        accountRow = row
         add(row)
     }
 }

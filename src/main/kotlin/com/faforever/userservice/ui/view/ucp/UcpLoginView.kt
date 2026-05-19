@@ -20,8 +20,11 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
+import com.vaadin.flow.server.VaadinServletRequest
+import com.vaadin.flow.server.auth.AnonymousAllowed
 
 @Route("/ucp/login", layout = CardLayout::class)
+@AnonymousAllowed
 class UcpLoginView(
     private val loginService: LoginService,
     private val vaadinIpService: VaadinIpService,
@@ -41,6 +44,7 @@ class UcpLoginView(
             when (result) {
                 is LoginResult.SuccessfulLogin -> {
                     isError = false
+                    VaadinServletRequest.getCurrent()?.httpServletRequest?.changeSessionId()
                     ucpSessionService.setCurrentUser(UcpUser(result.userId, result.userName))
                     UI.getCurrent().navigate(UcpAccountDataView::class.java)
                 }

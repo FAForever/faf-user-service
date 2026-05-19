@@ -10,7 +10,9 @@ import io.quarkus.test.InjectMock
 import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.whenever
 
@@ -55,18 +57,19 @@ class UcpAccountDataServiceTest {
     private lateinit var avatarRepository: AvatarRepository
 
     @Test
-    fun returnsNullForUnknownUser() {
-        val result = ucpAccountDataService.getAccountData(USER_ID)
-
-        assertNull(result)
+    fun throwsForUnknownUser() {
+        assertThrows(IllegalArgumentException::class.java) {
+            ucpAccountDataService.getAccountData(USER_ID)
+        }
     }
 
     @Test
     fun returnsAccountDataWithoutAvatar() {
         whenever(userRepository.findById(USER_ID)).thenReturn(USER)
 
-        val result = requireNotNull(ucpAccountDataService.getAccountData(USER_ID))
+        val result = ucpAccountDataService.getAccountData(USER_ID)
 
+        assertNotNull(result)
         assertEquals(USER.username, result.username)
         assertEquals(USER.email, result.email)
         assertNull(result.avatarUrl)
@@ -79,9 +82,23 @@ class UcpAccountDataServiceTest {
         whenever(avatarAssignmentRepository.findSelectedAvatarByUserId(USER_ID)).thenReturn(AVATAR_ASSIGNMENT)
         whenever(avatarRepository.findById(AVATAR_ASSIGNMENT.idAvatar)).thenReturn(AVATAR)
 
-        val result = requireNotNull(ucpAccountDataService.getAccountData(USER_ID))
+        val result = ucpAccountDataService.getAccountData(USER_ID)
 
         assertEquals(AVATAR.url, result.avatarUrl)
         assertEquals(AVATAR.tooltip, result.avatarTooltip)
+    }
+
+    @Test
+    fun returnsAccountDataWithoutAvatarWhenAssignmentExistsButAvatarMissing() {
+        whenever(userRepository.findById(USER_ID)).thenReturn(USER)
+        whenever(avatarAssignmentRepository.findSelectedAvatarByUserId(USER_ID)).thenReturn(AVATAR_ASSIGNMENT)
+        whenever(avatarRepository.findById(AVATAR_ASSIGNMENT.idAvatar)).thenReturn(null)
+
+        val result = ucpAccountDataService.getAccountData(USER_ID)
+
+        assertEquals(USER.username, result.username)
+        assertEquals(USER.email, result.email)
+        assertNull(result.avatarUrl)
+        assertNull(result.avatarTooltip)
     }
 }
