@@ -1,0 +1,36 @@
+<mjml>
+  <mj-head>
+    <mj-include path="_style.mjml"/>
+    <mj-preview>
+      Your FAF email address was changed
+    </mj-preview>
+  </mj-head>
+  <mj-body background-color="#fafafa">
+    <mj-include path="_header.mjml"/>
+
+    <mj-section background-color="#ffffff">
+      <mj-column>
+        <mj-text>
+          <h1>Your email address was changed</h1>
+          <p>Dear {{username}},</p>
+          <p>
+            The email address on your FAForever account was just changed to {{newEmail}}. You are receiving this
+            message at your previous email address so you know about the change.
+          </p>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="gray" padding="0">
+      <mj-column>
+        <mj-text color="#d3d3d3">
+          <p>
+            If you did not request this change, please contact us immediately at admin@faforever.com.
+          </p>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-include path="_footer.mjml"/>
+  </mj-body>
+</mjml>
