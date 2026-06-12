@@ -24,6 +24,7 @@ import javax.crypto.spec.SecretKeySpec
 enum class FafTokenType {
     REGISTRATION,
     PASSWORD_RESET,
+    EMAIL_CHANGE,
     LINK_TO_STEAM,
 }
 

@@ -23,6 +23,12 @@ faf:
       password-reset-initiate-email-url-format: ${faf.self-url}/recover-account/email?identifier=%s
       subject: ${PASSWORD_RESET_EMAIL_SUBJECT:FAF password reset}
       mail-template-path: ${PASSWORD_RESET_MAIL_TEMPLATE_PATH:/config/mail/password-reset.html}
+    email-change:
+      confirmation-url-format: ${faf.self-url}/ucp/email/confirm?token=%s
+      subject: ${EMAIL_CHANGE_SUBJECT:Confirm your FAF email change}
+      mail-template-path: ${EMAIL_CHANGE_MAIL_TEMPLATE_PATH:/config/mail/email-change-confirmation.html}
+      notification-subject: ${EMAIL_CHANGE_NOTIFICATION_SUBJECT:Your FAF email address was changed}
+      notification-mail-template-path: ${EMAIL_CHANGE_NOTIFICATION_MAIL_TEMPLATE_PATH:/config/mail/email-change-notification.html}
     username:
       minimum-days-between-username-change: ${MIN_DAYS_BETWEEN_NAME_CHANGE:30}
       username-reservation-time-in-months: ${NAME_RESERVATION_MONTHS:6}
@@ -87,6 +93,10 @@ quarkus:
       url: ${DB_URL:jdbc:mariadb://localhost:3306/faf?ssl=false}
   application:
     name: faf-user-service
+  hibernate-orm:
+    mapping:
+      format:
+        global: ignore
   management:
     enabled: true
 
@@ -112,6 +122,9 @@ quarkus:
         email-taken-mail-template-path: ${EMAIL_TAKEN_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-email-taken.html}
       password-reset:
         mail-template-path: ${PASSWORD_RESET_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-password-reset.html}
+      email-change:
+        mail-template-path: ${EMAIL_CHANGE_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-email-change-confirmation.html}
+        notification-mail-template-path: ${EMAIL_CHANGE_NOTIFICATION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-email-change-notification.html}
     altcha:
       enabled: true
       hmac-key: dev-hmac-key-not-for-production
