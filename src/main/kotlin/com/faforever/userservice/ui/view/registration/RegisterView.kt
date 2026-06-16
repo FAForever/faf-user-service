@@ -3,6 +3,7 @@ package com.faforever.userservice.ui.view.registration
 import com.faforever.userservice.backend.account.EmailStatusResponse
 import com.faforever.userservice.backend.account.RegistrationService
 import com.faforever.userservice.backend.account.UsernameStatus
+import com.faforever.userservice.backend.account.UsernameValidator
 import com.faforever.userservice.backend.altcha.AltchaService
 import com.faforever.userservice.config.FafProperties
 import com.faforever.userservice.ui.component.Altcha
@@ -143,10 +144,10 @@ class RegisterView(
         add(footer)
 
         binder.forField(username).asRequired(getTranslation("register.username.required"))
-            .withValidator({ username -> username[0].isLetter() }, getTranslation("register.username.startsWithLetter"))
-            .withValidator({ username -> username.length in 3..15 }, getTranslation("register.username.size"))
+            .withValidator(UsernameValidator::startsWithLetter, getTranslation("register.username.startsWithLetter"))
+            .withValidator(UsernameValidator::hasValidLength, getTranslation("register.username.size"))
             .withValidator(
-                { username -> !Regex("[^A-Za-z0-9_-]").containsMatchIn(username) },
+                UsernameValidator::containsOnlyAllowedCharacters,
                 getTranslation("register.username.alphanumeric"),
             ).withValidator(
                 { username -> registrationService.usernameAvailable(username) == UsernameStatus.USERNAME_AVAILABLE },
