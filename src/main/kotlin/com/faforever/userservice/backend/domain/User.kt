@@ -8,6 +8,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.transaction.Transactional
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
@@ -116,6 +117,12 @@ class UserRepository : PanacheRepositoryBase<User, Int> {
     fun existsByUsername(username: String): Boolean = count("username = ?1", username) > 0
 
     fun existsByEmail(email: String): Boolean = count("email = ?1", email) > 0
+
+    @Transactional
+    fun updateUsername(userId: Int, username: String) {
+        val user = findById(userId) ?: throw IllegalArgumentException("User not found: $userId")
+        user.username = username
+    }
 
     fun findBySteamId(steamId: String): User? =
         getEntityManager().createNativeQuery(
