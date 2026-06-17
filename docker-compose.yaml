@@ -49,7 +49,7 @@ services:
       retries: 5
 
   hydra-migrate:
-    image: oryd/hydra:v25.4.0
+    image: oryd/hydra:v26.2.0
     command: migrate -c /etc/config/hydra/hydra.yml sql -e --yes
     environment:
       - DSN=postgres://hydra:banana@hydra-db:5432/hydra?sslmode=disable
@@ -62,7 +62,7 @@ services:
         condition: service_healthy
 
   hydra:
-    image: oryd/hydra:v25.4.0
+    image: oryd/hydra:v26.2.0
     ports:
       - "4444:4444" # Public port
       - "4445:4445" # Admin port
@@ -87,7 +87,7 @@ services:
       retries: 5
 
   hydra-testdata:
-    image: oryd/hydra:v25.4.0
+    image: oryd/hydra:v26.2.0
     entrypoint: >
       hydra create oauth2-client
       --skip-tls-verify
