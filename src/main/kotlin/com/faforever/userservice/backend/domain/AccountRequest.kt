@@ -17,14 +17,13 @@ import java.time.OffsetDateTime
 @Entity(name = "account_request")
 data class AccountRequest(
     @Id
+    @Column(nullable = false)
     val id: String,
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = true)
     val userId: Int?,
     @Enumerated(EnumType.STRING)
     @Column(name = "request_type", nullable = false)
     val type: AccountRequestType,
-    @Column(name = "token_hash", nullable = false)
-    val tokenHash: String,
     @Column(name = "expires_at", nullable = false)
     val expiresAt: OffsetDateTime,
     @JdbcTypeCode(SqlTypes.JSON)
