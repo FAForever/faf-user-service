@@ -1,8 +1,5 @@
 package com.faforever.userservice.backend.account
 
-import com.faforever.userservice.backend.domain.AccountRequest
-import com.faforever.userservice.backend.domain.AccountRequestRepository
-import com.faforever.userservice.backend.domain.AccountRequestType
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.email.EmailService
@@ -16,15 +13,11 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import java.security.MessageDigest
-import java.time.OffsetDateTime
 import java.time.temporal.TemporalAmount
-import java.util.Base64
 
 @QuarkusTest
 class EmailChangeServiceTest {
@@ -37,9 +30,6 @@ class EmailChangeServiceTest {
 
     @InjectMock
     private lateinit var userRepository: UserRepository
-
-    @InjectMock
-    private lateinit var accountRequestRepository: AccountRequestRepository
 
     @InjectMock
     private lateinit var emailService: EmailService
@@ -65,14 +55,6 @@ class EmailChangeServiceTest {
         val result = emailChangeService.requestEmailChange(user.id!!, newEmail)
 
         assertThat(result, equalTo(EmailChangeRequestResult.ConfirmationSent))
-        verify(accountRequestRepository).deleteByUserIdAndType(user.id!!, AccountRequestType.EMAIL_CHANGE)
-        argumentCaptor<AccountRequest>().apply {
-            verify(accountRequestRepository).persist(capture())
-            assertThat(firstValue.userId, equalTo(user.id))
-            assertThat(firstValue.type, equalTo(AccountRequestType.EMAIL_CHANGE))
-            assertThat(firstValue.tokenHash, equalTo(hashToken("token")))
-            assertThat(firstValue.data["newEmail"], equalTo(newEmail))
-        }
         verify(emailService).sendEmailChangeConfirmationMail(
             user.username,
             newEmail,
@@ -91,7 +73,7 @@ class EmailChangeServiceTest {
         val result = emailChangeService.requestEmailChange(user.id!!, existingUser.email)
 
         assertThat(result, equalTo(EmailChangeRequestResult.EmailAlreadyTaken))
-        verifyNoInteractions(accountRequestRepository)
+        verifyNoInteractions(fafTokenService)
     }
 
     @Test
@@ -99,22 +81,12 @@ class EmailChangeServiceTest {
         val user = buildTestUser()
         val token = "token"
         val newEmail = "new@example.com"
-        val pendingChange = AccountRequest(
-            id = "change-id",
-            userId = user.id!!,
-            type = AccountRequestType.EMAIL_CHANGE,
-            tokenHash = hashToken(token),
-            expiresAt = OffsetDateTime.now().plusHours(1),
-            data = mapOf("newEmail" to newEmail),
-        )
-        whenever(fafTokenService.getTokenClaims(FafTokenType.EMAIL_CHANGE, token)).thenReturn(
+        whenever(fafTokenService.consumeToken(FafTokenType.EMAIL_CHANGE, token)).thenReturn(
             mapOf(
-                "changeId" to pendingChange.id,
                 "userId" to user.id.toString(),
                 "newEmail" to newEmail,
             ),
         )
-        whenever(accountRequestRepository.findById(pendingChange.id)).thenReturn(pendingChange)
         whenever(userRepository.findById(user.id!!)).thenReturn(user)
         whenever(emailService.validateEmailAddress(newEmail)).thenReturn(EmailService.ValidationResult.VALID)
         whenever(userRepository.findByEmail(newEmail)).thenReturn(null)
@@ -123,7 +95,6 @@ class EmailChangeServiceTest {
 
         assertThat(result, equalTo(EmailChangeConfirmationResult.Confirmed))
         assertThat(user.email, equalTo(newEmail))
-        verify(accountRequestRepository).delete(pendingChange)
         verify(emailService).sendEmailChangedNotificationMail(user.username, "old@example.com", newEmail)
     }
 
@@ -132,24 +103,24 @@ class EmailChangeServiceTest {
         val user = buildTestUser(email = "old@example.com")
         val sameEmailDifferentCase = "Old@Example.com"
         whenever(userRepository.findById(user.id!!)).thenReturn(user)
-        whenever(emailService.validateEmailAddress(sameEmailDifferentCase))
+        whenever(emailService.validateEmailAddress("old@example.com"))
             .thenReturn(EmailService.ValidationResult.VALID)
 
         val result = emailChangeService.requestEmailChange(user.id!!, sameEmailDifferentCase)
 
         assertThat(result, equalTo(EmailChangeRequestResult.UnchangedEmail))
-        verifyNoInteractions(accountRequestRepository)
+        verifyNoInteractions(fafTokenService)
     }
 
     @Test
     fun confirmEmailChangeRejectsInvalidToken() {
         val token = "token"
-        whenever(fafTokenService.getTokenClaims(FafTokenType.EMAIL_CHANGE, token)).thenThrow(IllegalArgumentException())
+        whenever(fafTokenService.consumeToken(FafTokenType.EMAIL_CHANGE, token)).thenThrow(IllegalArgumentException())
 
         val result = emailChangeService.confirmEmailChange(token)
 
         assertThat(result, equalTo(EmailChangeConfirmationResult.InvalidToken))
-        verifyNoInteractions(accountRequestRepository)
+        verifyNoInteractions(userRepository)
     }
 
     private fun buildTestUser(
@@ -164,7 +135,4 @@ class EmailChangeServiceTest {
         ip = null,
         acceptedTos = null,
     )
-
-    private fun hashToken(token: String): String =
-        Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(token.toByteArray()))
 }

@@ -63,7 +63,6 @@ class UcpConfirmEmailChangeView(
         message.text = when (result) {
             EmailChangeConfirmationResult.Confirmed -> getTranslation("ucp.changeEmail.confirm.success")
             EmailChangeConfirmationResult.InvalidToken -> getTranslation("ucp.changeEmail.confirm.invalidToken")
-            EmailChangeConfirmationResult.PendingChangeNotFound -> getTranslation("ucp.changeEmail.confirm.notFound")
             EmailChangeConfirmationResult.UserNotFound -> getTranslation("ucp.changeEmail.confirm.userNotFound")
             EmailChangeConfirmationResult.EmailUnavailable -> getTranslation("ucp.changeEmail.confirm.emailUnavailable")
         }

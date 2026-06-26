@@ -1,5 +1,8 @@
 package com.faforever.userservice.backend.security
 
+import com.faforever.userservice.backend.domain.AccountRequest
+import com.faforever.userservice.backend.domain.AccountRequestRepository
+import com.faforever.userservice.backend.domain.AccountRequestType
 import com.faforever.userservice.config.FafProperties
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
@@ -9,11 +12,13 @@ import com.nimbusds.jose.crypto.AESEncrypter
 import com.nimbusds.jwt.EncryptedJWT
 import com.nimbusds.jwt.JWTClaimsSet
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.security.spec.KeySpec
 import java.text.MessageFormat
 import java.time.Instant
+import java.time.OffsetDateTime
 import java.time.temporal.TemporalAmount
 import java.util.*
 import javax.crypto.SecretKey
@@ -41,21 +46,41 @@ class SecretKeyGenerator {
 @ApplicationScoped
 class FafTokenService(
     fafProperties: FafProperties,
+    private val accountRequestRepository: AccountRequestRepository,
 ) {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(FafTokenService::class.java)
         private const val KEY_ACTION = "action"
+        private const val KEY_USER_ID = "userId"
     }
 
     private val secretKey = SecretKeyGenerator.getKeyFromString(fafProperties.jwt().secret())
     private val jweEncrypter = AESEncrypter(secretKey)
     private val jweDecrypter = AESDecrypter(secretKey)
 
+    @Transactional
     fun createToken(fafTokenType: FafTokenType, lifetime: TemporalAmount, attributes: Map<String, String>): String {
         if (attributes.containsKey(KEY_ACTION)) {
             throw IllegalArgumentException(
                 MessageFormat.format("'{0}' is a protected attributed and must not be used", KEY_ACTION),
             )
+        }
+
+        if (fafTokenType == FafTokenType.EMAIL_CHANGE) {
+            val userId = attributes[KEY_USER_ID]?.toIntOrNull()
+                ?: throw IllegalArgumentException("userId is required")
+            val token = UUID.randomUUID().toString()
+            accountRequestRepository.deleteByUserIdAndType(userId, AccountRequestType.EMAIL_CHANGE)
+            accountRequestRepository.persist(
+                AccountRequest(
+                    id = token,
+                    userId = userId,
+                    type = AccountRequestType.EMAIL_CHANGE,
+                    expiresAt = OffsetDateTime.now().plus(lifetime),
+                    data = attributes.filterKeys { it != KEY_USER_ID },
+                ),
+            )
+            return token
         }
 
         val jwtBuilder = JWTClaimsSet.Builder()
@@ -69,6 +94,28 @@ class FafTokenService(
         jwe.encrypt(jweEncrypter)
 
         return jwe.serialize()
+    }
+
+    @Transactional
+    fun consumeToken(fafTokenType: FafTokenType, tokenValue: String): Map<String, String> {
+        if (fafTokenType != FafTokenType.EMAIL_CHANGE) {
+            throw IllegalArgumentException("Token type ${fafTokenType.name} does not support consumption")
+        }
+
+        val request = accountRequestRepository.findById(tokenValue)
+            ?: throw IllegalArgumentException("Token not found")
+        if (request.type != AccountRequestType.EMAIL_CHANGE) {
+            throw IllegalArgumentException("Token does not match expected type")
+        }
+        if (request.expiresAt.isBefore(OffsetDateTime.now())) {
+            throw IllegalArgumentException("Token is expired")
+        }
+
+        accountRequestRepository.delete(request)
+
+        val claims = request.data.mapValues { it.value.toString() }.toMutableMap()
+        request.userId?.let { claims[KEY_USER_ID] = it.toString() }
+        return claims
     }
 
     fun getTokenClaims(fafTokenType: FafTokenType, tokenValue: String): Map<String, String> {
