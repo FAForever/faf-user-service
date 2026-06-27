@@ -2,6 +2,7 @@ package com.faforever.userservice.backend.ucp
 
 import com.faforever.userservice.backend.domain.NameRecord
 import com.faforever.userservice.backend.domain.NameRecordRepository
+import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.config.FafProperties
 import io.quarkus.test.InjectMock
@@ -173,7 +174,16 @@ class UcpUsernameServiceTest {
     @Test
     fun `changeUsername succeeds and updates username`() {
         val user = UcpUser(USER_ID, USERNAME)
+        val userToUpdate = User(
+            id = USER_ID,
+            username = USERNAME,
+            password = "password",
+            email = "test@example.com",
+            ip = null,
+            acceptedTos = null,
+        )
         whenever(userRepository.existsByUsername(NEW_USERNAME)).thenReturn(false)
+        whenever(userRepository.findById(USER_ID)).thenReturn(userToUpdate)
 
         val result = service.changeUsername(user, NEW_USERNAME)
 
@@ -181,8 +191,9 @@ class UcpUsernameServiceTest {
         val success = result as UcpUsernameService.UsernameChangeResult.Success
         assertEquals(USER_ID, success.userId)
         assertEquals(NEW_USERNAME, success.newUsername)
+        assertEquals(NEW_USERNAME, userToUpdate.username)
 
-        verify(userRepository).updateUsername(USER_ID, NEW_USERNAME)
+        verify(userRepository).findById(USER_ID)
         val nameRecordCaptor = argumentCaptor<NameRecord>()
         verify(nameRecordRepository).persist(nameRecordCaptor.capture())
         assertEquals(USER_ID, nameRecordCaptor.firstValue.userId)
@@ -207,21 +218,31 @@ class UcpUsernameServiceTest {
     @Test
     fun `changeUsername trims whitespace from username`() {
         val user = UcpUser(USER_ID, USERNAME)
+        val userToUpdate = User(
+            id = USER_ID,
+            username = USERNAME,
+            password = "password",
+            email = "test@example.com",
+            ip = null,
+            acceptedTos = null,
+        )
         whenever(userRepository.existsByUsername(NEW_USERNAME)).thenReturn(false)
+        whenever(userRepository.findById(USER_ID)).thenReturn(userToUpdate)
 
         val result = service.changeUsername(user, "  $NEW_USERNAME  ")
 
         assertTrue(result is UcpUsernameService.UsernameChangeResult.Success)
-        verify(userRepository).updateUsername(USER_ID, NEW_USERNAME)
+        assertEquals(NEW_USERNAME, userToUpdate.username)
+        verify(userRepository).findById(USER_ID)
     }
 
     @Test
-    fun `changeUsername throws exception when repository update fails`() {
+    fun `changeUsername throws exception when user is not found for update`() {
         val user = UcpUser(USER_ID, USERNAME)
         whenever(userRepository.existsByUsername(NEW_USERNAME)).thenReturn(false)
-        whenever(userRepository.updateUsername(USER_ID, NEW_USERNAME)).thenThrow(RuntimeException("DB error"))
+        whenever(userRepository.findById(USER_ID)).thenReturn(null)
 
-        assertThrows(RuntimeException::class.java) {
+        assertThrows(IllegalArgumentException::class.java) {
             service.changeUsername(user, NEW_USERNAME)
         }
     }
