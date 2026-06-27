@@ -78,8 +78,11 @@ class UcpUsernameService(
             return UsernameChangeResult.ValidationError("ucp.username.error.reserved")
         }
 
+        val userToUpdate = userRepository.findById(user.userId)
+            ?: throw IllegalArgumentException("User not found: ${user.userId}")
+        userToUpdate.username = trimmedUsername
         val previousUsername = user.userName
-        userRepository.updateUsername(user.userId, trimmedUsername)
+
         nameRecordRepository.persist(
             NameRecord(
                 userId = user.userId,
