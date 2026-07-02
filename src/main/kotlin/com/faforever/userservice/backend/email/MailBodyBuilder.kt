@@ -23,6 +23,8 @@ class MailBodyBuilder(private val properties: FafProperties) {
         WELCOME_TO_FAF("username"),
         PASSWORD_RESET("username", "passwordResetUrl"),
         EMAIL_ALREADY_TAKEN("desiredUsername", "existingUsername", "passwordResetUrl"),
+        EMAIL_CHANGE_CONFIRMATION("username", "confirmationUrl"),
+        EMAIL_CHANGED_NOTIFICATION("username", "newEmail"),
         ;
 
         val variables: Set<String>
@@ -38,6 +40,8 @@ class MailBodyBuilder(private val properties: FafProperties) {
             Template.WELCOME_TO_FAF -> properties.account().registration().welcomeMailTemplatePath()
             Template.PASSWORD_RESET -> properties.account().passwordReset().mailTemplatePath()
             Template.EMAIL_ALREADY_TAKEN -> properties.account().registration().emailTakenMailTemplatePath()
+            Template.EMAIL_CHANGE_CONFIRMATION -> properties.account().emailChange().mailTemplatePath()
+            Template.EMAIL_CHANGED_NOTIFICATION -> properties.account().emailChange().notificationMailTemplatePath()
         }
         return Path.of(path)
     }
@@ -135,6 +139,24 @@ class MailBodyBuilder(private val properties: FafProperties) {
                 "desiredUsername" to desiredUsername,
                 "existingUsername" to existingUsername,
                 "passwordResetUrl" to passwordResetUrl,
+            ),
+        )
+
+    fun buildEmailChangeConfirmationBody(username: String, confirmationUrl: String) =
+        populate(
+            Template.EMAIL_CHANGE_CONFIRMATION,
+            mapOf(
+                "username" to username,
+                "confirmationUrl" to confirmationUrl,
+            ),
+        )
+
+    fun buildEmailChangedNotificationBody(username: String, newEmail: String) =
+        populate(
+            Template.EMAIL_CHANGED_NOTIFICATION,
+            mapOf(
+                "username" to username,
+                "newEmail" to newEmail,
             ),
         )
 }

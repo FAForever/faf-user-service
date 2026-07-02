@@ -10,8 +10,10 @@ import com.vaadin.flow.component.html.Header
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.ParentLayout
 import com.vaadin.flow.router.RouterLayout
+import com.vaadin.flow.server.auth.AnonymousAllowed
 import jakarta.enterprise.context.Dependent
 
+@AnonymousAllowed
 @Dependent
 class BackgroundImageLayout(backgroundHeader: BackgroundHeader) : CompactVerticalLayout(), RouterLayout {
 
@@ -57,6 +59,7 @@ class BackgroundHeader(fafProperties: FafProperties) : Header() {
     }
 }
 
+@AnonymousAllowed
 @ParentLayout(BackgroundImageLayout::class)
 class CardLayout : VerticalLayout(), RouterLayout {
 

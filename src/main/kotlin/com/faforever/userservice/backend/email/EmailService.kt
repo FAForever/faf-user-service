@@ -67,6 +67,21 @@ class EmailService(
         mailSender.sendMail(email, properties.account().passwordReset().subject(), mailBody, ContentType.HTML)
     }
 
+    fun sendEmailChangeConfirmationMail(username: String, newEmail: String, confirmationUrl: String) {
+        val mailBody = mailBodyBuilder.buildEmailChangeConfirmationBody(username, confirmationUrl)
+        mailSender.sendMail(newEmail, properties.account().emailChange().subject(), mailBody, ContentType.HTML)
+    }
+
+    fun sendEmailChangedNotificationMail(username: String, oldEmail: String, newEmail: String) {
+        val mailBody = mailBodyBuilder.buildEmailChangedNotificationBody(username, newEmail)
+        mailSender.sendMail(
+            oldEmail,
+            properties.account().emailChange().notificationSubject(),
+            mailBody,
+            ContentType.HTML,
+        )
+    }
+
     fun sendEmailAlreadyTakenMail(
         desiredUsername: String,
         existingUsername: String,
