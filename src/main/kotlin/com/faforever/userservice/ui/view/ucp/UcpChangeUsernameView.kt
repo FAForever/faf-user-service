@@ -22,6 +22,10 @@ class UcpChangeUsernameView(
     private val ucpSessionService: UcpSessionService,
 ) : VerticalLayout() {
 
+    companion object {
+        private const val NOTIFICATION_DURATION_MS = 3000
+    }
+
     private val newUsernameField = TextField().apply {
         label = getTranslation("ucp.username.newUsername")
         setWidthFull()
@@ -71,7 +75,7 @@ class UcpChangeUsernameView(
         } catch (exception: Exception) {
             Notification.show(
                 getTranslation("ucp.username.error.updateFailed"),
-                3000,
+                NOTIFICATION_DURATION_MS,
                 Notification.Position.TOP_CENTER,
             ).addThemeVariants(NotificationVariant.LUMO_ERROR)
             return
@@ -80,23 +84,28 @@ class UcpChangeUsernameView(
         when (result) {
             is UcpUsernameService.UsernameChangeResult.Success -> {
                 ucpSessionService.setCurrentUser(UcpUser(result.userId, result.newUsername))
-                Notification.show(getTranslation("ucp.username.success"), 3000, Notification.Position.TOP_CENTER)
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS)
+                Notification.show(
+                    getTranslation("ucp.username.success"),
+                    NOTIFICATION_DURATION_MS,
+                    Notification.Position.TOP_CENTER,
+                ).addThemeVariants(NotificationVariant.LUMO_SUCCESS)
                 newUsernameField.clear()
                 // Update the current username display in-place to avoid heavy navigation
                 currentUsernameDisplay.text = getTranslation("ucp.username.current", result.newUsername)
             }
             is UcpUsernameService.UsernameChangeResult.ValidationError -> {
-                Notification.show(getTranslation(result.message), 3000, Notification.Position.TOP_CENTER)
-                    .addThemeVariants(NotificationVariant.LUMO_ERROR)
+                Notification.show(
+                    getTranslation(result.message),
+                    NOTIFICATION_DURATION_MS,
+                    Notification.Position.TOP_CENTER,
+                ).addThemeVariants(NotificationVariant.LUMO_ERROR)
             }
             UcpUsernameService.UsernameChangeResult.NotLoggedIn -> {
                 Notification.show(
                     getTranslation("ucp.username.error.notLoggedIn"),
-                    3000,
+                    NOTIFICATION_DURATION_MS,
                     Notification.Position.TOP_CENTER,
-                )
-                    .addThemeVariants(NotificationVariant.LUMO_ERROR)
+                ).addThemeVariants(NotificationVariant.LUMO_ERROR)
             }
         }
     }

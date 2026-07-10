@@ -96,6 +96,10 @@ quarkus:
   hibernate-orm:
     mapping:
       format:
+        # needed for AccountRequest.data
+        # it wants us to pick a JSON mapper
+        # ignore uses the default in Hibernate:
+        # https://github.com/quarkusio/quarkus/wiki/Migration-Guide-3.26#jsonxml-mapping
         global: ignore
   management:
     enabled: true
