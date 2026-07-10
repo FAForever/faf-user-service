@@ -2,8 +2,9 @@ package com.faforever.userservice.backend.security
 
 import com.faforever.userservice.backend.domain.AccountRequest
 import com.faforever.userservice.backend.domain.AccountRequestRepository
-import com.faforever.userservice.backend.domain.AccountRequestType
 import com.faforever.userservice.config.FafProperties
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.JWEHeader
@@ -16,22 +17,16 @@ import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.security.spec.KeySpec
-import java.text.MessageFormat
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.temporal.TemporalAmount
-import java.util.*
+import java.util.Date
+import java.util.UUID
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
-
-enum class FafTokenType {
-    REGISTRATION,
-    PASSWORD_RESET,
-    EMAIL_CHANGE,
-    LINK_TO_STEAM,
-}
+import kotlin.reflect.KClass
 
 class SecretKeyGenerator {
     companion object {
@@ -47,11 +42,15 @@ class SecretKeyGenerator {
 class FafTokenService(
     fafProperties: FafProperties,
     private val accountRequestRepository: AccountRequestRepository,
+    private val objectMapper: ObjectMapper,
 ) {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(FafTokenService::class.java)
         private const val KEY_ACTION = "action"
-        private const val KEY_USER_ID = "userId"
+
+        // jwt claims that are not part of our payload
+        private val JWT_META_CLAIMS = setOf(KEY_ACTION, "exp", "iat", "nbf", "sub", "iss", "aud", "jti")
+        private val MAP_TYPE = object : TypeReference<Map<String, Any>>() {}
     }
 
     private val secretKey = SecretKeyGenerator.getKeyFromString(fafProperties.jwt().secret())
@@ -59,36 +58,52 @@ class FafTokenService(
     private val jweDecrypter = AESDecrypter(secretKey)
 
     @Transactional
-    fun createToken(fafTokenType: FafTokenType, lifetime: TemporalAmount, attributes: Map<String, String>): String {
-        if (attributes.containsKey(KEY_ACTION)) {
-            throw IllegalArgumentException(
-                MessageFormat.format("'{0}' is a protected attributed and must not be used", KEY_ACTION),
-            )
+    fun createToken(
+        token: FafToken,
+        lifetime: TemporalAmount,
+    ): String =
+        when (token) {
+            is FafToken.EmailChange -> createOpaqueToken(token, lifetime)
+            is FafToken.Registration,
+            is FafToken.PasswordReset,
+            is FafToken.LinkToSteam,
+            -> createJwtToken(token, lifetime)
         }
 
-        if (fafTokenType == FafTokenType.EMAIL_CHANGE) {
-            val userId = attributes[KEY_USER_ID]?.toIntOrNull()
-                ?: throw IllegalArgumentException("userId is required")
-            val token = UUID.randomUUID().toString()
-            accountRequestRepository.deleteByUserIdAndType(userId, AccountRequestType.EMAIL_CHANGE)
-            accountRequestRepository.persist(
-                AccountRequest(
-                    id = token,
-                    userId = userId,
-                    type = AccountRequestType.EMAIL_CHANGE,
-                    expiresAt = OffsetDateTime.now().plus(lifetime),
-                    data = attributes.filterKeys { it != KEY_USER_ID },
-                ),
-            )
-            return token
+    private fun createOpaqueToken(
+        token: FafToken.EmailChange,
+        lifetime: TemporalAmount,
+    ): String {
+        val type = token.toType()
+        val opaque = UUID.randomUUID().toString()
+        accountRequestRepository.deleteByUserIdAndType(token.userId, type)
+        accountRequestRepository.persist(
+            AccountRequest(
+                id = opaque,
+                userId = token.userId,
+                type = type,
+                expiresAt = OffsetDateTime.now().plus(lifetime),
+                data = objectMapper.convertValue(token, MAP_TYPE),
+            ),
+        )
+        return opaque
+    }
+
+    private fun createJwtToken(
+        token: FafToken,
+        lifetime: TemporalAmount,
+    ): String {
+        val type = token.toType()
+        val jwtBuilder =
+            JWTClaimsSet
+                .Builder()
+                .expirationTime(Date.from(Instant.now().plus(lifetime)))
+                .issueTime(Date.from(Instant.now()))
+                .claim(KEY_ACTION, type.name)
+
+        objectMapper.convertValue(token, MAP_TYPE).forEach { (key, value) ->
+            jwtBuilder.claim(key, value)
         }
-
-        val jwtBuilder = JWTClaimsSet.Builder()
-            .expirationTime(Date.from(Instant.now().plus(lifetime)))
-            .issueTime(Date.from(Instant.now()))
-
-        jwtBuilder.claim(KEY_ACTION, fafTokenType.name)
-        attributes.forEach { (key, value) -> jwtBuilder.claim(key, value) }
 
         val jwe = EncryptedJWT(JWEHeader(JWEAlgorithm.A256KW, EncryptionMethod.A128CBC_HS256), jwtBuilder.build())
         jwe.encrypt(jweEncrypter)
@@ -96,15 +111,22 @@ class FafTokenService(
         return jwe.serialize()
     }
 
+    // single use db token for email change
     @Transactional
-    fun consumeToken(fafTokenType: FafTokenType, tokenValue: String): Map<String, String> {
-        if (fafTokenType != FafTokenType.EMAIL_CHANGE) {
-            throw IllegalArgumentException("Token type ${fafTokenType.name} does not support consumption")
+    fun <T : FafToken> consumeToken(
+        expectedType: KClass<T>,
+        tokenValue: String,
+    ): T {
+        val expected = FafTokenType.fromTokenClass(expectedType)
+        // only db tokens are consumable
+        if (expected != FafTokenType.EMAIL_CHANGE) {
+            throw IllegalArgumentException("Token type ${expected.name} does not support consumption")
         }
 
-        val request = accountRequestRepository.findById(tokenValue)
-            ?: throw IllegalArgumentException("Token not found")
-        if (request.type != AccountRequestType.EMAIL_CHANGE) {
+        val request =
+            accountRequestRepository.findById(tokenValue)
+                ?: throw IllegalArgumentException("Token not found")
+        if (request.type != expected) {
             throw IllegalArgumentException("Token does not match expected type")
         }
         if (request.expiresAt.isBefore(OffsetDateTime.now())) {
@@ -112,14 +134,14 @@ class FafTokenService(
         }
 
         accountRequestRepository.delete(request)
-
-        val claims = request.data.mapValues { it.value.toString() }.toMutableMap()
-        request.userId?.let { claims[KEY_USER_ID] = it.toString() }
-        return claims
+        return objectMapper.convertValue(request.data, expectedType.java)
     }
 
-    fun getTokenClaims(fafTokenType: FafTokenType, tokenValue: String): Map<String, String> {
-        LOG.debug("Reading token of expected type {}", fafTokenType.name)
+    fun <T : FafToken> getToken(
+        expectedType: KClass<T>,
+        tokenValue: String,
+    ): T {
+        LOG.debug("Reading token of expected type {}", expectedType.simpleName)
 
         val jwe = EncryptedJWT.parse(tokenValue)
         jwe.decrypt(jweDecrypter)
@@ -128,9 +150,13 @@ class FafTokenService(
         if (tokenClaims.expirationTime?.before(Date.from(Instant.now())) == true) {
             throw IllegalArgumentException("Token is expired")
         }
-        if (tokenClaims?.claims?.get(KEY_ACTION) != fafTokenType.name) {
+
+        val expected = FafTokenType.fromTokenClass(expectedType)
+        if (tokenClaims.claims[KEY_ACTION] != expected.name) {
             throw IllegalArgumentException("Token does not match expected type")
         }
-        return tokenClaims.claims.filterKeys { it != KEY_ACTION } as Map<String, String>
+
+        val claims = tokenClaims.claims.filterKeys { it !in JWT_META_CLAIMS }
+        return objectMapper.convertValue(claims, expectedType.java)
     }
 }
