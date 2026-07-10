@@ -13,7 +13,7 @@ import java.time.OffsetDateTime
 data class NameRecord(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Int? = null,
+    val id: Int = 0,
     @Column(name = "user_id")
     val userId: Int,
     @Column(name = "change_time")
