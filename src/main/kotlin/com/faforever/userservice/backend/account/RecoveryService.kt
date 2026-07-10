@@ -4,8 +4,8 @@ import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.email.EmailService
 import com.faforever.userservice.backend.metrics.MetricHelper
+import com.faforever.userservice.backend.security.FafToken
 import com.faforever.userservice.backend.security.FafTokenService
-import com.faforever.userservice.backend.security.FafTokenType
 import com.faforever.userservice.backend.steam.SteamService
 import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
@@ -30,7 +30,6 @@ class RecoveryService(
 
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(RecoveryService::class.java)
-        private const val KEY_USER_ID = "id"
     }
 
     fun requestPasswordResetViaEmail(usernameOrEmail: String) {
@@ -42,9 +41,8 @@ class RecoveryService(
             LOG.info("No user found for recovery with username/email: {}", usernameOrEmail)
         } else {
             val token = fafTokenService.createToken(
-                fafTokenType = FafTokenType.PASSWORD_RESET,
-                lifetime = Duration.ofSeconds(fafProperties.account().passwordReset().linkExpirationSeconds()),
-                attributes = mapOf(KEY_USER_ID to user.id.toString()),
+                FafToken.PasswordReset(userId = user.id!!),
+                Duration.ofSeconds(fafProperties.account().passwordReset().linkExpirationSeconds()),
             )
             val passwordResetUrl = fafProperties.account().passwordReset().passwordResetUrlFormat().format(token)
             emailService.sendPasswordResetMail(user.username, user.email, passwordResetUrl)
@@ -101,26 +99,19 @@ class RecoveryService(
     }
 
     private fun extractUserFromEmailRecoveryToken(emailRecoveryToken: String): ParsingResult {
-        val claims = try {
-            fafTokenService.getTokenClaims(FafTokenType.PASSWORD_RESET, emailRecoveryToken)
+        val passwordReset = try {
+            fafTokenService.getToken(FafToken.PasswordReset::class, emailRecoveryToken)
         } catch (exception: Exception) {
             metricHelper.incrementPasswordResetViaEmailFailedCounter()
             LOG.error("Unable to extract claims", exception)
             return ParsingResult.Invalid(InvalidRecoveryException("Unable to extract claims from token"))
         }
 
-        val userId = claims[KEY_USER_ID]
-
-        if (userId.isNullOrBlank()) {
-            metricHelper.incrementPasswordResetViaEmailFailedCounter()
-            return ParsingResult.Invalid(InvalidRecoveryException("No user id found in token claims"))
-        }
-
-        val user = userRepository.findById(userId.toInt())
+        val user = userRepository.findById(passwordReset.userId)
 
         if (user == null) {
             metricHelper.incrementPasswordResetViaEmailFailedCounter()
-            return ParsingResult.Invalid(InvalidRecoveryException("User with id $userId not found"))
+            return ParsingResult.Invalid(InvalidRecoveryException("User with id ${passwordReset.userId} not found"))
         }
 
         return ParsingResult.ExtractedUser(Type.EMAIL, user)

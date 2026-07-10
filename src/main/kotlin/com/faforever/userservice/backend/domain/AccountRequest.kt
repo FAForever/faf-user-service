@@ -1,5 +1,6 @@
 package com.faforever.userservice.backend.domain
 
+import com.faforever.userservice.backend.security.FafTokenType
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheEntityBase
 import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepositoryBase
 import io.quarkus.scheduler.Scheduled
@@ -23,7 +24,7 @@ data class AccountRequest(
     val userId: Int?,
     @Enumerated(EnumType.STRING)
     @Column(name = "request_type", nullable = false)
-    val type: AccountRequestType,
+    val type: FafTokenType,
     @Column(name = "expires_at", nullable = false)
     val expiresAt: OffsetDateTime,
     @JdbcTypeCode(SqlTypes.JSON)
@@ -31,13 +32,9 @@ data class AccountRequest(
     val data: Map<String, Any>,
 ) : PanacheEntityBase
 
-enum class AccountRequestType {
-    EMAIL_CHANGE,
-}
-
 @ApplicationScoped
 class AccountRequestRepository : PanacheRepositoryBase<AccountRequest, String> {
-    fun deleteByUserIdAndType(userId: Int, type: AccountRequestType) {
+    fun deleteByUserIdAndType(userId: Int, type: FafTokenType) {
         delete("userId = ?1 and type = ?2", userId, type)
     }
 

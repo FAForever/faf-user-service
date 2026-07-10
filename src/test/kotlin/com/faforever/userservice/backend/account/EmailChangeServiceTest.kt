@@ -3,8 +3,8 @@ package com.faforever.userservice.backend.account
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.email.EmailService
+import com.faforever.userservice.backend.security.FafToken
 import com.faforever.userservice.backend.security.FafTokenService
-import com.faforever.userservice.backend.security.FafTokenType
 import com.faforever.userservice.config.FafProperties
 import io.quarkus.test.InjectMock
 import io.quarkus.test.junit.QuarkusTest
@@ -46,9 +46,8 @@ class EmailChangeServiceTest {
         whenever(userRepository.findByEmail(newEmail)).thenReturn(null)
         whenever(
             fafTokenService.createToken(
-                eq(FafTokenType.EMAIL_CHANGE),
+                eq(FafToken.EmailChange(userId = user.id!!, newEmail = newEmail)),
                 any<TemporalAmount>(),
-                any(),
             ),
         ).thenReturn("token")
 
@@ -81,11 +80,8 @@ class EmailChangeServiceTest {
         val user = buildTestUser()
         val token = "token"
         val newEmail = "new@example.com"
-        whenever(fafTokenService.consumeToken(FafTokenType.EMAIL_CHANGE, token)).thenReturn(
-            mapOf(
-                "userId" to user.id.toString(),
-                "newEmail" to newEmail,
-            ),
+        whenever(fafTokenService.consumeToken(FafToken.EmailChange::class, token)).thenReturn(
+            FafToken.EmailChange(userId = user.id!!, newEmail = newEmail),
         )
         whenever(userRepository.findById(user.id!!)).thenReturn(user)
         whenever(emailService.validateEmailAddress(newEmail)).thenReturn(EmailService.ValidationResult.VALID)
@@ -115,7 +111,7 @@ class EmailChangeServiceTest {
     @Test
     fun confirmEmailChangeRejectsInvalidToken() {
         val token = "token"
-        whenever(fafTokenService.consumeToken(FafTokenType.EMAIL_CHANGE, token)).thenThrow(IllegalArgumentException())
+        whenever(fafTokenService.consumeToken(FafToken.EmailChange::class, token)).thenThrow(IllegalArgumentException())
 
         val result = emailChangeService.confirmEmailChange(token)
 

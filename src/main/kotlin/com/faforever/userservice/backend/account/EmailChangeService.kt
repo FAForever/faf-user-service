@@ -3,8 +3,8 @@ package com.faforever.userservice.backend.account
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.email.EmailService
+import com.faforever.userservice.backend.security.FafToken
 import com.faforever.userservice.backend.security.FafTokenService
-import com.faforever.userservice.backend.security.FafTokenType
 import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
@@ -37,8 +37,6 @@ class EmailChangeService(
 ) {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(EmailChangeService::class.java)
-        private const val KEY_USER_ID = "userId"
-        private const val KEY_NEW_EMAIL = "newEmail"
     }
 
     @Transactional
@@ -62,12 +60,8 @@ class EmailChangeService(
         val userId = user.id ?: error("Cannot change email for a user without an id")
         val lifetime = Duration.ofSeconds(fafProperties.account().emailChange().linkExpirationSeconds())
         val token = fafTokenService.createToken(
-            FafTokenType.EMAIL_CHANGE,
+            FafToken.EmailChange(userId = userId, newEmail = newEmail),
             lifetime,
-            mapOf(
-                KEY_USER_ID to userId.toString(),
-                KEY_NEW_EMAIL to newEmail,
-            ),
         )
 
         val confirmationUrl = fafProperties.account().emailChange().confirmationUrlFormat().format(token)
@@ -76,27 +70,21 @@ class EmailChangeService(
 
     @Transactional
     fun confirmEmailChange(token: String): EmailChangeConfirmationResult {
-        val claims = try {
-            fafTokenService.consumeToken(FafTokenType.EMAIL_CHANGE, token)
-        } catch (exception: Exception) {
+        val emailChange = try {
+            fafTokenService.consumeToken(FafToken.EmailChange::class, token)
+        } catch (exception: IllegalArgumentException) {
             LOG.info("Unable to extract email change token claims", exception)
             return EmailChangeConfirmationResult.InvalidToken
         }
 
-        val userId = claims[KEY_USER_ID]?.toIntOrNull()
-        val newEmail = claims[KEY_NEW_EMAIL]
-        if (userId == null || newEmail.isNullOrBlank()) {
-            return EmailChangeConfirmationResult.InvalidToken
-        }
-
-        val user = userRepository.findById(userId)
+        val user = userRepository.findById(emailChange.userId)
             ?: return EmailChangeConfirmationResult.UserNotFound
 
-        return when (emailAvailabilityForUser(newEmail, user)) {
+        return when (emailAvailabilityForUser(emailChange.newEmail, user)) {
             EmailAvailability.AVAILABLE -> {
                 val previousEmail = user.email
-                user.email = newEmail
-                emailService.sendEmailChangedNotificationMail(user.username, previousEmail, newEmail)
+                user.email = emailChange.newEmail
+                emailService.sendEmailChangedNotificationMail(user.username, previousEmail, emailChange.newEmail)
                 EmailChangeConfirmationResult.Confirmed
             }
             EmailAvailability.UNCHANGED -> EmailChangeConfirmationResult.Confirmed
