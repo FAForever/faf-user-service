@@ -3,10 +3,12 @@ package com.faforever.userservice.backend.steam
 import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.config.FafProperties
+import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.core.UriBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -16,6 +18,7 @@ import java.net.http.HttpResponse.BodyHandlers
 class SteamService(
     private val fafProperties: FafProperties,
     private val userRepository: UserRepository,
+    private val objectMapper: ObjectMapper,
 ) {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(SteamService::class.java)
@@ -88,4 +91,36 @@ class SteamService(
     }
 
     fun findUserBySteamId(steamId: String): User? = userRepository.findBySteamId(steamId)
+
+    fun ownsForgedAlliance(steamId: String): Boolean {
+        LOG.debug("Checking if {} owns FA.", steamId)
+        val steam = fafProperties.steam()
+        val url = steam.getOwnedGamesUrlFormat().format(
+            steam.apiKey(),
+            steamId,
+            steam.forgedAllianceAppId(),
+        )
+        return try {
+            val response = HttpClient.newHttpClient().send(
+                HttpRequest.newBuilder(URI.create(url)).GET().build(),
+                BodyHandlers.ofString(),
+            )
+            val body = response.body()
+            // missing/zero if the steam account is private or if FA is not owned
+            val gameCount = objectMapper.readTree(body).path("response").path("game_count").asInt(0)
+            if (gameCount <= 0) {
+                // logging on failure
+                LOG.warn(
+                    "Steam couldn't confirm ownership for {} (HTTP {}). Response body: {}",
+                    steamId,
+                    response.statusCode(),
+                    body,
+                )
+            }
+            gameCount > 0
+        } catch (e: Exception) {
+            LOG.warn("Failed to verify Steam game ownership for steamId {}", steamId, e)
+            false
+        }
+    }
 }

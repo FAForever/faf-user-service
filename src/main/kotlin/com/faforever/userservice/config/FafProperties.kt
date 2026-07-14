@@ -193,5 +193,20 @@ interface FafProperties {
 
         @NotBlank
         fun realm(): String
+
+        @NotBlank
+        fun apiKey(): String
+
+        @WithDefault("9420")
+        fun forgedAllianceAppId(): String
+
+        @WithDefault(
+            "https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/" +
+                "?key=%s&steamid=%s&format=json&appids_filter[0]=%s",
+        )
+        fun getOwnedGamesUrlFormat(): String
+
+        @NotBlank
+        fun linkToSteamRedirectUrlFormat(): String
     }
 }

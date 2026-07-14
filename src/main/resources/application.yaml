@@ -60,6 +60,8 @@ faf:
     token-ttl: ${IRC_TOKEN_TTL:300}
   steam:
     realm: ${faf.self-url}
+    api-key: ${STEAM_API_KEY:banana}
+    link-to-steam-redirect-url-format: ${faf.self-url}/ucp/linking/confirm?token=%s
 
 mailjet:
   api-key: ${MAILJET_API_KEY}

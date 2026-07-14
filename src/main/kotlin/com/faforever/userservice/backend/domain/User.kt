@@ -5,6 +5,8 @@ import io.quarkus.hibernate.orm.panache.kotlin.PanacheRepositoryBase
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -31,14 +33,24 @@ data class User(
         "User(id=$id, username='$username')"
 }
 
+enum class LinkedServiceType {
+    STEAM,
+    GOG,
+}
+
 @Entity(name = "service_links")
 data class AccountLink(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: String,
     @Column(name = "user_id")
-    val userId: Int?,
-    val ownership: Boolean,
+    var userId: Int? = null,
+    @Enumerated(EnumType.STRING)
+    var type: LinkedServiceType? = null,
+    @Column(name = "service_id")
+    var serviceId: String? = null,
+    @Column(name = "public")
+    var isPublic: Boolean = false,
+    var ownership: Boolean = false,
 ) : PanacheEntityBase {
 
     override fun toString(): String =
@@ -134,6 +146,12 @@ class UserRepository : PanacheRepositoryBase<User, Int> {
 class AccountLinkRepository : PanacheRepositoryBase<AccountLink, String> {
     fun hasOwnershipLink(userId: Int): Boolean =
         count("userId = ?1 and ownership", userId) > 0
+
+    fun findByServiceIdAndType(serviceId: String, type: LinkedServiceType): AccountLink? =
+        find("serviceId = ?1 and type = ?2", serviceId, type).firstResult()
+
+    fun findByUserIdAndType(userId: Int, type: LinkedServiceType): AccountLink? =
+        find("userId = ?1 and type = ?2", userId, type).firstResult()
 }
 
 @ApplicationScoped
