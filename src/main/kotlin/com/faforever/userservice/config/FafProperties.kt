@@ -41,6 +41,8 @@ interface FafProperties {
 
     fun steam(): Steam
 
+    fun gog(): Gog
+
     interface CloudflareHmacConfig {
         @NotBlank
         fun secret(): String
@@ -208,5 +210,19 @@ interface FafProperties {
 
         @NotBlank
         fun linkToSteamRedirectUrlFormat(): String
+    }
+
+    interface Gog {
+        @NotBlank
+        fun profileUrlFormat(): String
+
+        @NotBlank
+        fun gamesListUrlFormat(): String
+
+        @NotBlank
+        fun tokenFormat(): String
+
+        @NotBlank
+        fun forgedAllianceProductId(): String
     }
 }

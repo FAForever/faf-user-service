@@ -62,6 +62,11 @@ faf:
     realm: ${faf.self-url}
     api-key: ${STEAM_API_KEY:banana}
     link-to-steam-redirect-url-format: ${faf.self-url}/ucp/linking/confirm?token=%s
+  gog:
+    profile-url-format: https://www.gog.com/u/%s
+    games-list-url-format: https://www.gog.com/u/%s/games/stats?sort=recent_playtime&order=desc&page=%d
+    token-format: "{{FAF:%s}}"
+    forged-alliance-product-id: "1444785261"
 
 mailjet:
   api-key: ${MAILJET_API_KEY}
