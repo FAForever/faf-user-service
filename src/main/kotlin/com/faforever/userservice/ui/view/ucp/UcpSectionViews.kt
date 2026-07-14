@@ -4,10 +4,6 @@ import com.faforever.userservice.ui.layout.UcpLayout
 import com.vaadin.flow.router.Route
 import jakarta.annotation.security.PermitAll
 
-@Route(value = "/ucp/password", layout = UcpLayout::class)
-@PermitAll
-class UcpChangePasswordView : UcpPlaceholderView("ucp.nav.changePassword")
-
 @Route(value = "/ucp/linking", layout = UcpLayout::class)
 @PermitAll
 class UcpAccountLinkingView : UcpPlaceholderView("ucp.nav.accountLinking")

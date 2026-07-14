@@ -29,6 +29,9 @@ faf:
       mail-template-path: ${EMAIL_CHANGE_MAIL_TEMPLATE_PATH:/config/mail/email-change-confirmation.html}
       notification-subject: ${EMAIL_CHANGE_NOTIFICATION_SUBJECT:Your FAF email address was changed}
       notification-mail-template-path: ${EMAIL_CHANGE_NOTIFICATION_MAIL_TEMPLATE_PATH:/config/mail/email-change-notification.html}
+    password-change:
+      notification-subject: ${PASSWORD_CHANGE_NOTIFICATION_SUBJECT:FAF password changed}
+      notification-mail-template-path: ${PASSWORD_CHANGE_NOTIFICATION_MAIL_TEMPLATE_PATH:/config/mail/password-change-notification.html}
     username:
       minimum-days-between-username-change: ${MIN_DAYS_BETWEEN_NAME_CHANGE:30}
       username-reservation-time-in-months: ${NAME_RESERVATION_MONTHS:6}
@@ -129,6 +132,8 @@ quarkus:
       email-change:
         mail-template-path: ${EMAIL_CHANGE_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-email-change-confirmation.html}
         notification-mail-template-path: ${EMAIL_CHANGE_NOTIFICATION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-email-change-notification.html}
+      password-change:
+        notification-mail-template-path: ${PASSWORD_CHANGE_NOTIFICATION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-password-change-notification.html}
     altcha:
       enabled: true
       hmac-key: dev-hmac-key-not-for-production

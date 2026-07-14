@@ -95,6 +95,8 @@ interface FafProperties {
 
         fun emailChange(): EmailChange
 
+        fun passwordChange(): PasswordChange
+
         fun username(): Username
 
         interface Registration {
@@ -162,6 +164,14 @@ interface FafProperties {
             @NotBlank
             fun mailTemplatePath(): String
 
+            @NotBlank
+            fun notificationSubject(): String
+
+            @NotBlank
+            fun notificationMailTemplatePath(): String
+        }
+
+        interface PasswordChange {
             @NotBlank
             fun notificationSubject(): String
 

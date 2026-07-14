@@ -119,6 +119,7 @@ class RecoveryService(
 
     fun resetPassword(type: Type, userId: Int, newPassword: String) {
         loginService.resetPassword(userId, newPassword)
+        LOG.info("Password for user id {} has been reset", userId)
 
         when (type) {
             Type.EMAIL -> metricHelper.incrementPasswordResetViaEmailDoneCounter()
