@@ -19,10 +19,10 @@ class DeviceLoginView(
         add(ProgressBar().apply { isIndeterminate = true })
     }
 
-    override fun beforeEnter(event: BeforeEnterEvent?) {
-        val params = event?.location?.queryParameters?.parameters
-        val challenge = params?.get("device_challenge")?.firstOrNull()
-        val userCode = params?.get("user_code")?.firstOrNull()
+    override fun beforeEnter(event: BeforeEnterEvent) {
+        val params = event.location.queryParameters.parameters
+        val challenge = params["device_challenge"]?.firstOrNull()
+        val userCode = params["user_code"]?.firstOrNull()
 
         if (challenge.isNullOrBlank() || userCode.isNullOrBlank()) {
             throw NoChallengeException()

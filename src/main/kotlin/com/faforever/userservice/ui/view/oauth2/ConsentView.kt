@@ -74,13 +74,13 @@ class ConsentView(
         ui.ifPresent { it.page.setLocation(redirectTo.uri) }
     }
 
-    override fun beforeEnter(event: BeforeEnterEvent?) {
+    override fun beforeEnter(event: BeforeEnterEvent) {
         val possibleChallenge =
             event
-                ?.location
-                ?.queryParameters
-                ?.parameters
-                ?.get("consent_challenge")
+                .location
+                .queryParameters
+                .parameters
+                .get("consent_challenge")
                 ?.get(0)
         if (possibleChallenge != null) {
             challenge = possibleChallenge

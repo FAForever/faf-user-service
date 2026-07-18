@@ -223,9 +223,9 @@ class LoginView(
         }
     }
 
-    override fun beforeEnter(event: BeforeEnterEvent?) {
-        val params = event?.location?.queryParameters?.parameters
-        val possibleChallenge = params?.get("login_challenge")?.firstOrNull()
+    override fun beforeEnter(event: BeforeEnterEvent) {
+        val params = event.location.queryParameters.parameters
+        val possibleChallenge = params["login_challenge"]?.firstOrNull()
             ?: throw NoChallengeException()
 
         challenge = possibleChallenge
