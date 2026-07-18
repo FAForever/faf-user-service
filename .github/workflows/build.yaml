@@ -15,9 +15,9 @@ jobs:
         id: get_tag_or_branch
         run: |
           if echo $GITHUB_REF | grep -Eq '^refs\/tags\/.*'; then
-              echo ::set-output name=TAG_OR_BRANCH::${GITHUB_REF#refs/tags/}
+              echo "TAG_OR_BRANCH=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
           else
-              echo ::set-output name=TAG_OR_BRANCH::${GITHUB_REF#refs/heads/}
+              echo "TAG_OR_BRANCH=${GITHUB_REF#refs/heads/}" >> "$GITHUB_OUTPUT"
           fi
       - name: Gradle test
         if: github.ref != 'refs/heads/master' && ! startsWith(github.ref, 'refs/tags')
