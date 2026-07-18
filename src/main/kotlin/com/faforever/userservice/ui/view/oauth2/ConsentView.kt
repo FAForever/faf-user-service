@@ -15,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
+import com.vaadin.flow.server.VaadinSession
 import sh.ory.hydra.model.OAuth2ConsentRequest
 
 @Route("/oauth2/consent", layout = CardLayout::class)
@@ -84,6 +85,10 @@ class ConsentView(
         if (possibleChallenge != null) {
             challenge = possibleChallenge
             setDetailsFromRequest(hydraService.getConsentRequest(challenge))
+            // Defensive cleanup: if Hydra skipped the login screen (existing SSO session),
+            // LoginView never consumed the device user code. Clear it so it can't leak into
+            // a later, unrelated login in this browser session.
+            VaadinSession.getCurrent()?.setAttribute(DeviceLoginView.DEVICE_USER_CODE_SESSION_ATTR, null)
         } else {
             throw NoChallengeException()
         }
