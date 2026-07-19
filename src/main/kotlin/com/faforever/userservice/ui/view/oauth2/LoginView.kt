@@ -28,6 +28,7 @@ import com.vaadin.flow.component.textfield.PasswordField
 import com.vaadin.flow.component.textfield.TextField
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
+import com.vaadin.flow.router.Location
 import com.vaadin.flow.router.QueryParameters
 import com.vaadin.flow.router.Route
 import com.vaadin.flow.server.VaadinSession
@@ -231,26 +232,31 @@ class LoginView(
         challenge = possibleChallenge
         hydraService.getLoginRequest(challenge)
 
-        val userCodeInUrl = params["user_code"]?.firstOrNull()
-        if (!userCodeInUrl.isNullOrBlank()) {
-            showDeviceInfo(userCodeInUrl)
-            return
-        }
+        // Device flow: the user code is either already in the URL (e.g. on a page refresh) or was
+        // carried across the Hydra round-trip in the session on the first entry.
+        val userCode = params["user_code"]?.firstOrNull()?.takeUnless { it.isBlank() }
+            ?: consumeDeviceUserCodeFromSession()?.also { code ->
+                // Reflect the code in the URL so it survives a page refresh, updating the browser
+                // location in place rather than triggering another navigation round-trip.
+                event.ui.page.history.replaceState(
+                    null,
+                    Location(
+                        "oauth2/login",
+                        QueryParameters.simple(mapOf("login_challenge" to challenge, "user_code" to code)),
+                    ),
+                )
+            }
 
-        // Device flow: the user code was carried across the Hydra round-trip in the session.
-        // Promote it into the URL (via forwardTo, which updates the browser location) so it
-        // survives page refreshes, then render it from the URL on the following entry.
-        val session = VaadinSession.getCurrent()
-        val userCodeFromSession = session?.getAttribute(DeviceLoginView.DEVICE_USER_CODE_SESSION_ATTR) as? String
-        session?.setAttribute(DeviceLoginView.DEVICE_USER_CODE_SESSION_ATTR, null)
-        if (!userCodeFromSession.isNullOrBlank()) {
-            event.forwardTo(
-                LoginView::class.java,
-                QueryParameters.simple(
-                    mapOf("login_challenge" to challenge, "user_code" to userCodeFromSession),
-                ),
-            )
+        if (userCode != null) {
+            showDeviceInfo(userCode)
         }
+    }
+
+    private fun consumeDeviceUserCodeFromSession(): String? {
+        val session = VaadinSession.getCurrent() ?: return null
+        val userCode = session.getAttribute(DeviceLoginView.DEVICE_USER_CODE_SESSION_ATTR) as? String
+        session.setAttribute(DeviceLoginView.DEVICE_USER_CODE_SESSION_ATTR, null)
+        return userCode?.takeUnless { it.isBlank() }
     }
 
     private fun showDeviceInfo(userCode: String) {
