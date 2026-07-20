@@ -18,6 +18,7 @@ import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
 import com.vaadin.flow.component.dialog.Dialog
 import com.vaadin.flow.component.html.Anchor
+import com.vaadin.flow.component.html.Div
 import com.vaadin.flow.component.html.IFrame
 import com.vaadin.flow.component.html.Span
 import com.vaadin.flow.component.orderedlayout.FlexComponent
@@ -27,7 +28,10 @@ import com.vaadin.flow.component.textfield.PasswordField
 import com.vaadin.flow.component.textfield.TextField
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
+import com.vaadin.flow.router.Location
+import com.vaadin.flow.router.QueryParameters
 import com.vaadin.flow.router.Route
+import com.vaadin.flow.server.VaadinSession
 import java.net.URI
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -57,6 +61,12 @@ class LoginView(
     }
     private val header = LogoHeader().apply {
         setTitle(getTranslation("login.welcomeBack"))
+    }
+
+    private val deviceInfo = Div().apply {
+        isVisible = false
+        setWidthFull()
+        addClassName("device-info")
     }
 
     private val errorMessage = Span()
@@ -99,6 +109,7 @@ class LoginView(
 
     init {
         add(header)
+        add(deviceInfo)
         add(errorLayout)
         add(loginLayout)
         add(footer)
@@ -213,13 +224,46 @@ class LoginView(
         }
     }
 
-    override fun beforeEnter(event: BeforeEnterEvent?) {
-        val possibleChallenge = event?.location?.queryParameters?.parameters?.get("login_challenge")?.get(0)
-        if (possibleChallenge != null) {
-            challenge = possibleChallenge
-            hydraService.getLoginRequest(challenge)
-        } else {
-            throw NoChallengeException()
+    override fun beforeEnter(event: BeforeEnterEvent) {
+        val params = event.location.queryParameters.parameters
+        val possibleChallenge = params["login_challenge"]?.firstOrNull()
+            ?: throw NoChallengeException()
+
+        challenge = possibleChallenge
+        hydraService.getLoginRequest(challenge)
+
+        // Device flow: the user code is either already in the URL (e.g. on a page refresh) or was
+        // carried across the Hydra round-trip in the session on the first entry.
+        val userCode = params["user_code"]?.firstOrNull()?.takeUnless { it.isBlank() }
+            ?: consumeDeviceUserCodeFromSession()?.also { code ->
+                // Reflect the code in the URL so it survives a page refresh, updating the browser
+                // location in place rather than triggering another navigation round-trip.
+                event.ui.page.history.replaceState(
+                    null,
+                    Location(
+                        "oauth2/login",
+                        QueryParameters.simple(mapOf("login_challenge" to challenge, "user_code" to code)),
+                    ),
+                )
+            }
+
+        if (userCode != null) {
+            showDeviceInfo(userCode)
         }
+    }
+
+    private fun consumeDeviceUserCodeFromSession(): String? {
+        val session = VaadinSession.getCurrent() ?: return null
+        val userCode = session.getAttribute(DeviceLoginView.DEVICE_USER_CODE_SESSION_ATTR) as? String
+        session.setAttribute(DeviceLoginView.DEVICE_USER_CODE_SESSION_ATTR, null)
+        return userCode?.takeUnless { it.isBlank() }
+    }
+
+    private fun showDeviceInfo(userCode: String) {
+        val label = Span(getTranslation("device-login.confirm") + " ")
+        val code = Span(userCode).apply { style.set("font-weight", "bold") }
+        deviceInfo.removeAll()
+        deviceInfo.add(label, code)
+        deviceInfo.isVisible = true
     }
 }

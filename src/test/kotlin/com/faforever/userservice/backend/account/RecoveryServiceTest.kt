@@ -6,8 +6,8 @@ import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.email.EmailService
 import com.faforever.userservice.backend.hydra.HydraService
 import com.faforever.userservice.backend.metrics.MetricHelper
+import com.faforever.userservice.backend.security.FafToken
 import com.faforever.userservice.backend.security.FafTokenService
-import com.faforever.userservice.backend.security.FafTokenType.PASSWORD_RESET
 import com.faforever.userservice.backend.steam.SteamService
 import com.faforever.userservice.config.FafProperties
 import io.quarkus.test.InjectMock
@@ -29,7 +29,6 @@ import java.time.Duration
 
 @QuarkusTest
 class RecoveryServiceTest {
-
     @Inject
     private lateinit var recoveryService: RecoveryService
 
@@ -103,9 +102,8 @@ class RecoveryServiceTest {
         verify(metricHelper).incrementPasswordResetViaEmailSentCounter()
 
         verify(fafTokenService).createToken(
-            PASSWORD_RESET,
+            FafToken.PasswordReset(userId = testUser.id!!),
             Duration.ofSeconds(fafProperties.account().passwordReset().linkExpirationSeconds()),
-            attributes = mapOf("id" to testUser.id.toString()),
         )
         verify(emailService).sendPasswordResetMail(eq(testUser.username), eq(testUser.email), any())
     }
@@ -163,26 +161,8 @@ class RecoveryServiceTest {
         // Prepare
         val parameters = mapOf("token" to listOf("tokenValue"))
 
-        whenever(fafTokenService.getTokenClaims(PASSWORD_RESET, "tokenValue"))
+        whenever(fafTokenService.getToken(FafToken.PasswordReset::class, "tokenValue"))
             .thenThrow(RuntimeException("invalid token claim"))
-
-        // Execute
-        val result = recoveryService.parseRecoveryHttpRequest(parameters)
-
-        // Verify
-        assertThat(result, instanceOf(ParsingResult.Invalid::class.java))
-        verify(metricHelper).incrementPasswordResetViaEmailFailedCounter()
-    }
-
-    @Test
-    fun testParseRecoveryHttpRequestWithMissingUserIdInToken() {
-        // Prepare
-        val parameters = mapOf("token" to listOf("tokenValue"))
-
-        whenever(steamService.parseSteamIdFromRequestParameters(parameters))
-            .thenReturn(SteamService.ParsingResult.NoSteamIdPresent)
-        whenever(fafTokenService.getTokenClaims(PASSWORD_RESET, "tokenValue"))
-            .thenReturn(emptyMap())
 
         // Execute
         val result = recoveryService.parseRecoveryHttpRequest(parameters)
@@ -197,8 +177,8 @@ class RecoveryServiceTest {
         // Prepare
         val parameters = mapOf("token" to listOf("tokenValue"))
 
-        whenever(fafTokenService.getTokenClaims(PASSWORD_RESET, "tokenValue"))
-            .thenReturn(mapOf("id" to "12345"))
+        whenever(fafTokenService.getToken(FafToken.PasswordReset::class, "tokenValue"))
+            .thenReturn(FafToken.PasswordReset(userId = 12345))
         whenever(userRepository.findById(12345)).thenReturn(null)
 
         // Execute
@@ -218,8 +198,8 @@ class RecoveryServiceTest {
 
         whenever(steamService.parseSteamIdFromRequestParameters(parameters))
             .thenReturn(null)
-        whenever(fafTokenService.getTokenClaims(PASSWORD_RESET, "tokenValue"))
-            .thenReturn(mapOf("id" to "12345"))
+        whenever(fafTokenService.getToken(FafToken.PasswordReset::class, "tokenValue"))
+            .thenReturn(FafToken.PasswordReset(userId = 12345))
         whenever(userRepository.findById(12345)).thenReturn(testUser)
 
         // Execute

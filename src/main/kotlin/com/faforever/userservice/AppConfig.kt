@@ -8,5 +8,4 @@ import jakarta.enterprise.context.ApplicationScoped
 @StyleSheet("styles.css")
 @StyleSheet(Lumo.STYLESHEET)
 @ApplicationScoped
-class AppConfig : AppShellConfigurator {
-}
+class AppConfig : AppShellConfigurator

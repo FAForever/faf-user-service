@@ -40,6 +40,16 @@ input {
     font-weight: normal;
 }
 
+.device-info {
+    box-sizing: border-box;
+    background-color: white;
+    border: 1px solid var(--lumo-primary-color);
+    border-radius: var(--lumo-border-radius-m);
+    color: var(--lumo-header-text-color);
+    padding: 0.5rem;
+    margin: 1rem 0;
+}
+
 header {
     background-color: #111111;
     color: white;
@@ -89,7 +99,8 @@ header {
 #form-header {
     display: flex;
     flex-flow: row nowrap;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 1.5rem;
     margin-bottom: 1rem;
 }
 

@@ -7,8 +7,8 @@ import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.email.EmailService
 import com.faforever.userservice.backend.metrics.MetricHelper
+import com.faforever.userservice.backend.security.FafToken
 import com.faforever.userservice.backend.security.FafTokenService
-import com.faforever.userservice.backend.security.FafTokenType
 import com.faforever.userservice.backend.security.PasswordEncoder
 import com.faforever.userservice.backend.tos.TosService
 import com.faforever.userservice.config.FafProperties
@@ -48,8 +48,6 @@ class RegistrationService(
 ) {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(RegistrationService::class.java)
-        private const val KEY_USERNAME = "username"
-        private const val KEY_EMAIL = "email"
     }
 
     fun register(username: String, email: String) {
@@ -73,12 +71,8 @@ class RegistrationService(
 
     private fun sendActivationEmail(username: String, email: String) {
         val token = fafTokenService.createToken(
-            FafTokenType.REGISTRATION,
+            FafToken.Registration(username = username, email = email),
             Duration.ofSeconds(fafProperties.account().registration().linkExpirationSeconds()),
-            mapOf(
-                KEY_USERNAME to username,
-                KEY_EMAIL to email,
-            ),
         )
         val activationUrl = fafProperties.account().registration().activationUrlFormat().format(token)
         emailService.sendActivationMail(username, email, activationUrl)
@@ -111,18 +105,18 @@ class RegistrationService(
     }
 
     fun validateRegistrationToken(registrationToken: String): RegisteredUser {
-        val claims = try {
-            fafTokenService.getTokenClaims(FafTokenType.REGISTRATION, registrationToken)
+        val registration = try {
+            fafTokenService.getToken(FafToken.Registration::class, registrationToken)
         } catch (exception: Exception) {
             LOG.error("Unable to extract claims", exception)
             throw InvalidRegistrationException()
         }
 
-        if (claims[KEY_USERNAME].isNullOrBlank() || claims[KEY_EMAIL].isNullOrBlank()) {
+        if (registration.username.isBlank() || registration.email.isBlank()) {
             throw InvalidRegistrationException()
         }
 
-        return RegisteredUser(claims[KEY_USERNAME]!!, claims[KEY_EMAIL]!!)
+        return RegisteredUser(registration.username, registration.email)
     }
 
     @Transactional
