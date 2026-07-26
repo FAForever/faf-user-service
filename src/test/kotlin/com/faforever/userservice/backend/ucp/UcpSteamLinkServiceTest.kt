@@ -88,6 +88,21 @@ class UcpSteamLinkServiceTest {
     }
 
     @Test
+    fun linkToSteam_failsWhenAlreadyLinked() {
+        whenever(fafTokenService.getToken(FafToken.LinkToSteam::class, "valid-token"))
+            .thenReturn(FafToken.LinkToSteam(userId = 1))
+        whenever(accountLinkRepository.findByUserIdAndType(1, LinkedServiceType.STEAM)).thenReturn(
+            AccountLink(id = "existing", userId = 1, type = LinkedServiceType.STEAM, serviceId = "7654321"),
+        )
+
+        val result = ucpSteamLinkService.linkToSteam(mapOf("token" to listOf("valid-token")))
+
+        assertThat(result, equalTo(UcpSteamLinkService.LinkResult.Failed))
+        verify(accountLinkRepository, never()).persist(any<AccountLink>())
+        verify(metricHelper).incrementUserSteamLinkFailedCounter()
+    }
+
+    @Test
     fun linkToSteam_failsOnInvalidToken() {
         whenever(fafTokenService.getToken(FafToken.LinkToSteam::class, "bad-token"))
             .thenThrow(IllegalArgumentException("expired"))

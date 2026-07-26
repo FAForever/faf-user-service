@@ -84,6 +84,10 @@ quarkus:
   rest-client:
     faf-ory-hydra:
       url: ${HYDRA_BASE_ADMIN_URL:http://localhost:4445}
+    steam-api:
+      url: https://api.steampowered.com
+      connect-timeout: 10000
+      read-timeout: 10000
   mailer:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:0}

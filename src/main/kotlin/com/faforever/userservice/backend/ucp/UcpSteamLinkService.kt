@@ -55,7 +55,6 @@ class UcpSteamLinkService(
         return steamService.buildLoginUrl(redirectUrl)
     }
 
-    @Transactional
     fun linkToSteam(parameters: Map<String, List<String>>): LinkResult {
         val token = parameters["token"]?.firstOrNull()
         val userId = token?.let {
@@ -89,6 +88,11 @@ class UcpSteamLinkService(
             return LinkResult.NoGameOwnership
         }
 
+        return finalizeLink(userId, steamId)
+    }
+
+    @Transactional
+    fun finalizeLink(userId: Int, steamId: String): LinkResult {
         // any existing link for this Steam ID is someone elses
         if (accountLinkRepository.findByServiceIdAndType(steamId, LinkedServiceType.STEAM) != null) {
             metricHelper.incrementUserSteamLinkFailedCounter()
