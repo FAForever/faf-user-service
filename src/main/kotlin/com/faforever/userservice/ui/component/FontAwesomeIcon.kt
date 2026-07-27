@@ -8,12 +8,17 @@ import com.vaadin.flow.component.html.AnchorTargetValue
 import com.vaadin.flow.component.html.Span
 import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
+import java.util.stream.Stream
 
 @Tag("i")
 open class FontAwesomeIcon : Component(), HasComponents {
 
     fun setAriaLabel(label: String) {
         style.set("aria-label", label)
+    }
+
+    override fun getChildren(): Stream<Component?>? {
+        return super<Component>.getChildren()
     }
 }
 
