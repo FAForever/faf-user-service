@@ -4,6 +4,7 @@ import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.backend.email.EmailService
 import com.faforever.userservice.backend.security.PasswordEncoder
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -18,12 +19,12 @@ class PasswordChangeService(
     private val userRepository: UserRepository,
     private val emailService: EmailService,
     private val passwordEncoder: PasswordEncoder,
-    private val loginService: LoginService,
 ) {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(PasswordChangeService::class.java)
     }
 
+    @Transactional
     fun changePassword(userId: Int, currentPassword: String, newPassword: String): PasswordChangeResult {
         val user = requireNotNull(userRepository.findById(userId)) {
             "Expected authenticated UCP user with id '$userId' to exist"
@@ -37,10 +38,12 @@ class PasswordChangeService(
             return PasswordChangeResult.PasswordUnchanged
         }
 
-        loginService.resetPassword(userId, newPassword)
-        LOG.info("Password for user id {} has been changed from UCP", userId)
+        user.password = passwordEncoder.encode(newPassword)
+        userRepository.persist(user)
 
         emailService.sendPasswordChangedNotificationMail(user.username, user.email)
+        LOG.info("Password for user id {} has been changed from UCP", userId)
+
         return PasswordChangeResult.Success
     }
 }
