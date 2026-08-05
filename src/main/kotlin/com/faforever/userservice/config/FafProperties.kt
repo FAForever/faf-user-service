@@ -208,12 +208,6 @@ interface FafProperties {
 
     interface Gog {
         @NotBlank
-        fun profileUrlFormat(): String
-
-        @NotBlank
-        fun gamesListUrlFormat(): String
-
-        @NotBlank
         fun tokenFormat(): String
 
         @NotBlank

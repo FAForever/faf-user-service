@@ -88,7 +88,7 @@ class UcpGogLinkService(
 
         accountLinkRepository.persist(
             AccountLink(
-                id = generateLinkId(),
+                id = UUID.randomUUID().toString(),
                 userId = userId,
                 type = LinkedServiceType.GOG,
                 serviceId = trimmedUsername,
@@ -99,13 +99,5 @@ class UcpGogLinkService(
 
         LOG.info("Linked user {} to GOG", userId)
         return LinkResult.Success
-    }
-
-    private fun generateLinkId(): String {
-        var id = UUID.randomUUID().toString()
-        while (accountLinkRepository.findById(id) != null) {
-            id = UUID.randomUUID().toString()
-        }
-        return id
     }
 }
