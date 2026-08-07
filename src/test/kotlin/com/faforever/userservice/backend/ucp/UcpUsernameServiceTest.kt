@@ -49,7 +49,7 @@ class UcpUsernameServiceTest {
         private const val USER_ID = 123
         private const val USERNAME = "TestUser"
         private const val NEW_USERNAME = "NewName"
-        private const val LONG_USERNAME = "TooLongUsernameX"
+        private const val LONG_USERNAME = "TooLongUsernameXX"
     }
 
     @Test
