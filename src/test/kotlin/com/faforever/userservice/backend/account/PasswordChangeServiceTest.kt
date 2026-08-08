@@ -10,6 +10,7 @@ import jakarta.inject.Inject
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -29,20 +30,19 @@ class PasswordChangeServiceTest {
     @InjectMock
     private lateinit var passwordEncoder: PasswordEncoder
 
-    @InjectMock
-    private lateinit var loginService: LoginService
-
     @Test
     fun changePasswordSuccess() {
         val user = buildTestUser()
         whenever(userRepository.findById(user.id!!)).thenReturn(user)
         whenever(passwordEncoder.matches("currentPassword", user.password)).thenReturn(true)
         whenever(passwordEncoder.matches("newPassword123", user.password)).thenReturn(false)
+        whenever(passwordEncoder.encode("newPassword123")).thenReturn("encodedNewPassword")
 
         val result = passwordChangeService.changePassword(user.id!!, "currentPassword", "newPassword123")
 
         assertThat(result, equalTo(PasswordChangeResult.Success))
-        verify(loginService).resetPassword(user.id!!, "newPassword123")
+        assertThat(user.password, equalTo("encodedNewPassword"))
+        verify(userRepository).persist(user)
         verify(emailService).sendPasswordChangedNotificationMail(user.username, user.email)
     }
 
@@ -55,7 +55,6 @@ class PasswordChangeServiceTest {
         val result = passwordChangeService.changePassword(user.id!!, "wrongPassword", "newPassword123")
 
         assertThat(result, equalTo(PasswordChangeResult.InvalidCurrentPassword))
-        verifyNoInteractions(loginService)
         verifyNoInteractions(emailService)
     }
 
@@ -68,7 +67,16 @@ class PasswordChangeServiceTest {
         val result = passwordChangeService.changePassword(user.id!!, "currentPassword", "currentPassword")
 
         assertThat(result, equalTo(PasswordChangeResult.PasswordUnchanged))
-        verifyNoInteractions(loginService)
+        verifyNoInteractions(emailService)
+    }
+
+    @Test
+    fun changePasswordThrowsWhenUserNotFound() {
+        whenever(userRepository.findById(999)).thenReturn(null)
+
+        assertThrows<IllegalArgumentException> {
+            passwordChangeService.changePassword(999, "currentPassword", "newPassword123")
+        }
         verifyNoInteractions(emailService)
     }
 
@@ -76,10 +84,11 @@ class PasswordChangeServiceTest {
         id: Int = 1,
         username: String = "testUser",
         email: String = "test@example.com",
+        password: String = "currentPassword",
     ) = User(
         id = id,
         username = username,
-        password = "password",
+        password = password,
         email = email,
         ip = null,
         acceptedTos = null,
