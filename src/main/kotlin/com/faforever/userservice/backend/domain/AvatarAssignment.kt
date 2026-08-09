@@ -11,6 +11,7 @@ import jakarta.persistence.Id
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 @Entity(name = "avatars_list")
 data class Avatar(
@@ -40,7 +41,9 @@ data class AvatarAssignment(
     val idUser: Int,
     @Column(name = "idavatar")
     val idAvatar: Int,
-    val selected: Boolean,
+    var selected: Boolean,
+    @Column(name = "expires_at")
+    val expiresAt: OffsetDateTime? = null,
 ) : PanacheEntityBase
 
 @ApplicationScoped
@@ -49,5 +52,34 @@ class AvatarRepository : PanacheRepositoryBase<Avatar, Int>
 @ApplicationScoped
 class AvatarAssignmentRepository : PanacheRepositoryBase<AvatarAssignment, Int> {
     fun findSelectedAvatarByUserId(userId: Int): AvatarAssignment? =
-        find("idUser = ?1 and selected = true", userId).firstResult()
+        find(
+            "idUser = ?1 and selected = true and (expiresAt is null or expiresAt > ?2)",
+            userId,
+            OffsetDateTime.now(),
+        ).firstResult()
+
+    fun findAllByUserId(userId: Int): List<AvatarAssignment> =
+        find(
+            "idUser = ?1 and (expiresAt is null or expiresAt > ?2) order by id",
+            userId,
+            OffsetDateTime.now(),
+        ).list()
+
+    fun findAssignmentByUserIdAndAvatarId(userId: Int, avatarId: Int): AvatarAssignment? =
+        find(
+            "idUser = ?1 and idAvatar = ?2 and (expiresAt is null or expiresAt > ?3)",
+            userId,
+            avatarId,
+            OffsetDateTime.now(),
+        ).firstResult()
+
+    fun findExpiredSelectedAvatarByUserId(userId: Int): AvatarAssignment? =
+        find(
+            "idUser = ?1 and selected = true and expiresAt is not null and expiresAt <= ?2",
+            userId,
+            OffsetDateTime.now(),
+        ).firstResult()
+
+    fun findAllByUserIdIncludingExpired(userId: Int): List<AvatarAssignment> =
+        find("idUser = ?1", userId).list()
 }
