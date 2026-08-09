@@ -4,6 +4,7 @@ import com.faforever.userservice.backend.ucp.AccountData
 import com.faforever.userservice.backend.ucp.UcpAccountDataService
 import com.faforever.userservice.backend.ucp.UcpSessionService
 import com.faforever.userservice.ui.layout.UcpLayout
+import com.vaadin.flow.component.Component
 import com.vaadin.flow.component.formlayout.FormLayout
 import com.vaadin.flow.component.html.H2
 import com.vaadin.flow.component.html.Image
@@ -24,6 +25,11 @@ class UcpAccountDataView(
 ) : VerticalLayout(),
     BeforeEnterObserver {
 
+    companion object {
+        private const val AVATAR_WIDTH = "120px"
+        private const val AVATAR_HEIGHT = "60px"
+    }
+
     private var accountRow: HorizontalLayout? = null
 
     init {
@@ -38,6 +44,21 @@ class UcpAccountDataView(
         addAccountInfo(accountData)
     }
 
+    private fun buildAvatarContent(url: String?, tooltip: String?): Component =
+        if (url != null) {
+            Image(url, tooltip ?: "").apply {
+                setWidth(AVATAR_WIDTH)
+                setHeight(AVATAR_HEIGHT)
+                style.set("object-fit", "contain")
+            }
+        } else {
+            Span(getTranslation("ucp.accountData.noAvatar")).apply {
+                style.set("font-size", "12px")
+                style.set("color", "var(--lumo-secondary-text-color)")
+                style.set("text-align", "center")
+            }
+        }
+
     private fun addAccountInfo(accountData: AccountData) {
         val formLayout = FormLayout().apply {
             setAutoResponsive(true)
@@ -46,19 +67,27 @@ class UcpAccountDataView(
             addFormRow().addFormItem(Span(accountData.email), getTranslation("ucp.accountData.email"))
         }
 
-        val row = HorizontalLayout(formLayout).apply {
-            setWidthFull()
+        val avatarContent = buildAvatarContent(
+            accountData.avatarUrl,
+            accountData.avatarTooltip,
+        )
+
+        val avatarContainer = VerticalLayout().apply {
+            isPadding = false
+            isSpacing = false
             alignItems = FlexComponent.Alignment.CENTER
+            width = AVATAR_WIDTH
+            height = AVATAR_HEIGHT
+            style.set("border-radius", "4px")
+            if (accountData.avatarUrl == null) {
+                style.set("border", "2px dashed var(--lumo-contrast-20pct)")
+            }
+            add(avatarContent)
         }
 
-        if (accountData.avatarUrl != null) {
-            val avatarAltText = accountData.avatarTooltip?.takeIf { it.isNotBlank() } ?: accountData.username
-            val avatar = Image(accountData.avatarUrl, avatarAltText).apply {
-                setWidth("100px")
-                setHeight("100px")
-                style.set("object-fit", "contain")
-            }
-            row.add(avatar)
+        val row = HorizontalLayout(formLayout, avatarContainer).apply {
+            setWidthFull()
+            alignItems = FlexComponent.Alignment.CENTER
         }
 
         accountRow?.let { remove(it) }
