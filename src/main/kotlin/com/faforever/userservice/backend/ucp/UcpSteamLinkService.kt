@@ -27,11 +27,6 @@ class UcpSteamLinkService(
         private val LOG: Logger = LoggerFactory.getLogger(UcpSteamLinkService::class.java)
     }
 
-    sealed interface SteamLinkStatus {
-        data class Linked(val steamId: String) : SteamLinkStatus
-        data object NotLinked : SteamLinkStatus
-    }
-
     sealed interface LinkResult {
         data object Success : LinkResult
         data object Failed : LinkResult
@@ -39,11 +34,8 @@ class UcpSteamLinkService(
         data object AlreadyLinkedToOther : LinkResult
     }
 
-    fun getStatus(userId: Int): SteamLinkStatus {
-        val link = accountLinkRepository.findByUserIdAndType(userId, LinkedServiceType.STEAM)
-        val steamId = link?.serviceId
-        return if (steamId.isNullOrBlank()) SteamLinkStatus.NotLinked else SteamLinkStatus.Linked(steamId)
-    }
+    fun getStatus(userId: Int): LinkStatus =
+        LinkStatus.of(accountLinkRepository.findByUserIdAndType(userId, LinkedServiceType.STEAM)?.serviceId)
 
     fun buildSteamLinkUrl(userId: Int): String {
         val token = fafTokenService.createToken(

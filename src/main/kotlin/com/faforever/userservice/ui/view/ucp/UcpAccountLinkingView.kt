@@ -1,5 +1,6 @@
 package com.faforever.userservice.ui.view.ucp
 
+import com.faforever.userservice.backend.ucp.LinkStatus
 import com.faforever.userservice.backend.ucp.UcpGogLinkService
 import com.faforever.userservice.backend.ucp.UcpSessionService
 import com.faforever.userservice.backend.ucp.UcpSteamLinkService
@@ -76,9 +77,9 @@ class UcpAccountLinkingView(
 
     private fun buildSteamCard(userId: Int): Component {
         val content = when (val status = ucpSteamLinkService.getStatus(userId)) {
-            is UcpSteamLinkService.SteamLinkStatus.Linked ->
-                connectedContent(getTranslation("ucp.accountLinking.steam.id", status.steamId))
-            UcpSteamLinkService.SteamLinkStatus.NotLinked ->
+            is LinkStatus.Linked ->
+                connectedContent(getTranslation("ucp.accountLinking.steam.id", status.identifier))
+            LinkStatus.NotLinked ->
                 steamConnectContent(userId)
         }
         return serviceCard(getTranslation("ucp.accountLinking.steam.title"), content)
@@ -86,9 +87,9 @@ class UcpAccountLinkingView(
 
     private fun buildGogCard(userId: Int): Component {
         val content = when (val status = ucpGogLinkService.getStatus(userId)) {
-            is UcpGogLinkService.GogLinkStatus.Linked ->
-                connectedContent(getTranslation("ucp.accountLinking.gog.id", status.gogUsername))
-            UcpGogLinkService.GogLinkStatus.NotLinked -> gogConnectContent(userId)
+            is LinkStatus.Linked ->
+                connectedContent(getTranslation("ucp.accountLinking.gog.id", status.identifier))
+            LinkStatus.NotLinked -> gogConnectContent(userId)
         }
         return serviceCard(getTranslation("ucp.accountLinking.gog.title"), content)
     }

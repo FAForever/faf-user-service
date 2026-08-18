@@ -24,11 +24,6 @@ class UcpGogLinkService(
         private val GOG_USERNAME_PATTERN = Regex("[a-zA-Z0-9._-]+")
     }
 
-    sealed interface GogLinkStatus {
-        data class Linked(val gogUsername: String) : GogLinkStatus
-        data object NotLinked : GogLinkStatus
-    }
-
     sealed interface LinkResult {
         data object Success : LinkResult
         data object Failed : LinkResult
@@ -38,11 +33,8 @@ class UcpGogLinkService(
         data object AlreadyLinkedToOther : LinkResult
     }
 
-    fun getStatus(userId: Int): GogLinkStatus {
-        val link = accountLinkRepository.findByUserIdAndType(userId, LinkedServiceType.GOG)
-        val gogUsername = link?.serviceId
-        return if (gogUsername.isNullOrBlank()) GogLinkStatus.NotLinked else GogLinkStatus.Linked(gogUsername)
-    }
+    fun getStatus(userId: Int): LinkStatus =
+        LinkStatus.of(accountLinkRepository.findByUserIdAndType(userId, LinkedServiceType.GOG)?.serviceId)
 
     fun buildGogToken(userId: Int): String =
         fafProperties.gog().tokenFormat().format(userId)
