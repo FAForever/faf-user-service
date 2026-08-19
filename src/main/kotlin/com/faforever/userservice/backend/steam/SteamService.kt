@@ -5,6 +5,7 @@ import com.faforever.userservice.backend.domain.UserRepository
 import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.core.UriBuilder
+import org.eclipse.microprofile.rest.client.inject.RestClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.http.HttpClient
@@ -16,6 +17,7 @@ import java.net.http.HttpResponse.BodyHandlers
 class SteamService(
     private val fafProperties: FafProperties,
     private val userRepository: UserRepository,
+    @RestClient private val steamClient: SteamClient,
 ) {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(SteamService::class.java)
@@ -88,4 +90,25 @@ class SteamService(
     }
 
     fun findUserBySteamId(steamId: String): User? = userRepository.findBySteamId(steamId)
+
+    fun ownsForgedAlliance(steamId: String): Boolean {
+        LOG.debug("Checking if {} owns FA.", steamId)
+        val steam = fafProperties.steam()
+        return try {
+            // missing/zero if the steam account is private or if FA is not owned
+            val gameCount = steamClient.getOwnedGames(
+                steam.apiKey(),
+                steamId,
+                steam.forgedAllianceAppId(),
+                "json",
+            ).response?.gameCount ?: 0
+            if (gameCount <= 0) {
+                LOG.warn("Steam couldn't confirm ownership for {} (game_count={})", steamId, gameCount)
+            }
+            gameCount > 0
+        } catch (e: Exception) {
+            LOG.warn("Failed to verify Steam game ownership for steamId {}: {}", steamId, e.javaClass.simpleName)
+            false
+        }
+    }
 }

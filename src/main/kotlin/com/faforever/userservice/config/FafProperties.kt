@@ -41,6 +41,8 @@ interface FafProperties {
 
     fun steam(): Steam
 
+    fun gog(): Gog
+
     interface CloudflareHmacConfig {
         @NotBlank
         fun secret(): String
@@ -94,6 +96,8 @@ interface FafProperties {
         fun passwordReset(): PasswordReset
 
         fun emailChange(): EmailChange
+
+        fun passwordChange(): PasswordChange
 
         fun username(): Username
 
@@ -169,6 +173,14 @@ interface FafProperties {
             fun notificationMailTemplatePath(): String
         }
 
+        interface PasswordChange {
+            @NotBlank
+            fun notificationSubject(): String
+
+            @NotBlank
+            fun notificationMailTemplatePath(): String
+        }
+
         interface Username {
             @WithDefault("30")
             fun minimumDaysBetweenUsernameChange(): Int
@@ -183,5 +195,22 @@ interface FafProperties {
 
         @NotBlank
         fun realm(): String
+
+        @NotBlank
+        fun apiKey(): String
+
+        @WithDefault("9420")
+        fun forgedAllianceAppId(): String
+
+        @NotBlank
+        fun linkToSteamRedirectUrlFormat(): String
+    }
+
+    interface Gog {
+        @NotBlank
+        fun tokenFormat(): String
+
+        @NotBlank
+        fun forgedAllianceProductId(): String
     }
 }
