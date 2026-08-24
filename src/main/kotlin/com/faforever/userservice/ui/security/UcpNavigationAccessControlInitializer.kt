@@ -34,6 +34,10 @@ private class UcpNavigationAccessControl : NavigationAccessControl() {
             super.beforeEnter(event)
         }
     }
+
+    override fun getPrincipal(request: VaadinRequest?): Principal? =
+        VaadinSession.getCurrent()?.getAttribute(UcpSessionService.SESSION_ATTR) as? UcpUser
+            ?: super.getPrincipal(request)
 }
 
 private object UcpPrincipalRequestInterceptor : VaadinRequestInterceptor {
