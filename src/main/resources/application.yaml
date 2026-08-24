@@ -29,6 +29,13 @@ faf:
       mail-template-path: ${EMAIL_CHANGE_MAIL_TEMPLATE_PATH:/config/mail/email-change-confirmation.html}
       notification-subject: ${EMAIL_CHANGE_NOTIFICATION_SUBJECT:Your FAF email address was changed}
       notification-mail-template-path: ${EMAIL_CHANGE_NOTIFICATION_MAIL_TEMPLATE_PATH:/config/mail/email-change-notification.html}
+    account-deletion:
+      external-consumers-enabled: ${ACCOUNT_DELETION_EXTERNAL_CONSUMERS_ENABLED:true}
+      confirmation-url-format: ${faf.self-url}/ucp/delete-account/confirm?token=%s
+      subject: ${ACCOUNT_DELETION_SUBJECT:Confirm your FAF account deletion}
+      mail-template-path: ${ACCOUNT_DELETION_MAIL_TEMPLATE_PATH:/config/mail/account-deletion-confirmation.html}
+      notification-subject: ${ACCOUNT_DELETION_NOTIFICATION_SUBJECT:Your FAF account was deleted}
+      notification-mail-template-path: ${ACCOUNT_DELETION_NOTIFICATION_MAIL_TEMPLATE_PATH:/config/mail/account-deletion-notification.html}
     password-change:
       notification-subject: ${PASSWORD_CHANGE_NOTIFICATION_SUBJECT:FAF password changed}
       notification-mail-template-path: ${PASSWORD_CHANGE_NOTIFICATION_MAIL_TEMPLATE_PATH:/config/mail/password-change-notification.html}
@@ -62,6 +69,14 @@ faf:
     realm: ${faf.self-url}
     api-key: ${STEAM_API_KEY:banana}
     link-to-steam-redirect-url-format: ${faf.self-url}/ucp/linking/confirm?token=%s
+  nodebb:
+    read-api-url: ${NODEBB_READ_API_URL:https://forum.faforever.com/api}
+    write-api-url: ${NODEBB_WRITE_API_URL:https://forum.faforever.com/api/v3}
+    admin-token: ${NODEBB_ADMIN_TOKEN}
+  wikijs:
+    graphql-url: ${WIKIJS_GRAPHQL_URL:https://wiki.faforever.com/graphql}
+    token: ${WIKIJS_TOKEN}
+    replace-user-id: ${WIKIJS_REPLACE_USER_ID:42}
   gog:
     token-format: "{{FAF:%s}}"
     forged-alliance-product-id: "1444785261"
@@ -75,6 +90,11 @@ security:
   failed-login-attempt-threshold: ${FAILED_LOGIN_ATTEMPT_THRESHOLD:10}
   failed-login-throttling-minutes: ${FAILED_LOGIN_THROTTLING_MINUTES:5}
   failed-login-days-to-check: ${FAILED_LOGIN_DAYS_TO_CHECK:1}
+
+rabbitmq-host: ${RABBITMQ_HOST:localhost}
+rabbitmq-port: ${RABBITMQ_PORT:5672}
+rabbitmq-username: ${RABBITMQ_USERNAME:guest}
+rabbitmq-password: ${RABBITMQ_PASSWORD:guest}
 
 quarkus:
   log:
@@ -147,15 +167,86 @@ quarkus:
         notification-mail-template-path: ${EMAIL_CHANGE_NOTIFICATION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-email-change-notification.html}
       password-change:
         notification-mail-template-path: ${PASSWORD_CHANGE_NOTIFICATION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-password-change-notification.html}
+      account-deletion:
+        external-consumers-enabled: false
+        mail-template-path: ${ACCOUNT_DELETION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-account-deletion-confirmation.html}
+        notification-mail-template-path: ${ACCOUNT_DELETION_NOTIFICATION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-account-deletion-notification.html}
     altcha:
       enabled: true
       hmac-key: dev-hmac-key-not-for-production
+    nodebb:
+      read-api-url: ${NODEBB_READ_API_URL:http://localhost:9999/nodebb-read-disabled}
+      write-api-url: ${NODEBB_WRITE_API_URL:http://localhost:9999/nodebb-write-disabled}
+      admin-token: ${NODEBB_ADMIN_TOKEN:dev-nodebb-token-do-not-use}
+    wikijs:
+      graphql-url: ${WIKIJS_GRAPHQL_URL:http://localhost:9999/wikijs-disabled}
+      token: ${WIKIJS_TOKEN:dev-wikijs-token-do-not-use}
+      replace-user-id: ${WIKIJS_REPLACE_USER_ID:42}
     irc:
       fixed:
         users:
           test-user: banana
 
 mp:
+  messaging:
+    outgoing:
+      account-deletion-events:
+        connector: smallrye-rabbitmq
+        exchange:
+          name: lobby
+          type: topic
+          durable: true
+        default-routing-key: request.user.delete
+
+    incoming:
+      account-deletion-nodebb:
+        connector: smallrye-rabbitmq
+        queue:
+          name: account-deletion-nodebb
+          durable: true
+        exchange:
+          name: lobby
+          type: topic
+          durable: true
+        routing-keys: request.user.delete
+        auto-bind-dlq: true
+        dead-letter-exchange: DLX
+        dead-letter-exchange-type: direct
+        dlx:
+          declare: true
+
+      account-deletion-wikijs:
+        connector: smallrye-rabbitmq
+        queue:
+          name: account-deletion-wikijs
+          durable: true
+        exchange:
+          name: lobby
+          type: topic
+          durable: true
+        routing-keys: request.user.delete
+        auto-bind-dlq: true
+        dead-letter-exchange: DLX
+        dead-letter-exchange-type: direct
+        dlx:
+          declare: true
+
+      account-deletion-email-notification:
+        connector: smallrye-rabbitmq
+        queue:
+          name: account-deletion-email-notification
+          durable: true
+        exchange:
+          name: lobby
+          type: topic
+          durable: true
+        routing-keys: request.user.delete
+        auto-bind-dlq: true
+        dead-letter-exchange: DLX
+        dead-letter-exchange-type: direct
+        dlx:
+          declare: true
+
   jwt:
     verify:
       issuer: ${HYDRA_TOKEN_ISSUER:http://faf-ory-hydra:4444}

@@ -1,0 +1,47 @@
+<mjml>
+  <mj-head>
+    <mj-include path="_style.mjml"/>
+    <mj-preview>
+      Your FAF account has been deleted
+    </mj-preview>
+  </mj-head>
+
+  <mj-body background-color="#fafafa">
+    <mj-include path="_header.mjml"/>
+
+    <mj-section background-color="#ffffff">
+      <mj-column>
+        <mj-text>
+          <h1>Your account has been deleted</h1>
+
+          <p>Dear {{username}},</p>
+
+          <p>
+            Your FAForever account deletion request has now been completed.
+          </p>
+
+          <p>
+            Your personal account data has been deleted or anonymized in accordance
+            with our account deletion process.
+          </p>
+
+          <p>Thanks,</p>
+          <p>-- The FAForever team</p>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="gray" padding="0">
+      <mj-column>
+        <mj-text color="#d3d3d3">
+          <p>
+            If you did not request this account deletion, please contact the FAForever team immediately.
+          </p>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-include path="_footer.mjml"/>
+
+  </mj-body>
+</mjml>

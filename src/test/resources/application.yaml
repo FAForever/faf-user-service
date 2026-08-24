@@ -8,13 +8,24 @@ faf:
     email-change:
       mail-template-path: src/test/resources/mail/email-change-confirmation.html
       notification-mail-template-path: src/test/resources/mail/email-change-notification.html
+    account-deletion:
+      external-consumers-enabled: false
+      mail-template-path: ${ACCOUNT_DELETION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-account-deletion-confirmation.html}
+      notification-mail-template-path: ${ACCOUNT_DELETION_NOTIFICATION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-account-deletion-notification.html}
     password-change:
       notification-mail-template-path: src/test/resources/mail/password-change-notification.html
     registration:
       activation-mail-template-path: src/test/resources/mail/account-activation.html
       welcome-mail-template-path: src/test/resources/mail/welcome-to-faf.html
       email-taken-mail-template-path: src/test/resources/mail/email-taken.html
-
+  nodebb:
+    read-api-url: http://localhost:9999/nodebb-read-disabled
+    write-api-url: http://localhost:9999/nodebb-write-disabled
+    admin-token: test-nodebb-token-do-not-use
+  wikijs:
+    graphql-url: http://localhost:9999/wikijs-disabled
+    token: test-wikijs-token-do-not-use
+    replace-user-id: 42
   irc:
     fixed:
       users:
