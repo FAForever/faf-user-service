@@ -23,9 +23,17 @@ data class User(
     var username: String,
     var password: String,
     var email: String,
-    val ip: String?,
+    var ip: String?,
     @Column(name = "accepted_tos")
     var acceptedTos: Short?,
+    @Column(name = "steamid")
+    var steamId: Long? = null,
+    @Column(name = "gog_id")
+    var gogId: String? = null,
+    @Column(name = "user_agent")
+    var userAgent: String? = null,
+    @Column(name = "last_login")
+    var lastLogin: LocalDateTime? = null,
 ) : PanacheEntityBase {
 
     override fun toString(): String =
@@ -140,6 +148,26 @@ class UserRepository : PanacheRepositoryBase<User, Int> {
             User::class.java,
         ).setParameter("steamId", steamId)
             .resultList.firstOrNull() as User?
+
+    fun anonymizeUser(userId: Int) {
+        val anonymizedValue = "anonymized_$userId"
+        update(
+            """
+            password = ?1,
+            username = ?2,
+            email = ?2,
+            ip = null,
+            steamId = null,
+            gogId = null,
+            userAgent = null,
+            lastLogin = null
+            where id = ?3
+            """.trimIndent(),
+            "anonymized",
+            anonymizedValue,
+            userId,
+        )
+    }
 }
 
 @ApplicationScoped
@@ -152,6 +180,13 @@ class AccountLinkRepository : PanacheRepositoryBase<AccountLink, String> {
 
     fun findByUserIdAndType(userId: Int, type: LinkedServiceType): AccountLink? =
         find("userId = ?1 and type = ?2", userId, type).firstResult()
+
+    // Ownership links must never be deleted (schema: dangling link prevents id reuse),
+    // only user_id is cleared. Non-ownership links are removed.
+    fun anonymizeForDeletedUser(userId: Int) {
+        update("userId = null where userId = ?1 and ownership = true", userId)
+        delete("userId = ?1 and (ownership = false or ownership is null)", userId)
+    }
 }
 
 @ApplicationScoped

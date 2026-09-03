@@ -27,6 +27,11 @@ sealed interface FafToken {
     data class LinkToSteam(val userId: Int) : FafToken {
         override fun toType() = FafTokenType.LINK_TO_STEAM
     }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class AccountDeletion(val userId: Int) : FafToken {
+        override fun toType() = FafTokenType.ACCOUNT_DELETION
+    }
 }
 
 enum class FafTokenType {
@@ -34,6 +39,7 @@ enum class FafTokenType {
     PASSWORD_RESET,
     EMAIL_CHANGE,
     LINK_TO_STEAM,
+    ACCOUNT_DELETION,
     ;
 
     companion object {
@@ -42,6 +48,7 @@ enum class FafTokenType {
             FafToken.PasswordReset::class -> PASSWORD_RESET
             FafToken.EmailChange::class -> EMAIL_CHANGE
             FafToken.LinkToSteam::class -> LINK_TO_STEAM
+            FafToken.AccountDeletion::class -> ACCOUNT_DELETION
             else -> throw IllegalArgumentException("Unknown token type ${type.simpleName}")
         }
     }

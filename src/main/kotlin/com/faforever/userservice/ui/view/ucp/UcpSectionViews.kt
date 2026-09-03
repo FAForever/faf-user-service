@@ -15,7 +15,3 @@ class UcpAvatarsView : UcpPlaceholderView("ucp.nav.avatars")
 @Route(value = "/ucp/ban-history", layout = UcpLayout::class)
 @PermitAll
 class UcpBanHistoryView : UcpPlaceholderView("ucp.nav.banHistory")
-
-@Route(value = "/ucp/delete-account", layout = UcpLayout::class)
-@PermitAll
-class UcpDeleteAccountView : UcpPlaceholderView("ucp.nav.deleteAccount")

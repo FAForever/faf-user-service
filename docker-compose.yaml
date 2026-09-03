@@ -34,6 +34,15 @@ services:
       faf-db-migrations:
         condition: service_completed_successfully
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
   hydra-db:
     image: postgres:16
     environment:

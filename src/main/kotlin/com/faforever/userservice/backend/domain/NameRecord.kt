@@ -44,4 +44,6 @@ class NameRecordRepository : PanacheRepositoryBase<NameRecord, Int> {
         changeTime,
         userId,
     ) > 0
+
+    fun deleteByUserId(userId: Int): Long = delete("userId", userId)
 }
