@@ -7,7 +7,6 @@ import com.faforever.userservice.backend.security.FafToken
 import com.faforever.userservice.backend.security.FafTokenService
 import com.faforever.userservice.config.FafProperties
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.transaction.TransactionSynchronizationRegistry
 import jakarta.transaction.Transactional
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,7 +21,6 @@ sealed interface AccountDeletionConfirmationResult {
     data object Confirmed : AccountDeletionConfirmationResult
     data object InvalidToken : AccountDeletionConfirmationResult
     data object UserNotFound : AccountDeletionConfirmationResult
-    data object AnonymizationFailed : AccountDeletionConfirmationResult
 }
 
 @ApplicationScoped
@@ -33,7 +31,6 @@ class AccountDeletionService(
     private val fafProperties: FafProperties,
     private val accountAnonymizationService: AccountAnonymizationService,
     private val accountDeletionEventPublisher: AccountDeletionEventPublisher,
-    private val transactionSynchronizationRegistry: TransactionSynchronizationRegistry,
 ) {
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(AccountDeletionService::class.java)
@@ -83,28 +80,23 @@ class AccountDeletionService(
 
         val user = userRepository.findById(userId)
             ?: return AccountDeletionConfirmationResult.UserNotFound.also {
-                transactionSynchronizationRegistry.setRollbackOnly()
                 LOG.warn(
                     "Account deletion confirmation failed because user id {} was not found",
                     userId,
                 )
             }
 
-        try {
-            LOG.info("Confirming account deletion for user id {}", user.id)
+        LOG.info("Confirming account deletion for user id {}", user.id)
 
-            val event = accountAnonymizationService.anonymizeUser(userId)
-            LOG.info(
-                "Local account anonymization completed for user id {}; publishing account deletion event",
-                userId,
-            )
+        val event = accountAnonymizationService.anonymizeUser(userId)
 
-            accountDeletionEventPublisher.publish(event)
-            return AccountDeletionConfirmationResult.Confirmed
-        } catch (exception: Exception) {
-            transactionSynchronizationRegistry.setRollbackOnly()
-            LOG.error("Failed to anonymize account for user id {}", userId, exception)
-            return AccountDeletionConfirmationResult.AnonymizationFailed
-        }
+        LOG.info(
+            "Local account anonymization completed for user id {}; publishing account deletion event",
+            userId,
+        )
+
+        accountDeletionEventPublisher.publish(event)
+
+        return AccountDeletionConfirmationResult.Confirmed
     }
 }

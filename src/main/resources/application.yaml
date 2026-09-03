@@ -70,11 +70,8 @@ faf:
     api-key: ${STEAM_API_KEY:banana}
     link-to-steam-redirect-url-format: ${faf.self-url}/ucp/linking/confirm?token=%s
   nodebb:
-    read-api-url: ${NODEBB_READ_API_URL:https://forum.faforever.com/api}
-    write-api-url: ${NODEBB_WRITE_API_URL:https://forum.faforever.com/api/v3}
     admin-token: ${NODEBB_ADMIN_TOKEN}
   wikijs:
-    graphql-url: ${WIKIJS_GRAPHQL_URL:https://wiki.faforever.com/graphql}
     token: ${WIKIJS_TOKEN}
     replace-user-id: ${WIKIJS_REPLACE_USER_ID:42}
   gog:
@@ -110,6 +107,12 @@ quarkus:
       url: https://www.gog.com
       connect-timeout: 10000
       read-timeout: 10000
+    nodebb-read-api:
+      url: ${NODEBB_READ_API_URL:https://forum.faforever.com/api}
+    nodebb-write-api:
+      url: ${NODEBB_WRITE_API_URL:https://forum.faforever.com/api/v3}
+    wikijs-api:
+      url: ${WIKIJS_GRAPHQL_URL:https://wiki.faforever.com/graphql}
   mailer:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:0}
@@ -153,6 +156,13 @@ quarkus:
       category:
         "com.faforever":
           level: DEBUG
+    rest-client:
+      nodebb-read-api:
+        url: ${NODEBB_READ_API_URL:http://localhost:9999/nodebb-read-disabled}
+      nodebb-write-api:
+        url: ${NODEBB_WRITE_API_URL:http://localhost:9999/nodebb-write-disabled}
+      wikijs-api:
+        url: ${WIKIJS_GRAPHQL_URL:http://localhost:9999/wikijs-disabled}
   faf:
     environment: ${FAF_ENVIRONMENT:dev}
     account:
@@ -175,11 +185,8 @@ quarkus:
       enabled: true
       hmac-key: dev-hmac-key-not-for-production
     nodebb:
-      read-api-url: ${NODEBB_READ_API_URL:http://localhost:9999/nodebb-read-disabled}
-      write-api-url: ${NODEBB_WRITE_API_URL:http://localhost:9999/nodebb-write-disabled}
       admin-token: ${NODEBB_ADMIN_TOKEN:dev-nodebb-token-do-not-use}
     wikijs:
-      graphql-url: ${WIKIJS_GRAPHQL_URL:http://localhost:9999/wikijs-disabled}
       token: ${WIKIJS_TOKEN:dev-wikijs-token-do-not-use}
       replace-user-id: ${WIKIJS_REPLACE_USER_ID:42}
     irc:

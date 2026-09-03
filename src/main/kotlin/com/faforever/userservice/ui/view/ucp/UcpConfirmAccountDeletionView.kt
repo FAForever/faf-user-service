@@ -21,6 +21,8 @@ import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
 import com.vaadin.flow.server.auth.AnonymousAllowed
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 @Route("/ucp/delete-account/confirm", layout = CardLayout::class)
 @AnonymousAllowed
@@ -28,6 +30,10 @@ class UcpConfirmAccountDeletionView(
     private val accountDeletionService: AccountDeletionService,
     private val ucpSessionService: UcpSessionService,
 ) : CompactVerticalLayout(), BeforeEnterObserver {
+
+    companion object {
+        private val LOG: Logger = LoggerFactory.getLogger(UcpConfirmAccountDeletionView::class.java)
+    }
 
     private val title = H2(getTranslation("ucp.deleteAccount.confirm.title"))
     private val message = Paragraph()
@@ -115,7 +121,13 @@ class UcpConfirmAccountDeletionView(
         val result = if (token.isNullOrBlank()) {
             AccountDeletionConfirmationResult.InvalidToken
         } else {
-            accountDeletionService.confirmAccountDeletion(token)
+            try {
+                accountDeletionService.confirmAccountDeletion(token)
+            } catch (exception: RuntimeException) {
+                LOG.error("Account deletion confirmation failed unexpectedly", exception)
+                showInvalidResult(getTranslation("ucp.deleteAccount.confirm.failed"))
+                return
+            }
         }
 
         message.text = when (result) {
@@ -124,9 +136,12 @@ class UcpConfirmAccountDeletionView(
                 ui.ifPresent { it.page.setLocation("/ucp/login") }
                 return
             }
-            AccountDeletionConfirmationResult.InvalidToken -> getTranslation("ucp.deleteAccount.confirm.invalidToken")
-            AccountDeletionConfirmationResult.UserNotFound -> getTranslation("ucp.deleteAccount.confirm.userNotFound")
-            AccountDeletionConfirmationResult.AnonymizationFailed -> getTranslation("ucp.deleteAccount.confirm.failed")
+
+            AccountDeletionConfirmationResult.InvalidToken ->
+                getTranslation("ucp.deleteAccount.confirm.invalidToken")
+
+            AccountDeletionConfirmationResult.UserNotFound ->
+                getTranslation("ucp.deleteAccount.confirm.userNotFound")
         }
 
         finalWarning.isVisible = false

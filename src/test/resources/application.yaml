@@ -19,11 +19,8 @@ faf:
       welcome-mail-template-path: src/test/resources/mail/welcome-to-faf.html
       email-taken-mail-template-path: src/test/resources/mail/email-taken.html
   nodebb:
-    read-api-url: http://localhost:9999/nodebb-read-disabled
-    write-api-url: http://localhost:9999/nodebb-write-disabled
     admin-token: test-nodebb-token-do-not-use
   wikijs:
-    graphql-url: http://localhost:9999/wikijs-disabled
     token: test-wikijs-token-do-not-use
     replace-user-id: 42
   irc:
@@ -31,3 +28,12 @@ faf:
       users:
         test-user: banana
     token-ttl: 1
+
+quarkus:
+  rest-client:
+    nodebb-read-api:
+      url: http://localhost:9999/nodebb-read-disabled
+    nodebb-write-api:
+      url: http://localhost:9999/nodebb-write-disabled
+    wikijs-api:
+      url: http://localhost:9999/wikijs-disabled

@@ -47,19 +47,10 @@ interface FafProperties {
 
     interface Nodebb {
         @NotBlank
-        fun readApiUrl(): String
-
-        @NotBlank
-        fun writeApiUrl(): String
-
-        @NotBlank
         fun adminToken(): String
     }
 
     interface WikiJs {
-        @NotBlank
-        fun graphqlUrl(): String
-
         @NotBlank
         fun token(): String
 

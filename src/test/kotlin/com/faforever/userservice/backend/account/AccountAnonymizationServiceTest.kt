@@ -1,15 +1,21 @@
 package com.faforever.userservice.backend.account
 
-import jakarta.persistence.EntityManager
-import jakarta.persistence.Query
+import com.faforever.userservice.backend.domain.AccountLinkRepository
+import com.faforever.userservice.backend.domain.BanRepository
+import com.faforever.userservice.backend.domain.GamePlayerStatsRepository
+import com.faforever.userservice.backend.domain.LeaderboardRatingRepository
+import com.faforever.userservice.backend.domain.LoginLogRepository
+import com.faforever.userservice.backend.domain.NameRecordRepository
+import com.faforever.userservice.backend.domain.UniqueIdUserRepository
+import com.faforever.userservice.backend.domain.User
+import com.faforever.userservice.backend.domain.UserRepository
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.containsString
 import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.hasItem
-import org.hamcrest.Matchers.not
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 class AccountAnonymizationServiceTest {
@@ -20,19 +26,29 @@ class AccountAnonymizationServiceTest {
         private const val EMAIL = "test@example.com"
     }
 
-    private val entityManager: EntityManager = mock()
-    private val createdSql = mutableListOf<String>()
+    private val userRepository: UserRepository = mock()
+    private val banRepository: BanRepository = mock()
+    private val nameRecordRepository: NameRecordRepository = mock()
+    private val loginLogRepository: LoginLogRepository = mock()
+    private val accountLinkRepository: AccountLinkRepository = mock()
+    private val gamePlayerStatsRepository: GamePlayerStatsRepository = mock()
+    private val leaderboardRatingRepository: LeaderboardRatingRepository = mock()
+    private val uniqueIdUserRepository: UniqueIdUserRepository = mock()
 
     private val service = DatabaseAccountAnonymizationService(
-        entityManager = entityManager,
+        userRepository = userRepository,
+        banRepository = banRepository,
+        nameRecordRepository = nameRecordRepository,
+        loginLogRepository = loginLogRepository,
+        accountLinkRepository = accountLinkRepository,
+        gamePlayerStatsRepository = gamePlayerStatsRepository,
+        leaderboardRatingRepository = leaderboardRatingRepository,
+        uniqueIdUserRepository = uniqueIdUserRepository,
     )
 
     @Test
-    fun anonymizeUserWithGamesAnonymizesLoginAndKeepsLoginRow() {
-        setupNativeQueryMocks(
-            games = 5,
-            bans = 0,
-        )
+    fun anonymizeUserWithGamesKeepsRatingHistoryAndStillHandlesServiceLinks() {
+        mockExistingUser(games = 5, bans = 0)
 
         val event = service.anonymizeUser(USER_ID)
 
@@ -40,22 +56,21 @@ class AccountAnonymizationServiceTest {
         assertThat(event.username, equalTo(USERNAME))
         assertThat(event.email, equalTo(EMAIL))
 
-        assertThat(createdSql, hasItem(containsString("DELETE FROM login_log")))
-        assertThat(createdSql, hasItem(containsString("DELETE FROM name_history")))
-        assertThat(createdSql, hasItem(containsString("DELETE FROM unique_id_users")))
-        assertThat(createdSql, hasItem(containsString("UPDATE login")))
-        assertThat(createdSql, hasItem(containsString("UPDATE service_links")))
-        assertThat(createdSql, not(hasItem(containsString("DELETE FROM service_links"))))
-        assertThat(createdSql, not(hasItem(containsString("DELETE FROM leaderboard_rating"))))
-        assertThat(createdSql, not(hasItem(equalTo("DELETE FROM login WHERE id = :userId"))))
+        verify(gamePlayerStatsRepository).countByPlayerId(USER_ID)
+        verify(banRepository).countByPlayerId(USER_ID)
+        verify(loginLogRepository).deleteByUserId(USER_ID)
+        verify(nameRecordRepository).deleteByUserId(USER_ID)
+        verify(uniqueIdUserRepository).deleteByUserId(USER_ID)
+        verify(userRepository).anonymizeUser(USER_ID)
+        verify(accountLinkRepository).anonymizeForDeletedUser(USER_ID)
+
+        // rating history is only removed when the user has no games
+        verify(leaderboardRatingRepository, never()).deleteByLoginId(USER_ID)
     }
 
     @Test
-    fun anonymizeUserWithoutGamesDeletesRemovableDataAndKeepsAnonymizedLoginRow() {
-        setupNativeQueryMocks(
-            games = 0,
-            bans = 0,
-        )
+    fun anonymizeUserWithoutGamesDeletesRatingHistoryAndStillHandlesServiceLinks() {
+        mockExistingUser(games = 0, bans = 0)
 
         val event = service.anonymizeUser(USER_ID)
 
@@ -63,21 +78,19 @@ class AccountAnonymizationServiceTest {
         assertThat(event.username, equalTo(USERNAME))
         assertThat(event.email, equalTo(EMAIL))
 
-        assertThat(createdSql, hasItem(containsString("DELETE FROM login_log")))
-        assertThat(createdSql, hasItem(containsString("DELETE FROM name_history")))
-        assertThat(createdSql, hasItem(containsString("DELETE FROM unique_id_users")))
-        assertThat(createdSql, hasItem(containsString("UPDATE login")))
-        assertThat(createdSql, hasItem(containsString("DELETE FROM service_links")))
-        assertThat(createdSql, hasItem(containsString("DELETE FROM leaderboard_rating")))
-        assertThat(createdSql, not(hasItem(containsString("DELETE FROM login WHERE id = :userId"))))
+        verify(gamePlayerStatsRepository).countByPlayerId(USER_ID)
+        verify(banRepository).countByPlayerId(USER_ID)
+        verify(loginLogRepository).deleteByUserId(USER_ID)
+        verify(nameRecordRepository).deleteByUserId(USER_ID)
+        verify(uniqueIdUserRepository).deleteByUserId(USER_ID)
+        verify(userRepository).anonymizeUser(USER_ID)
+        verify(accountLinkRepository).anonymizeForDeletedUser(USER_ID)
+        verify(leaderboardRatingRepository).deleteByLoginId(USER_ID)
     }
 
     @Test
     fun anonymizeUserWithBansStillAnonymizesAccount() {
-        setupNativeQueryMocks(
-            games = 5,
-            bans = 2,
-        )
+        mockExistingUser(games = 5, bans = 2)
 
         val event = service.anonymizeUser(USER_ID)
 
@@ -85,75 +98,48 @@ class AccountAnonymizationServiceTest {
         assertThat(event.username, equalTo(USERNAME))
         assertThat(event.email, equalTo(EMAIL))
 
-        assertThat(createdSql, hasItem(containsString("UPDATE login")))
+        verify(gamePlayerStatsRepository).countByPlayerId(USER_ID)
+        verify(banRepository).countByPlayerId(USER_ID)
+        verify(loginLogRepository).deleteByUserId(USER_ID)
+        verify(nameRecordRepository).deleteByUserId(USER_ID)
+        verify(uniqueIdUserRepository).deleteByUserId(USER_ID)
+        verify(userRepository).anonymizeUser(USER_ID)
+        verify(accountLinkRepository).anonymizeForDeletedUser(USER_ID)
     }
 
     @Test
     fun anonymizeUserThrowsWhenUserDoesNotExist() {
-        setupNativeQueryMocksForMissingUser()
+        whenever(userRepository.findById(USER_ID)).thenReturn(null)
 
         try {
             service.anonymizeUser(USER_ID)
         } catch (exception: AccountAnonymizationUserNotFoundException) {
             assertThat(exception.message, containsString("user id $USER_ID"))
+
+            // nothing should be touched if the user was never found
+            verify(gamePlayerStatsRepository, never()).countByPlayerId(USER_ID)
+            verify(banRepository, never()).countByPlayerId(USER_ID)
+            verify(userRepository, never()).anonymizeUser(USER_ID)
+            verify(loginLogRepository, never()).deleteByUserId(USER_ID)
+            verify(accountLinkRepository, never()).anonymizeForDeletedUser(USER_ID)
             return
         }
 
         error("Expected AccountAnonymizationUserNotFoundException")
     }
 
-    private fun setupNativeQueryMocks(
-        games: Long,
-        bans: Long,
-    ) {
-        whenever(entityManager.createNativeQuery(any<String>())).thenAnswer { invocation ->
-            val sql = invocation.arguments[0] as String
-            createdSql.add(sql.trim())
+    private fun mockExistingUser(games: Long, bans: Long) {
+        val user = User(
+            id = USER_ID,
+            username = USERNAME,
+            password = "irrelevant-hash",
+            email = EMAIL,
+            ip = null,
+            acceptedTos = null,
+        )
 
-            when {
-                sql.contains("SELECT id, login, email") -> queryReturningList(
-                    listOf(arrayOf(USER_ID, USERNAME, EMAIL)),
-                )
-
-                sql.contains("FROM game_player_stats") -> queryReturningSingleResult(games)
-
-                sql.contains("FROM ban") -> queryReturningSingleResult(bans)
-
-                else -> updateQuery()
-            }
-        }
-    }
-
-    private fun setupNativeQueryMocksForMissingUser() {
-        whenever(entityManager.createNativeQuery(any<String>())).thenAnswer { invocation ->
-            val sql = invocation.arguments[0] as String
-            createdSql.add(sql.trim())
-
-            when {
-                sql.contains("SELECT id, login, email") -> queryReturningList(emptyList<Array<Any>>())
-                else -> updateQuery()
-            }
-        }
-    }
-
-    private fun queryReturningList(result: List<Array<Any>>): Query {
-        val query: Query = mock()
-        whenever(query.setParameter(any<String>(), any())).thenReturn(query)
-        whenever(query.resultList).thenReturn(result)
-        return query
-    }
-
-    private fun queryReturningSingleResult(result: Long): Query {
-        val query: Query = mock()
-        whenever(query.setParameter(any<String>(), any())).thenReturn(query)
-        whenever(query.singleResult).thenReturn(result)
-        return query
-    }
-
-    private fun updateQuery(): Query {
-        val query: Query = mock()
-        whenever(query.setParameter(any<String>(), any())).thenReturn(query)
-        whenever(query.executeUpdate()).thenReturn(1)
-        return query
+        whenever(userRepository.findById(USER_ID)).thenReturn(user)
+        whenever(gamePlayerStatsRepository.countByPlayerId(USER_ID)).thenReturn(games)
+        whenever(banRepository.countByPlayerId(USER_ID)).thenReturn(bans)
     }
 }

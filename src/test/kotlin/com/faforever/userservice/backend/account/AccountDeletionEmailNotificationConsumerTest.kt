@@ -2,8 +2,6 @@ package com.faforever.userservice.backend.account
 
 import com.faforever.userservice.backend.email.EmailService
 import com.faforever.userservice.config.FafProperties
-import com.fasterxml.jackson.databind.ObjectMapper
-import io.vertx.core.buffer.Buffer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -15,11 +13,10 @@ class AccountDeletionEmailNotificationConsumerTest {
     private val fafProperties: FafProperties = mock()
     private val account: FafProperties.Account = mock()
     private val accountDeletion: FafProperties.Account.AccountDeletion = mock()
-    private val objectMapper = ObjectMapper().findAndRegisterModules()
+
     private val consumer = AccountDeletionEmailNotificationConsumer(
         emailService,
         fafProperties,
-        objectMapper,
     )
 
     @Test
@@ -34,9 +31,12 @@ class AccountDeletionEmailNotificationConsumerTest {
             email = "test@example.com",
         )
 
-        consumer.handle(toPayload(event))
+        consumer.handle(event)
 
-        verify(emailService).sendAccountDeletionNotificationMail("testUser", "test@example.com")
+        verify(emailService).sendAccountDeletionNotificationMail(
+            "testUser",
+            "test@example.com",
+        )
     }
 
     @Test
@@ -51,11 +51,11 @@ class AccountDeletionEmailNotificationConsumerTest {
             email = "test@example.com",
         )
 
-        consumer.handle(toPayload(event))
+        consumer.handle(event)
 
-        verify(emailService, never()).sendAccountDeletionNotificationMail("testUser", "test@example.com")
+        verify(emailService, never()).sendAccountDeletionNotificationMail(
+            "testUser",
+            "test@example.com",
+        )
     }
-
-    private fun toPayload(event: AccountDeletedEvent): Buffer =
-        Buffer.buffer(objectMapper.writeValueAsBytes(event))
 }

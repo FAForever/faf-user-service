@@ -1,203 +1,95 @@
 package com.faforever.userservice.backend.account
 
-import com.faforever.userservice.backend.security.HmacService
 import com.faforever.userservice.config.FafProperties
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.sun.net.httpserver.HttpServer
-import io.vertx.core.buffer.Buffer
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.containsString
-import org.hamcrest.Matchers.equalTo
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.net.InetSocketAddress
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 
 class AccountDeletionNodebbConsumerTest {
-    private var server: HttpServer? = null
-    private val objectMapper = ObjectMapper().findAndRegisterModules()
+    private val fafProperties: FafProperties = mock()
+    private val nodebbReadClient: NodebbReadClient = mock()
+    private val nodebbWriteClient: NodebbWriteClient = mock()
 
-    @AfterEach
-    fun tearDown() {
-        server?.stop(0)
-    }
+    private val consumer = AccountDeletionNodebbConsumer(
+        fafProperties = fafProperties,
+        nodebbReadClient = nodebbReadClient,
+        nodebbWriteClient = nodebbWriteClient,
+    )
 
     @Test
     fun handleDeletesNodebbUserWhenUserExists() {
-        val lookupAuthorizationHeader = AtomicReference<String>()
-        val lookupHmacHeader = AtomicReference<String>()
-        val deleteAuthorizationHeader = AtomicReference<String>()
-        val deleteHmacHeader = AtomicReference<String>()
-        val deleteCalled = AtomicBoolean(false)
+        mockExternalConsumersEnabled(true)
 
-        server = HttpServer.create(InetSocketAddress(0), 0).apply {
-            createContext("/api/user/username/testUser") { exchange ->
-                lookupAuthorizationHeader.set(exchange.requestHeaders.getFirst("Authorization"))
-                lookupHmacHeader.set(exchange.requestHeaders.getFirst("X-HMAC"))
+        whenever(nodebbReadClient.getUserByUsername("testUser"))
+            .thenReturn(NodebbUser(123))
 
-                val response = """{"uid":123}"""
-                exchange.sendResponseHeaders(200, response.toByteArray().size.toLong())
-                exchange.responseBody.use { it.write(response.toByteArray()) }
-            }
+        consumer.handle(event())
 
-            createContext("/api/v3/users/123/account") { exchange ->
-                deleteCalled.set(true)
-                deleteAuthorizationHeader.set(exchange.requestHeaders.getFirst("Authorization"))
-                deleteHmacHeader.set(exchange.requestHeaders.getFirst("X-HMAC"))
-
-                exchange.sendResponseHeaders(200, -1)
-                exchange.close()
-            }
-
-            start()
-        }
-
-        val port = server!!.address.port
-        val consumer = AccountDeletionNodebbConsumer(
-            fafProperties = buildProperties(
-                readApiUrl = "http://localhost:$port/api",
-                writeApiUrl = "http://localhost:$port/api/v3",
-            ),
-            hmacService = HmacService(),
-            objectMapper = objectMapper,
-        )
-
-        consumer.handle(
-            toPayload(
-                AccountDeletedEvent(
-                    userId = 1,
-                    username = "testUser",
-                    email = "test@example.com",
-                ),
-            ),
-        )
-
-        assertThat(deleteCalled.get(), equalTo(true))
-        assertThat(lookupAuthorizationHeader.get(), equalTo("Bearer nodebb-token"))
-        assertThat(deleteAuthorizationHeader.get(), equalTo("Bearer nodebb-token"))
-        assertThat(lookupHmacHeader.get(), containsString("-"))
-        assertThat(deleteHmacHeader.get(), containsString("-"))
+        verify(nodebbReadClient).getUserByUsername("testUser")
+        verify(nodebbWriteClient).deleteAccount(123)
     }
 
     @Test
     fun handleDoesNothingWhenNodebbUserDoesNotExist() {
-        val deleteCalled = AtomicBoolean(false)
+        mockExternalConsumersEnabled(true)
 
-        server = HttpServer.create(InetSocketAddress(0), 0).apply {
-            createContext("/api/user/username/testUser") { exchange ->
-                exchange.sendResponseHeaders(404, -1)
-                exchange.close()
-            }
+        whenever(nodebbReadClient.getUserByUsername("testUser"))
+            .thenThrow(NodebbUserNotFoundException())
 
-            createContext("/api/v3/users/123/account") { exchange ->
-                deleteCalled.set(true)
-                exchange.sendResponseHeaders(200, -1)
-                exchange.close()
-            }
+        consumer.handle(event())
 
-            start()
-        }
-
-        val port = server!!.address.port
-        val consumer = AccountDeletionNodebbConsumer(
-            fafProperties = buildProperties(
-                readApiUrl = "http://localhost:$port/api",
-                writeApiUrl = "http://localhost:$port/api/v3",
-            ),
-            hmacService = HmacService(),
-            objectMapper = objectMapper,
-        )
-
-        consumer.handle(
-            toPayload(
-                AccountDeletedEvent(
-                    userId = 1,
-                    username = "testUser",
-                    email = "test@example.com",
-                ),
-            ),
-        )
-
-        assertThat(deleteCalled.get(), equalTo(false))
+        verify(nodebbReadClient).getUserByUsername("testUser")
+        verify(nodebbWriteClient, never()).deleteAccount(any())
     }
 
     @Test
     fun handleThrowsWhenNodebbDeleteFails() {
-        server = HttpServer.create(InetSocketAddress(0), 0).apply {
-            createContext("/api/user/username/testUser") { exchange ->
-                val response = """{"uid":123}"""
-                exchange.sendResponseHeaders(200, response.toByteArray().size.toLong())
-                exchange.responseBody.use { it.write(response.toByteArray()) }
-            }
+        mockExternalConsumersEnabled(true)
 
-            createContext("/api/v3/users/123/account") { exchange ->
-                val response = "delete failed"
-                exchange.sendResponseHeaders(500, response.toByteArray().size.toLong())
-                exchange.responseBody.use { it.write(response.toByteArray()) }
-            }
+        whenever(nodebbReadClient.getUserByUsername("testUser"))
+            .thenReturn(NodebbUser(123))
 
-            start()
-        }
-
-        val port = server!!.address.port
-        val consumer = AccountDeletionNodebbConsumer(
-            fafProperties = buildProperties(
-                readApiUrl = "http://localhost:$port/api",
-                writeApiUrl = "http://localhost:$port/api/v3",
+        doThrow(
+            NodebbAccountDeletionFailedException(
+                "NodeBB account deletion failed with status 500: delete failed",
             ),
-            hmacService = HmacService(),
-            objectMapper = objectMapper,
         )
+            .whenever(nodebbWriteClient)
+            .deleteAccount(123)
 
-        try {
-            consumer.handle(
-                toPayload(
-                    AccountDeletedEvent(
-                        userId = 1,
-                        username = "testUser",
-                        email = "test@example.com",
-                    ),
-                ),
-            )
-        } catch (exception: IllegalStateException) {
-            assertThat(exception.message, containsString("NodeBB account deletion failed"))
-            return
+        assertThrows<NodebbAccountDeletionFailedException> {
+            consumer.handle(event())
         }
-
-        error("Expected NodeBB delete failure")
     }
 
-    private fun buildProperties(
-        readApiUrl: String,
-        writeApiUrl: String,
-    ): FafProperties {
-        val properties = mock<FafProperties>()
+    @Test
+    fun handleSkipsWhenExternalConsumersAreDisabled() {
+        mockExternalConsumersEnabled(false)
+
+        consumer.handle(event())
+
+        verify(nodebbReadClient, never()).getUserByUsername(any())
+        verify(nodebbWriteClient, never()).deleteAccount(any())
+    }
+
+    private fun mockExternalConsumersEnabled(enabled: Boolean) {
         val account = mock<FafProperties.Account>()
         val accountDeletion = mock<FafProperties.Account.AccountDeletion>()
-        val nodebb = mock<FafProperties.Nodebb>()
-        val jwt = mock<FafProperties.Jwt>()
-        val hmac = mock<FafProperties.Hmac>()
 
-        whenever(properties.account()).thenReturn(account)
+        whenever(fafProperties.account()).thenReturn(account)
         whenever(account.accountDeletion()).thenReturn(accountDeletion)
-        whenever(accountDeletion.externalConsumersEnabled()).thenReturn(true)
-
-        whenever(properties.nodebb()).thenReturn(nodebb)
-        whenever(nodebb.readApiUrl()).thenReturn(readApiUrl)
-        whenever(nodebb.writeApiUrl()).thenReturn(writeApiUrl)
-        whenever(nodebb.adminToken()).thenReturn("nodebb-token")
-
-        whenever(properties.jwt()).thenReturn(jwt)
-        whenever(jwt.hmac()).thenReturn(hmac)
-        whenever(hmac.message()).thenReturn("helloFaf")
-        whenever(hmac.secret()).thenReturn("banana")
-
-        return properties
+        whenever(accountDeletion.externalConsumersEnabled()).thenReturn(enabled)
     }
 
-    private fun toPayload(event: AccountDeletedEvent): Buffer =
-        Buffer.buffer(objectMapper.writeValueAsBytes(event))
+    private fun event(): AccountDeletedEvent =
+        AccountDeletedEvent(
+            userId = 1,
+            username = "testUser",
+            email = "test@example.com",
+        )
 }
