@@ -65,6 +65,12 @@ class AccountDeletionService(
         LOG.info("Account deletion confirmation email queued for user id {}", userId)
     }
 
+    fun isAccountDeletionTokenValid(token: String): Boolean =
+        fafTokenService.isConsumableTokenValid(
+            FafToken.AccountDeletion::class,
+            token,
+        )
+
     @Transactional
     fun confirmAccountDeletion(token: String): AccountDeletionConfirmationResult {
         LOG.info("Account deletion confirmation received")

@@ -23,7 +23,6 @@ import java.time.temporal.TemporalAmount
 
 @QuarkusTest
 class AccountDeletionServiceTest {
-
     @Inject
     private lateinit var accountDeletionService: AccountDeletionService
 
@@ -185,6 +184,48 @@ class AccountDeletionServiceTest {
         verify(fafTokenService).consumeToken(FafToken.AccountDeletion::class, token)
         verify(accountAnonymizationService).anonymizeUser(user.id!!)
         verify(accountDeletionEventPublisher).publish(event)
+    }
+
+    @Test
+    fun isAccountDeletionTokenValidReturnsTrueForValidToken() {
+        val token = "token"
+
+        whenever(
+            fafTokenService.isConsumableTokenValid(
+                FafToken.AccountDeletion::class,
+                token,
+            ),
+        ).thenReturn(true)
+
+        val result = accountDeletionService.isAccountDeletionTokenValid(token)
+
+        assertThat(result, equalTo(true))
+
+        verify(fafTokenService).isConsumableTokenValid(
+            FafToken.AccountDeletion::class,
+            token,
+        )
+    }
+
+    @Test
+    fun isAccountDeletionTokenValidReturnsFalseForInvalidToken() {
+        val token = "token"
+
+        whenever(
+            fafTokenService.isConsumableTokenValid(
+                FafToken.AccountDeletion::class,
+                token,
+            ),
+        ).thenReturn(false)
+
+        val result = accountDeletionService.isAccountDeletionTokenValid(token)
+
+        assertThat(result, equalTo(false))
+
+        verify(fafTokenService).isConsumableTokenValid(
+            FafToken.AccountDeletion::class,
+            token,
+        )
     }
 
     private fun buildTestUser(

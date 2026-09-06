@@ -81,9 +81,12 @@ class UcpConfirmAccountDeletionView(
 
     override fun beforeEnter(event: BeforeEnterEvent) {
         token = event.location.queryParameters.parameters["token"]?.firstOrNull()
+        val token = token
 
-        if (token.isNullOrBlank()) {
-            showInvalidResult(getTranslation("ucp.deleteAccount.confirm.invalidToken"))
+        if (token.isNullOrBlank() || !accountDeletionService.isAccountDeletionTokenValid(token)) {
+            showInvalidResult(
+                getTranslation("ucp.deleteAccount.confirm.invalidToken"),
+            )
         } else {
             showConfirmation()
         }

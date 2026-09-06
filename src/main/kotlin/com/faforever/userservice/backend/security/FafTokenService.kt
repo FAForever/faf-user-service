@@ -119,30 +119,56 @@ class FafTokenService(
         return jwe.serialize()
     }
 
+    fun <T : FafToken> isConsumableTokenValid(
+        expectedType: KClass<T>,
+        tokenValue: String,
+    ): Boolean =
+        try {
+            getConsumableToken(expectedType, tokenValue)
+            true
+        } catch (_: IllegalArgumentException) {
+            false
+        }
+
     // single use db token for email change and account deletion
     @Transactional
     fun <T : FafToken> consumeToken(
         expectedType: KClass<T>,
         tokenValue: String,
     ): T {
+        val (request, token) = getConsumableToken(expectedType, tokenValue)
+        accountRequestRepository.delete(request)
+        return token
+    }
+
+    private fun <T : FafToken> getConsumableToken(
+        expectedType: KClass<T>,
+        tokenValue: String,
+    ): Pair<AccountRequest, T> {
         val expected = FafTokenType.fromTokenClass(expectedType)
+
         // only db tokens are consumable
         if (expected != FafTokenType.EMAIL_CHANGE && expected != FafTokenType.ACCOUNT_DELETION) {
             throw IllegalArgumentException("Token type ${expected.name} does not support consumption")
         }
 
-        val request =
-            accountRequestRepository.findById(tokenValue)
-                ?: throw IllegalArgumentException("Token not found")
+        val request = accountRequestRepository.findById(tokenValue)
+            ?: throw IllegalArgumentException("Token not found")
+
         if (request.type != expected) {
             throw IllegalArgumentException("Token does not match expected type")
         }
+
         if (request.expiresAt.isBefore(OffsetDateTime.now())) {
             throw IllegalArgumentException("Token is expired")
         }
 
-        accountRequestRepository.delete(request)
-        return objectMapper.convertValue(request.data, expectedType.java)
+        val token = objectMapper.convertValue(
+            request.data,
+            expectedType.java,
+        )
+
+        return request to token
     }
 
     fun <T : FafToken> getToken(
