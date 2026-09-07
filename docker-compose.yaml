@@ -29,7 +29,7 @@ services:
 
   faf-db-testdata:
     image: mariadb:11
-    entrypoint: sh -c "apt-get update && apt-get install -y curl && curl -s https://raw.githubusercontent.com/FAForever/db/refs/heads/develop/test-data.sql | mariadb -h faf-db -uroot -pbanana -D faf"
+    entrypoint: sh -c "apt-get update && apt-get install -y curl && curl -s https://raw.githubusercontent.com/FAForever/db/refs/heads/develop/test-data.sql | mariadb -h faf-db -uroot -pbanana -D faf_lobby"
     depends_on:
       faf-db-migrations:
         condition: service_completed_successfully
