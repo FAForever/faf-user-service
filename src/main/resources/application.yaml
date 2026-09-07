@@ -90,8 +90,9 @@ security:
 
 rabbitmq-host: ${RABBITMQ_HOST:localhost}
 rabbitmq-port: ${RABBITMQ_PORT:5672}
-rabbitmq-username: ${RABBITMQ_USERNAME:guest}
-rabbitmq-password: ${RABBITMQ_PASSWORD:guest}
+rabbitmq-username: ${RABBITMQ_USERNAME:faf-user-service}
+rabbitmq-password: ${RABBITMQ_PASSWORD:banana}
+rabbitmq-virtual-host: ${RABBITMQ_VHOST:/faf-core}
 
 quarkus:
   log:
@@ -126,10 +127,10 @@ quarkus:
     enabled: false
   datasource:
     db-kind: mariadb
-    username: ${DB_USERNAME:root}
+    username: ${DB_USERNAME:faf-user-service}
     password: ${DB_PASSWORD:banana}
     jdbc:
-      url: ${DB_URL:jdbc:mariadb://localhost:3306/faf?ssl=false}
+      url: ${DB_URL:jdbc:mariadb://localhost:3306/faf_lobby?ssl=false}
   application:
     name: faf-user-service
   hibernate-orm:
@@ -178,7 +179,7 @@ quarkus:
       password-change:
         notification-mail-template-path: ${PASSWORD_CHANGE_NOTIFICATION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-password-change-notification.html}
       account-deletion:
-        external-consumers-enabled: false
+        external-consumers-enabled: true
         mail-template-path: ${ACCOUNT_DELETION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-account-deletion-confirmation.html}
         notification-mail-template-path: ${ACCOUNT_DELETION_NOTIFICATION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-account-deletion-notification.html}
     altcha:
@@ -256,7 +257,7 @@ mp:
 
   jwt:
     verify:
-      issuer: ${HYDRA_TOKEN_ISSUER:http://faf-ory-hydra:4444}
+      issuer: ${HYDRA_TOKEN_ISSUER:http://ory-hydra:4444}
       key-format: JWKS
       publickey:
         location: ${HYDRA_JWKS_URL:http://localhost:4444/.well-known/jwks.json}
