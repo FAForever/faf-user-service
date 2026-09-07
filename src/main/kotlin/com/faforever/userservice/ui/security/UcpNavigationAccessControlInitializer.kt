@@ -37,7 +37,7 @@ private class UcpNavigationAccessControl : NavigationAccessControl() {
 }
 
 private object UcpPrincipalRequestInterceptor : VaadinRequestInterceptor {
-    override fun requestStart(request: VaadinRequest, response: VaadinResponse) {
+    override fun requestStart(request: VaadinRequest, response: VaadinResponse?) {
         if (request is VaadinServletRequest) {
             request.service.setCurrentInstances(UcpPrincipalVaadinServletRequest(request), response)
         }
@@ -46,11 +46,11 @@ private object UcpPrincipalRequestInterceptor : VaadinRequestInterceptor {
     override fun handleException(
         request: VaadinRequest,
         response: VaadinResponse,
-        session: VaadinSession,
+        session: VaadinSession?,
         exception: Exception,
     ) = Unit
 
-    override fun requestEnd(request: VaadinRequest, response: VaadinResponse, session: VaadinSession) = Unit
+    override fun requestEnd(request: VaadinRequest, response: VaadinResponse?, session: VaadinSession?) = Unit
 }
 
 private class UcpPrincipalVaadinServletRequest(
