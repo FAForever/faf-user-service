@@ -39,7 +39,7 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: faf-user-service
       RABBITMQ_DEFAULT_PASS: banana
-      RABBITMQ_DEFAULT_VHOST: /faf-core sta
+      RABBITMQ_DEFAULT_VHOST: /faf-core
     ports:
       - "5672:5672"
       - "15672:15672"
