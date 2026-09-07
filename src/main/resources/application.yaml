@@ -179,7 +179,7 @@ quarkus:
       password-change:
         notification-mail-template-path: ${PASSWORD_CHANGE_NOTIFICATION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-password-change-notification.html}
       account-deletion:
-        external-consumers-enabled: true
+        external-consumers-enabled: false
         mail-template-path: ${ACCOUNT_DELETION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-account-deletion-confirmation.html}
         notification-mail-template-path: ${ACCOUNT_DELETION_NOTIFICATION_MAIL_TEMPLATE_PATH:src/main/mjml/dummy/test-account-deletion-notification.html}
     altcha:
