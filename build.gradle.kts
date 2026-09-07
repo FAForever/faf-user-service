@@ -54,6 +54,7 @@ dependencies {
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-hibernate-orm")
     implementation("io.quarkus:quarkus-rest")
+    implementation("io.quarkus:quarkus-messaging-rabbitmq")
     implementation("com.vaadin:vaadin-core")
     implementation("com.vaadin:vaadin-core-jandex")
     implementation("com.vaadin:vaadin-quarkus")

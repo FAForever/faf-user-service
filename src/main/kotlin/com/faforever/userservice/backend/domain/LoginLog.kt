@@ -59,4 +59,6 @@ class LoginLogRepository : PanacheRepository<LoginLog> {
             .resultStream
             .findFirst()
             .orElse(null)
+
+    fun deleteByUserId(userId: Int): Long = delete("userId", userId)
 }

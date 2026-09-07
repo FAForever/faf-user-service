@@ -56,4 +56,6 @@ class BanRepository : PanacheRepository<Ban> {
     fun findGlobalBansByPlayerId(playerId: Int): List<Ban> {
         return find("playerId = ?1 and level = BanLevel.GLOBAL", playerId).list()
     }
+
+    fun countByPlayerId(playerId: Int): Long = count("playerId", playerId)
 }

@@ -63,7 +63,10 @@ class FafTokenService(
         lifetime: TemporalAmount,
     ): String =
         when (token) {
-            is FafToken.EmailChange -> createOpaqueToken(token, lifetime)
+            is FafToken.EmailChange,
+            is FafToken.AccountDeletion,
+            -> createOpaqueToken(token, lifetime)
+
             is FafToken.Registration,
             is FafToken.PasswordReset,
             is FafToken.LinkToSteam,
@@ -71,16 +74,21 @@ class FafTokenService(
         }
 
     private fun createOpaqueToken(
-        token: FafToken.EmailChange,
+        token: FafToken,
         lifetime: TemporalAmount,
     ): String {
         val type = token.toType()
+        val userId = when (token) {
+            is FafToken.EmailChange -> token.userId
+            is FafToken.AccountDeletion -> token.userId
+            else -> throw IllegalArgumentException("Token type ${type.name} does not support opaque token creation")
+        }
         val opaque = UUID.randomUUID().toString()
-        accountRequestRepository.deleteByUserIdAndType(token.userId, type)
+        accountRequestRepository.deleteByUserIdAndType(userId, type)
         accountRequestRepository.persist(
             AccountRequest(
                 id = opaque,
-                userId = token.userId,
+                userId = userId,
                 type = type,
                 expiresAt = OffsetDateTime.now().plus(lifetime),
                 data = objectMapper.convertValue(token, MAP_TYPE),
@@ -111,30 +119,56 @@ class FafTokenService(
         return jwe.serialize()
     }
 
-    // single use db token for email change
+    fun <T : FafToken> isConsumableTokenValid(
+        expectedType: KClass<T>,
+        tokenValue: String,
+    ): Boolean =
+        try {
+            getConsumableToken(expectedType, tokenValue)
+            true
+        } catch (_: IllegalArgumentException) {
+            false
+        }
+
+    // single use db token for email change and account deletion
     @Transactional
     fun <T : FafToken> consumeToken(
         expectedType: KClass<T>,
         tokenValue: String,
     ): T {
+        val (request, token) = getConsumableToken(expectedType, tokenValue)
+        accountRequestRepository.delete(request)
+        return token
+    }
+
+    private fun <T : FafToken> getConsumableToken(
+        expectedType: KClass<T>,
+        tokenValue: String,
+    ): Pair<AccountRequest, T> {
         val expected = FafTokenType.fromTokenClass(expectedType)
+
         // only db tokens are consumable
-        if (expected != FafTokenType.EMAIL_CHANGE) {
+        if (expected != FafTokenType.EMAIL_CHANGE && expected != FafTokenType.ACCOUNT_DELETION) {
             throw IllegalArgumentException("Token type ${expected.name} does not support consumption")
         }
 
-        val request =
-            accountRequestRepository.findById(tokenValue)
-                ?: throw IllegalArgumentException("Token not found")
+        val request = accountRequestRepository.findById(tokenValue)
+            ?: throw IllegalArgumentException("Token not found")
+
         if (request.type != expected) {
             throw IllegalArgumentException("Token does not match expected type")
         }
+
         if (request.expiresAt.isBefore(OffsetDateTime.now())) {
             throw IllegalArgumentException("Token is expired")
         }
 
-        accountRequestRepository.delete(request)
-        return objectMapper.convertValue(request.data, expectedType.java)
+        val token = objectMapper.convertValue(
+            request.data,
+            expectedType.java,
+        )
+
+        return request to token
     }
 
     fun <T : FafToken> getToken(

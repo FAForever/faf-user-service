@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.time.Duration
@@ -18,7 +19,6 @@ import java.time.OffsetDateTime
 
 @QuarkusTest
 class FafTokenServiceTest {
-
     @Inject
     private lateinit var fafTokenService: FafTokenService
 
@@ -87,6 +87,129 @@ class FafTokenServiceTest {
         assertThrows<IllegalArgumentException> {
             fafTokenService.consumeToken(FafToken.EmailChange::class, "expired")
         }
+    }
+
+    @Test
+    fun testAccountDeletionTokenCreateAndConsume() {
+        val requestCaptor = argumentCaptor<AccountRequest>()
+        whenever(accountRequestRepository.findById(any())).thenAnswer {
+            requestCaptor.firstValue
+        }
+
+        val token = fafTokenService.createToken(
+            FafToken.AccountDeletion(userId = 7),
+            Duration.ofSeconds(60),
+        )
+
+        verify(accountRequestRepository).deleteByUserIdAndType(7, FafTokenType.ACCOUNT_DELETION)
+        verify(accountRequestRepository).persist(requestCaptor.capture())
+        assertThat(requestCaptor.firstValue.id, equalTo(token))
+        assertThat(requestCaptor.firstValue.userId, equalTo(7))
+        assertThat(requestCaptor.firstValue.type, equalTo(FafTokenType.ACCOUNT_DELETION))
+        assertThat(requestCaptor.firstValue.data["userId"], equalTo(7))
+
+        val decoded = fafTokenService.consumeToken(FafToken.AccountDeletion::class, token)
+        assertThat(decoded.userId, equalTo(7))
+        verify(accountRequestRepository).delete(requestCaptor.firstValue)
+    }
+
+    @Test
+    fun testAccountDeletionConsumeRejectsExpired() {
+        whenever(accountRequestRepository.findById("expired")).thenReturn(
+            AccountRequest(
+                id = "expired",
+                userId = 1,
+                type = FafTokenType.ACCOUNT_DELETION,
+                expiresAt = OffsetDateTime.now().minusMinutes(1),
+                data = mapOf("userId" to 1),
+            ),
+        )
+
+        assertThrows<IllegalArgumentException> {
+            fafTokenService.consumeToken(FafToken.AccountDeletion::class, "expired")
+        }
+    }
+
+    @Test
+    fun testAccountDeletionValidationDoesNotConsumeToken() {
+        val request = AccountRequest(
+            id = "valid",
+            userId = 7,
+            type = FafTokenType.ACCOUNT_DELETION,
+            expiresAt = OffsetDateTime.now().plusMinutes(1),
+            data = mapOf("userId" to 7),
+        )
+
+        whenever(accountRequestRepository.findById("valid"))
+            .thenReturn(request)
+
+        val valid = fafTokenService.isConsumableTokenValid(
+            FafToken.AccountDeletion::class,
+            "valid",
+        )
+
+        assertThat(valid, equalTo(true))
+        verify(accountRequestRepository, never()).delete(request)
+    }
+
+    @Test
+    fun testAccountDeletionValidationRejectsExpiredToken() {
+        val request = AccountRequest(
+            id = "expired",
+            userId = 7,
+            type = FafTokenType.ACCOUNT_DELETION,
+            expiresAt = OffsetDateTime.now().minusMinutes(1),
+            data = mapOf("userId" to 7),
+        )
+
+        whenever(accountRequestRepository.findById("expired"))
+            .thenReturn(request)
+
+        val valid = fafTokenService.isConsumableTokenValid(
+            FafToken.AccountDeletion::class,
+            "expired",
+        )
+
+        assertThat(valid, equalTo(false))
+        verify(accountRequestRepository, never()).delete(request)
+    }
+
+    @Test
+    fun testAccountDeletionValidationRejectsWrongTokenType() {
+        val request = AccountRequest(
+            id = "email-change",
+            userId = 7,
+            type = FafTokenType.EMAIL_CHANGE,
+            expiresAt = OffsetDateTime.now().plusMinutes(1),
+            data = mapOf(
+                "userId" to 7,
+                "newEmail" to "new@example.com",
+            ),
+        )
+
+        whenever(accountRequestRepository.findById("email-change"))
+            .thenReturn(request)
+
+        val valid = fafTokenService.isConsumableTokenValid(
+            FafToken.AccountDeletion::class,
+            "email-change",
+        )
+
+        assertThat(valid, equalTo(false))
+        verify(accountRequestRepository, never()).delete(request)
+    }
+
+    @Test
+    fun testAccountDeletionValidationRejectsMissingToken() {
+        whenever(accountRequestRepository.findById("missing"))
+            .thenReturn(null)
+
+        val valid = fafTokenService.isConsumableTokenValid(
+            FafToken.AccountDeletion::class,
+            "missing",
+        )
+
+        assertThat(valid, equalTo(false))
     }
 
     @Test
