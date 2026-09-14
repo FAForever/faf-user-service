@@ -200,3 +200,18 @@ a:hover {
 vaadin-login-form::part(form) {
     background-color: transparent;
 }
+
+.friends-foes-section {
+    border: 1px solid var(--lumo-contrast-20pct);
+    border-radius: var(--lumo-border-radius-l);
+}
+
+.friends-foes-list {
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.friends-foes-row {
+    padding: var(--lumo-space-xs) 0;
+}
+
