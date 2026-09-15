@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:filename")
+
 package com.faforever.userservice.ui.view.ucp
 
 import com.faforever.userservice.ui.layout.UcpLayout
