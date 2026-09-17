@@ -2,6 +2,7 @@ package com.faforever.userservice.backend.ucp
 
 import com.faforever.userservice.backend.domain.FriendOrFoe
 import com.faforever.userservice.backend.domain.FriendOrFoeEntry
+import com.faforever.userservice.backend.domain.FriendOrFoeId
 import com.faforever.userservice.backend.domain.FriendOrFoeRepository
 import com.faforever.userservice.backend.domain.SocialStatus
 import com.faforever.userservice.backend.domain.UserRepository
@@ -52,7 +53,7 @@ class UcpFriendsFoesService(
             }
             existing.status = status
         } else {
-            friendOrFoeRepository.persist(FriendOrFoe(userId, subjectId, status))
+            friendOrFoeRepository.persist(FriendOrFoe(FriendOrFoeId(userId, subjectId), status))
         }
 
         return AddResult.Success(FriendOrFoeEntry(subjectId, subject.username))

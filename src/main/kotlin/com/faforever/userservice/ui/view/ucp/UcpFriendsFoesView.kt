@@ -10,7 +10,6 @@ import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
 import com.vaadin.flow.component.html.H2
 import com.vaadin.flow.component.html.H3
-import com.vaadin.flow.component.html.Image
 import com.vaadin.flow.component.html.Span
 import com.vaadin.flow.component.notification.Notification
 import com.vaadin.flow.component.notification.NotificationVariant
@@ -33,8 +32,6 @@ class UcpFriendsFoesView(
 
     companion object {
         private const val NOTIFICATION_DURATION_MS = 3000
-        private const val AVATAR_WIDTH = "40px"
-        private const val AVATAR_HEIGHT = "20px"
     }
 
     private val usernameField = TextField().apply {
@@ -118,26 +115,14 @@ class UcpFriendsFoesView(
     private fun playerRow(entry: FriendOrFoeEntry): Component {
         val name = Span(entry.username)
         val spacer = Span()
-        val row = HorizontalLayout(name).apply {
+        val row = HorizontalLayout(name, spacer).apply {
             addClassName("friends-foes-row")
             setWidthFull()
             isPadding = false
             isSpacing = true
             alignItems = FlexComponent.Alignment.CENTER
+            setFlexGrow(1.0, spacer)
         }
-        if (!entry.avatarUrl.isNullOrBlank()) {
-            val altText = entry.avatarTooltip?.takeIf { it.isNotBlank() } ?: entry.username
-            row.add(
-                Image(entry.avatarUrl, altText).apply {
-                    width = AVATAR_WIDTH
-                    height = AVATAR_HEIGHT
-                    style.set("object-fit", "contain")
-                    style.set("flex-shrink", "0")
-                },
-            )
-        }
-        row.add(spacer)
-        row.setFlexGrow(1.0, spacer)
         row.add(
             Button(getTranslation("ucp.friendsFoes.remove")) { handleRemove(entry) }.apply {
                 addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR)

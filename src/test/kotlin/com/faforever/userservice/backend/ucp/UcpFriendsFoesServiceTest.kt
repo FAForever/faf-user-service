@@ -2,6 +2,7 @@ package com.faforever.userservice.backend.ucp
 
 import com.faforever.userservice.backend.domain.FriendOrFoe
 import com.faforever.userservice.backend.domain.FriendOrFoeEntry
+import com.faforever.userservice.backend.domain.FriendOrFoeId
 import com.faforever.userservice.backend.domain.FriendOrFoeRepository
 import com.faforever.userservice.backend.domain.SocialStatus
 import com.faforever.userservice.backend.domain.User
@@ -45,14 +46,7 @@ class UcpFriendsFoesServiceTest {
 
     @Test
     fun returnsFriendsFromRepository() {
-        val entries = listOf(
-            FriendOrFoeEntry(
-                subjectId = SUBJECT_ID,
-                username = SUBJECT_USERNAME,
-                avatarUrl = "https://content.faforever.com/faf/avatars/UEF.png",
-                avatarTooltip = "UEF",
-            ),
-        )
+        val entries = listOf(FriendOrFoeEntry(SUBJECT_ID, SUBJECT_USERNAME))
         whenever(friendOrFoeRepository.findEntriesByUserIdAndStatus(USER_ID, SocialStatus.FRIEND)).thenReturn(entries)
 
         assertEquals(entries, ucpFriendsFoesService.getFriends(USER_ID))
@@ -109,7 +103,7 @@ class UcpFriendsFoesServiceTest {
     fun addReturnsValidationErrorWhenAlreadyOnSameList() {
         whenever(userRepository.findByUsername(SUBJECT_USERNAME)).thenReturn(SUBJECT)
         whenever(friendOrFoeRepository.findByUserIdAndSubjectId(USER_ID, SUBJECT_ID))
-            .thenReturn(FriendOrFoe(USER_ID, SUBJECT_ID, SocialStatus.FRIEND))
+            .thenReturn(FriendOrFoe(FriendOrFoeId(USER_ID, SUBJECT_ID), SocialStatus.FRIEND))
 
         val result = ucpFriendsFoesService.add(USER_ID, SUBJECT_USERNAME, SocialStatus.FRIEND)
 
@@ -128,20 +122,22 @@ class UcpFriendsFoesServiceTest {
         val result = ucpFriendsFoesService.add(USER_ID, SUBJECT_USERNAME, SocialStatus.FRIEND)
 
         assertTrue(result is UcpFriendsFoesService.AddResult.Success)
-        verify(friendOrFoeRepository).persist(FriendOrFoe(USER_ID, SUBJECT_ID, SocialStatus.FRIEND))
+        verify(friendOrFoeRepository).persist(FriendOrFoe(FriendOrFoeId(USER_ID, SUBJECT_ID), SocialStatus.FRIEND))
     }
 
     @Test
     fun addSwitchesStatusWhenAlreadyOnOppositeList() {
         whenever(userRepository.findByUsername(SUBJECT_USERNAME)).thenReturn(SUBJECT)
-        val existing = FriendOrFoe(USER_ID, SUBJECT_ID, SocialStatus.FOE)
+        val existing = FriendOrFoe(FriendOrFoeId(USER_ID, SUBJECT_ID), SocialStatus.FOE)
         whenever(friendOrFoeRepository.findByUserIdAndSubjectId(USER_ID, SUBJECT_ID)).thenReturn(existing)
 
         val result = ucpFriendsFoesService.add(USER_ID, SUBJECT_USERNAME, SocialStatus.FRIEND)
 
         assertTrue(result is UcpFriendsFoesService.AddResult.Success)
         assertEquals(SocialStatus.FRIEND, existing.status)
-        verify(friendOrFoeRepository, never()).persist(FriendOrFoe(USER_ID, SUBJECT_ID, SocialStatus.FRIEND))
+        verify(friendOrFoeRepository, never()).persist(
+            FriendOrFoe(FriendOrFoeId(USER_ID, SUBJECT_ID), SocialStatus.FRIEND),
+        )
     }
 
     @Test

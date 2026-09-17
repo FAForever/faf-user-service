@@ -47,7 +47,10 @@ data class AvatarAssignment(
 ) : PanacheEntityBase
 
 @ApplicationScoped
-class AvatarRepository : PanacheRepositoryBase<Avatar, Int>
+class AvatarRepository : PanacheRepositoryBase<Avatar, Int> {
+    fun findByIds(ids: Collection<Int>): List<Avatar> =
+        if (ids.isEmpty()) emptyList() else list("id in ?1", ids)
+}
 
 @ApplicationScoped
 class AvatarAssignmentRepository : PanacheRepositoryBase<AvatarAssignment, Int> {
