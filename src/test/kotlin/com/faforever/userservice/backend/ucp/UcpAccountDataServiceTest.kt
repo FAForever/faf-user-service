@@ -131,8 +131,6 @@ class UcpAccountDataServiceTest {
             expiresAt = OffsetDateTime.now().minusMinutes(1),
         )
 
-        whenever(avatarAssignmentRepository.findAllByUserIdIncludingExpired(USER_ID))
-            .thenReturn(listOf(expiredAssignment))
         whenever(avatarAssignmentRepository.findAssignmentByUserIdAndAvatarId(USER_ID, 10)).thenReturn(null)
 
         val result = ucpAccountDataService.selectAvatar(USER_ID, 10)

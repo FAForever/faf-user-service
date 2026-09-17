@@ -4,12 +4,11 @@ import com.faforever.userservice.backend.ucp.AvatarSelectionResult
 import com.faforever.userservice.backend.ucp.UcpAccountDataService
 import com.faforever.userservice.backend.ucp.UcpSessionService
 import com.faforever.userservice.backend.ucp.UserAvatar
+import com.faforever.userservice.ui.component.AvatarDisplay
 import com.faforever.userservice.ui.layout.UcpLayout
-import com.vaadin.flow.component.Component
 import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
 import com.vaadin.flow.component.html.H2
-import com.vaadin.flow.component.html.Image
 import com.vaadin.flow.component.html.Span
 import com.vaadin.flow.component.notification.Notification
 import com.vaadin.flow.component.notification.NotificationVariant
@@ -51,20 +50,11 @@ class UcpAvatarsView(
         buildContent(user.userId)
     }
 
-    private fun buildAvatarContent(url: String?, tooltip: String?): Component =
-        if (url != null) {
-            Image(url, tooltip ?: "").apply {
-                setWidth(AVATAR_WIDTH)
-                setHeight(AVATAR_HEIGHT)
-                style.set("object-fit", "contain")
-            }
-        } else {
-            Span(getTranslation("ucp.accountData.noAvatar")).apply {
-                style.set("font-size", "12px")
-                style.set("color", "var(--lumo-secondary-text-color)")
-                style.set("text-align", "center")
-            }
-        }
+    private fun avatarDisplay(url: String?, tooltip: String?) =
+        AvatarDisplay(url, tooltip, AVATAR_WIDTH, AVATAR_HEIGHT)
+
+    private fun avatarName(avatar: UserAvatar) =
+        avatar.tooltip ?: getTranslation("ucp.avatars.unnamed", avatar.id)
 
     private fun buildCurrentAvatarDisplay(avatar: UserAvatar?): VerticalLayout =
         VerticalLayout().apply {
@@ -73,27 +63,14 @@ class UcpAvatarsView(
             alignItems = FlexComponent.Alignment.CENTER
             style.set("margin-bottom", "16px")
             style.set("min-height", "100px")
-
-            if (avatar == null) {
-                val spacer = Span().apply {
-                    style.set("display", "inline-block")
-                    style.set("width", AVATAR_WIDTH)
-                    style.set("height", AVATAR_HEIGHT)
-                    style.set("visibility", "hidden")
-                }
-                add(spacer)
-                val noAvatarLabel = Span(getTranslation("ucp.accountData.noAvatar")).apply {
-                    style.set("font-size", "12px")
-                    style.set("color", "var(--lumo-secondary-text-color)")
-                }
-                add(noAvatarLabel)
-            } else {
-                add(buildAvatarContent(avatar.url, avatar.tooltip))
-                val tooltipLabel = Span(avatar.tooltip ?: "Avatar").apply {
-                    style.set("font-size", "12px")
-                    style.set("text-align", "center")
-                }
-                add(tooltipLabel)
+            add(avatarDisplay(avatar?.url, avatar?.let { avatarName(it) }))
+            if (avatar != null) {
+                add(
+                    Span(avatarName(avatar)).apply {
+                        style.set("font-size", "12px")
+                        style.set("text-align", "center")
+                    },
+                )
             }
         }
 
@@ -113,7 +90,7 @@ class UcpAvatarsView(
     }
 
     private fun buildAvatarContainer(
-        content: Component,
+        content: AvatarDisplay,
         labelText: String,
         isSelected: Boolean,
         avatarId: Int?,
@@ -178,7 +155,7 @@ class UcpAvatarsView(
 
         avatarLayout.add(
             buildAvatarContainer(
-                content = buildAvatarContent(null, null),
+                content = avatarDisplay(null, null),
                 labelText = getTranslation("ucp.accountData.noAvatarButtonLabel"),
                 isSelected = equippedAvatar == null,
                 avatarId = null,
@@ -191,10 +168,11 @@ class UcpAvatarsView(
         )
 
         availableAvatars.forEach { avatar ->
+            val name = avatarName(avatar)
             avatarLayout.add(
                 buildAvatarContainer(
-                    content = buildAvatarContent(avatar.url, avatar.tooltip),
-                    labelText = avatar.tooltip ?: "Avatar",
+                    content = avatarDisplay(avatar.url, name),
+                    labelText = name,
                     isSelected = avatar.isSelected,
                     avatarId = avatar.id,
                     onClick = {

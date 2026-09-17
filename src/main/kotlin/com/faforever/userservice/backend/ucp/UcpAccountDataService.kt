@@ -61,10 +61,13 @@ class UcpAccountDataService(
         )
     }
 
+    @Transactional
     fun getAvailableAvatars(userId: Int): List<UserAvatar> {
         val userAvatarAssignments = avatarAssignmentRepository.findAllByUserId(userId)
+        val avatarsById = avatarRepository.findByIds(userAvatarAssignments.map { it.idAvatar })
+            .associateBy { it.id }
         return userAvatarAssignments.mapNotNull { assignment ->
-            avatarRepository.findById(assignment.idAvatar)?.let { avatar ->
+            avatarsById[assignment.idAvatar]?.let { avatar ->
                 UserAvatar(
                     id = avatar.id,
                     tooltip = avatar.tooltip,
@@ -77,15 +80,13 @@ class UcpAccountDataService(
 
     @Transactional
     fun selectAvatar(userId: Int, avatarId: Int): AvatarSelectionResult {
+        val selectedAssignment = avatarAssignmentRepository.findAssignmentByUserIdAndAvatarId(userId, avatarId)
+            ?: return AvatarSelectionResult.AvatarExpired
+
         avatarAssignmentRepository.findAllByUserIdIncludingExpired(userId)
             .forEach { it.selected = false }
-
-        val selectedAssignment = avatarAssignmentRepository.findAssignmentByUserIdAndAvatarId(userId, avatarId)
-        if (selectedAssignment != null) {
-            selectedAssignment.selected = true
-            return AvatarSelectionResult.Success
-        }
-        return AvatarSelectionResult.AvatarExpired
+        selectedAssignment.selected = true
+        return AvatarSelectionResult.Success
     }
 
     @Transactional
