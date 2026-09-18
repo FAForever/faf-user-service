@@ -38,7 +38,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
 /src/main/frontend/generated/
 /src/main/frontend/index.html
 /node_modules/
 /vite.generated.ts
+prod.bundle
