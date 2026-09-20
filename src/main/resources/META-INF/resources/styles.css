@@ -15,11 +15,11 @@ html {
     min-height: 100vh;
 }
 
-::part(input-field) {
+.main-card ::part(input-field) {
     background-color: white;
 }
 
-vaadin-text-field[readonly]::part(input-field) {
+.main-card vaadin-text-field[readonly]::part(input-field) {
     background-color: #dddddd;
 }
 
@@ -195,4 +195,8 @@ a:hover {
     border: 1px solid white;
     border-radius: 2px; /* Optional: makes it look cleaner */
     box-sizing: border-box; /* Ensures padding doesn't push border out */
+}
+
+vaadin-login-form::part(form) {
+    background-color: transparent;
 }

@@ -9,14 +9,9 @@ import com.faforever.userservice.config.FafProperties
 import com.faforever.userservice.ui.layout.CardLayout
 import com.faforever.userservice.ui.layout.CompactVerticalLayout
 import com.vaadin.flow.component.UI
-import com.vaadin.flow.component.html.Anchor
-import com.vaadin.flow.component.html.H2
-import com.vaadin.flow.component.html.Paragraph
 import com.vaadin.flow.component.login.LoginForm
-import com.vaadin.flow.component.notification.Notification
-import com.vaadin.flow.component.notification.NotificationVariant
+import com.vaadin.flow.component.login.LoginI18n
 import com.vaadin.flow.component.orderedlayout.FlexComponent
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
@@ -34,7 +29,18 @@ class UcpLoginView(
 ) : CompactVerticalLayout(),
     BeforeEnterObserver {
 
+    private val loginI18n = LoginI18n().apply {
+        form = LoginI18n.Form().apply {
+            title = getTranslation("ucp.login.heading")
+            submit = getTranslation("login.loginAction")
+            username = getTranslation("login.usernameOrEmail")
+            password = getTranslation("login.password")
+            forgotPassword = getTranslation("login.forgotPassword")
+        }
+    }
+
     private val loginForm = LoginForm().apply {
+        setI18n(loginI18n)
         setWidthFull()
         addLoginListener { e ->
             val result = loginService.loginForUcp(
@@ -49,17 +55,35 @@ class UcpLoginView(
                     ucpSessionService.setCurrentUser(UcpUser(result.userId, result.userName))
                     UI.getCurrent().navigate(UcpAccountDataView::class.java)
                 }
+
                 is LoginResult.ThrottlingActive -> {
-                    isError = false
-                    Notification.show(getTranslation("ucp.login.throttled"), 5000, Notification.Position.MIDDLE)
-                        .addThemeVariants(NotificationVariant.LUMO_WARNING)
+                    isError = true
+                    setI18n(loginI18n.apply { errorMessage = LoginI18n.ErrorMessage().apply {
+                        title = getTranslation("login.throttled")
+                        message = ""
+                    } })
                 }
+
                 is LoginResult.RecoverableLoginOrCredentialsMismatch -> {
                     isError = true
+                    setI18n(loginI18n.apply { errorMessage = LoginI18n.ErrorMessage().apply {
+                        title = getTranslation("login.badCredentials")
+                        message = ""
+                    } })
                 }
+
                 else -> {
                     isError = true
+                    setI18n(loginI18n.apply { errorMessage = LoginI18n.ErrorMessage().apply {
+                        title = getTranslation("login.technicalError")
+                        message = ""
+                    } })
                 }
+            }
+        }
+        addForgotPasswordListener { e ->
+            e.source.ui.ifPresent { ui ->
+                ui.navigate(fafProperties.account().passwordResetUrl())
             }
         }
     }
@@ -68,20 +92,7 @@ class UcpLoginView(
         maxWidth = "30rem"
         alignItems = FlexComponent.Alignment.STRETCH
 
-        loginForm.isForgotPasswordButtonVisible = false
-
-        val forgotPassword = Anchor(fafProperties.account().passwordResetUrl(), getTranslation("login.forgotPassword"))
-
-        val links =
-            HorizontalLayout(forgotPassword).apply {
-                justifyContentMode = FlexComponent.JustifyContentMode.CENTER
-                setWidthFull()
-            }
-
-        add(H2(getTranslation("ucp.login.heading")))
-        add(Paragraph(getTranslation("ucp.login.description")))
         add(loginForm)
-        add(links)
     }
 
     override fun beforeEnter(event: BeforeEnterEvent) {
