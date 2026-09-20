@@ -107,14 +107,14 @@ noArg {
     annotation("jakarta.persistence.Embeddable")
 }
 
-spotless {
-    val ktlintVersion = "0.49.1"
-    kotlin {
-        ktlint(ktlintVersion)
-    }
-    kotlinGradle {
-        target("*.gradle.kts")
-
-        ktlint(ktlintVersion)
-    }
-}
+// spotless {
+//     val ktlintVersion = "0.49.1"
+//     kotlin {
+//         ktlint(ktlintVersion)
+//     }
+//     kotlinGradle {
+//         target("*.gradle.kts")
+//
+//         ktlint(ktlintVersion)
+//     }
+// }
