@@ -203,7 +203,7 @@ mp:
       account-deletion-events:
         connector: smallrye-rabbitmq
         exchange:
-          name: lobby
+          name: faf-user-service
           type: topic
           durable: true
         default-routing-key: request.user.delete
@@ -215,7 +215,7 @@ mp:
           name: account-deletion-nodebb
           durable: true
         exchange:
-          name: lobby
+          name: faf-user-service
           type: topic
           durable: true
         routing-keys: request.user.delete
@@ -231,7 +231,7 @@ mp:
           name: account-deletion-wikijs
           durable: true
         exchange:
-          name: lobby
+          name: faf-user-service
           type: topic
           durable: true
         routing-keys: request.user.delete
@@ -247,7 +247,7 @@ mp:
           name: account-deletion-email-notification
           durable: true
         exchange:
-          name: lobby
+          name: faf-user-service
           type: topic
           durable: true
         routing-keys: request.user.delete
