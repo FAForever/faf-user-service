@@ -15,6 +15,10 @@ html {
     min-height: 100vh;
 }
 
+::part(input-field) {
+    background-color: var(--lumo-contrast-10pct);
+}
+
 .main-card ::part(input-field) {
     background-color: white;
 }
