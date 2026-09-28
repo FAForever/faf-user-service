@@ -34,6 +34,8 @@ data class User(
     var userAgent: String? = null,
     @Column(name = "last_login")
     var lastLogin: LocalDateTime? = null,
+    @Column(name = "avatar_id")
+    var avatarId: Int? = null,
 ) : PanacheEntityBase {
 
     override fun toString(): String =

@@ -2,6 +2,7 @@ package com.faforever.userservice.backend.ucp
 
 import com.faforever.userservice.backend.domain.AvatarAssignmentRepository
 import com.faforever.userservice.backend.domain.AvatarRepository
+import com.faforever.userservice.backend.domain.User
 import com.faforever.userservice.backend.domain.UserRepository
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
@@ -31,6 +32,7 @@ class UcpAccountDataService(
     private val userRepository: UserRepository,
     private val avatarAssignmentRepository: AvatarAssignmentRepository,
     private val avatarRepository: AvatarRepository,
+    private val playerAvatarUpdatePublisher: PlayerAvatarUpdatePublisher,
 ) {
     @Transactional
     fun getAccountData(userId: Int): AccountData {
@@ -46,6 +48,7 @@ class UcpAccountDataService(
             // Clean up any expired selected avatars for when the equipped avatar has expired and none is selected
             avatarAssignmentRepository.findExpiredSelectedAvatarByUserId(userId)?.let {
                 it.selected = false
+                persistCurrentAvatar(user, null)
             }
         }
         val avatarDetails = equippedAvatar?.let { avatar ->
@@ -63,7 +66,7 @@ class UcpAccountDataService(
 
     @Transactional
     fun getAvailableAvatars(userId: Int): List<UserAvatar> {
-        val userAvatarAssignments = avatarAssignmentRepository.findAllByUserId(userId)
+        val userAvatarAssignments = avatarAssignmentRepository.findActiveByUserId(userId)
         val avatarsById = avatarRepository.findByIds(userAvatarAssignments.map { it.idAvatar })
             .associateBy { it.id }
         return userAvatarAssignments.mapNotNull { assignment ->
@@ -82,16 +85,32 @@ class UcpAccountDataService(
     fun selectAvatar(userId: Int, avatarId: Int): AvatarSelectionResult {
         val selectedAssignment = avatarAssignmentRepository.findAssignmentByUserIdAndAvatarId(userId, avatarId)
             ?: return AvatarSelectionResult.AvatarExpired
+        val user = requireNotNull(userRepository.findById(userId)) {
+            "Expected authenticated UCP user with id '$userId' to exist"
+        }
 
         avatarAssignmentRepository.findAllByUserIdIncludingExpired(userId)
             .forEach { it.selected = false }
         selectedAssignment.selected = true
+        persistCurrentAvatar(user, avatarId)
         return AvatarSelectionResult.Success
     }
 
     @Transactional
     fun deselectAvatar(userId: Int) {
+        val user = requireNotNull(userRepository.findById(userId)) {
+            "Expected authenticated UCP user with id '$userId' to exist"
+        }
         avatarAssignmentRepository.findAllByUserIdIncludingExpired(userId)
             .forEach { it.selected = false }
+        persistCurrentAvatar(user, null)
+    }
+
+    private fun persistCurrentAvatar(user: User, avatarId: Int?) {
+        if (user.avatarId == avatarId) {
+            return
+        }
+        user.avatarId = avatarId
+        playerAvatarUpdatePublisher.publish(requireNotNull(user.id), avatarId)
     }
 }

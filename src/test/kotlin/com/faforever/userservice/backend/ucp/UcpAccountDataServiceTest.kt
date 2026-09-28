@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import java.time.OffsetDateTime
 
@@ -58,6 +60,9 @@ class UcpAccountDataServiceTest {
 
     @InjectMock
     private lateinit var avatarRepository: AvatarRepository
+
+    @InjectMock
+    private lateinit var playerAvatarUpdatePublisher: PlayerAvatarUpdatePublisher
 
     @Test
     fun throwsForUnknownUser() {
@@ -107,9 +112,11 @@ class UcpAccountDataServiceTest {
 
     @Test
     fun selectAvatarUpdatesSelectionFlags() {
+        val user = user()
         val assignment1 = AvatarAssignment(id = 1, idUser = USER_ID, idAvatar = 10, selected = false)
         val assignment2 = AvatarAssignment(id = 2, idUser = USER_ID, idAvatar = 20, selected = true)
 
+        whenever(userRepository.findById(USER_ID)).thenReturn(user)
         whenever(avatarAssignmentRepository.findAllByUserIdIncludingExpired(USER_ID))
             .thenReturn(listOf(assignment1, assignment2))
         whenever(avatarAssignmentRepository.findAssignmentByUserIdAndAvatarId(USER_ID, 10)).thenReturn(assignment1)
@@ -119,6 +126,8 @@ class UcpAccountDataServiceTest {
         assertEquals(AvatarSelectionResult.Success, result)
         assertTrue(assignment1.selected)
         assertFalse(assignment2.selected)
+        assertEquals(10, user.avatarId)
+        verify(playerAvatarUpdatePublisher).publish(USER_ID, 10)
     }
 
     @Test
@@ -137,11 +146,12 @@ class UcpAccountDataServiceTest {
 
         assertEquals(AvatarSelectionResult.AvatarExpired, result)
         assertFalse(expiredAssignment.selected)
+        verifyNoInteractions(playerAvatarUpdatePublisher)
     }
 
     @Test
     fun getAccountDataClearsExpiredSelectedAvatar() {
-        whenever(userRepository.findById(USER_ID)).thenReturn(USER)
+        val user = user(avatarId = 2)
         val expiredAssignment = AvatarAssignment(
             id = 1,
             idUser = USER_ID,
@@ -150,22 +160,27 @@ class UcpAccountDataServiceTest {
             expiresAt = OffsetDateTime.now().minusMinutes(1),
         )
 
+        whenever(userRepository.findById(USER_ID)).thenReturn(user)
         whenever(avatarAssignmentRepository.findSelectedAvatarByUserId(USER_ID)).thenReturn(null)
         whenever(avatarAssignmentRepository.findExpiredSelectedAvatarByUserId(USER_ID)).thenReturn(expiredAssignment)
 
         val result = ucpAccountDataService.getAccountData(USER_ID)
 
-        assertEquals(USER.username, result.username)
+        assertEquals(user.username, result.username)
         assertNull(result.avatarUrl)
         assertNull(result.avatarTooltip)
         assertFalse(expiredAssignment.selected)
+        assertNull(user.avatarId)
+        verify(playerAvatarUpdatePublisher).publish(USER_ID, null)
     }
 
     @Test
     fun deselectAvatarClearsAllSelections() {
+        val user = user(avatarId = 10)
         val a1 = AvatarAssignment(id = 1, idUser = USER_ID, idAvatar = 10, selected = true)
         val a2 = AvatarAssignment(id = 2, idUser = USER_ID, idAvatar = 11, selected = true)
 
+        whenever(userRepository.findById(USER_ID)).thenReturn(user)
         whenever(avatarAssignmentRepository.findAllByUserIdIncludingExpired(USER_ID))
             .thenReturn(listOf(a1, a2))
 
@@ -173,5 +188,17 @@ class UcpAccountDataServiceTest {
 
         assertFalse(a1.selected)
         assertFalse(a2.selected)
+        assertNull(user.avatarId)
+        verify(playerAvatarUpdatePublisher).publish(USER_ID, null)
     }
+
+    private fun user(avatarId: Int? = null) = User(
+        id = USER_ID,
+        username = "Dostya",
+        password = "vodka",
+        email = "dostya@cybran.example.com",
+        ip = null,
+        acceptedTos = null,
+        avatarId = avatarId,
+    )
 }

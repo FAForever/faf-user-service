@@ -61,7 +61,7 @@ class AvatarAssignmentRepository : PanacheRepositoryBase<AvatarAssignment, Int> 
             OffsetDateTime.now(),
         ).firstResult()
 
-    fun findAllByUserId(userId: Int): List<AvatarAssignment> =
+    fun findActiveByUserId(userId: Int): List<AvatarAssignment> =
         find(
             "idUser = ?1 and (expiresAt is null or expiresAt > ?2) order by id",
             userId,
@@ -78,7 +78,7 @@ class AvatarAssignmentRepository : PanacheRepositoryBase<AvatarAssignment, Int> 
 
     fun findExpiredSelectedAvatarByUserId(userId: Int): AvatarAssignment? =
         find(
-            "idUser = ?1 and selected = true and expiresAt is not null and expiresAt <= ?2",
+            "idUser = ?1 and selected = true and expiresAt <= ?2",
             userId,
             OffsetDateTime.now(),
         ).firstResult()
