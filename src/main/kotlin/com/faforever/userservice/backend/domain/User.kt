@@ -34,6 +34,8 @@ data class User(
     var userAgent: String? = null,
     @Column(name = "last_login")
     var lastLogin: LocalDateTime? = null,
+    @Column(name = "avatar_id")
+    var avatarId: Int? = null,
 ) : PanacheEntityBase {
 
     override fun toString(): String =
@@ -105,6 +107,9 @@ data class TermsOfService(
 class UserRepository : PanacheRepositoryBase<User, Int> {
     fun findByUsernameOrEmail(usernameOrEmail: String): User? =
         find("username = ?1 or email = ?1", usernameOrEmail).firstResult()
+
+    fun findByUsername(username: String): User? =
+        find("username = ?1", username).firstResult()
 
     fun findByEmail(email: String): User? =
         find("email = ?1", email).firstResult()

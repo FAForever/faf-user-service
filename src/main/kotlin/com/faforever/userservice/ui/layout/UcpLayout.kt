@@ -48,7 +48,7 @@ class UcpLayout(
         nav.addItem(navItem("ucp.nav.changeEmail", VaadinIcon.ENVELOPE, UcpChangeEmailView::class.java))
         nav.addItem(navItem("ucp.nav.changePassword", VaadinIcon.KEY, UcpChangePasswordView::class.java))
         nav.addItem(navItem("ucp.nav.accountLinking", VaadinIcon.LINK, UcpAccountLinkingView::class.java))
-        nav.addItem(navItem("ucp.nav.friendsFoes", VaadinIcon.HEART, UcpFriendsFoesView::class.java))
+        nav.addItem(navItem("ucp.nav.friendsFoes", VaadinIcon.MALE, UcpFriendsFoesView::class.java))
         nav.addItem(navItem("ucp.nav.avatars", VaadinIcon.PICTURE, UcpAvatarsView::class.java))
         nav.addItem(navItem("ucp.nav.permissions", VaadinIcon.KEY_O, UcpPermissionsView::class.java))
         nav.addItem(navItem("ucp.nav.groups", VaadinIcon.GROUP, UcpGroupsView::class.java))

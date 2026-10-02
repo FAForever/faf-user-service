@@ -208,6 +208,14 @@ mp:
           durable: true
         default-routing-key: request.user.delete
 
+      player-avatar-update:
+        connector: smallrye-rabbitmq
+        exchange:
+          name: faf-lobby
+          type: topic
+          durable: true
+        default-routing-key: success.player_avatar.update
+
     incoming:
       account-deletion-nodebb:
         connector: smallrye-rabbitmq
