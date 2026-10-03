@@ -5,7 +5,7 @@ html {
     --lumo-primary-color: #ea2f10;
     --lumo-primary-text-color: var(--lumo-primary-color);
     --lumo-clickable-cursor: pointer;
-    --lumo-contrast-20pct: #b8b8be
+    --lumo-contrast-20pct: #b8b8be;
 }
 
 .background {
@@ -217,5 +217,81 @@ vaadin-login-form::part(form) {
 
 .friends-foes-row {
     padding: var(--lumo-space-xs) 0;
+}
+
+.ban-history-grid::part(cell) {
+    white-space: normal;
+    padding-block: var(--lumo-space-s);
+}
+
+.ban-reason {
+    overflow-wrap: anywhere;
+}
+
+.ban-expand-icon {
+    display: block;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-right: 2px solid var(--lumo-tertiary-text-color);
+    border-bottom: 2px solid var(--lumo-tertiary-text-color);
+    transform: rotate(-45deg);
+    transition: transform 120ms ease;
+    margin: 0.4rem auto;
+}
+
+.ban-expand-icon[expanded] {
+    transform: rotate(45deg);
+}
+
+.ban-details {
+    background: var(--lumo-contrast-5pct);
+    border-radius: var(--lumo-border-radius-m);
+    border-left: 4px solid var(--lumo-contrast-40pct);
+    max-width: 40rem;
+}
+
+.ban-details.ban-status-active {
+    border-left-color: var(--lumo-error-color);
+}
+
+.ban-details.ban-status-revoked {
+    border-left-color: var(--lumo-success-color);
+}
+
+.ban-details.ban-status-expired {
+    border-left-color: var(--lumo-contrast-40pct);
+}
+
+.ban-details-row {
+    margin-bottom: var(--lumo-space-xs);
+}
+
+.ban-details-label {
+    display: block;
+    font-weight: 600;
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+}
+
+.ban-details-value {
+    display: block;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.ban-status-badge {
+    font-weight: 600;
+}
+
+.ban-status-badge.ban-status-active {
+    color: var(--lumo-error-color);
+}
+
+.ban-status-badge.ban-status-revoked {
+    color: var(--lumo-success-color);
+}
+
+.ban-status-badge.ban-status-expired {
+    color: var(--lumo-secondary-text-color);
 }
 
