@@ -32,6 +32,17 @@ sealed interface LoginResponse {
     data class SuccessfulLogin(val redirectTo: RedirectTo, val userId: String) : LoginResponse
 }
 
+sealed interface DeviceAcceptResult {
+
+    data class Accepted(val redirectTo: RedirectTo) : DeviceAcceptResult
+
+    /** The user code is unknown, expired or malformed - the user may correct it and try again. */
+    data object InvalidUserCode : DeviceAcceptResult
+
+    /** The device flow itself cannot be completed anymore, the user has to restart it on the device. */
+    data object FlowFailed : DeviceAcceptResult
+}
+
 @JvmInline
 value class RedirectTo(private val url: String) {
     val uri: URI get() = URI.create(url)
@@ -140,13 +151,27 @@ class HydraService(
         )
     }
 
-    fun acceptDeviceRequest(challenge: String, userCode: String): RedirectTo {
-        val redirectResponse = hydraClient.acceptDeviceRequest(
-            challenge,
-            AcceptOAuth2DeviceAuthorizationRequest(userCode = userCode),
-        )
-        return RedirectTo(redirectResponse.redirectTo)
-    }
+    fun acceptDeviceRequest(challenge: String, userCode: String): DeviceAcceptResult =
+        try {
+            val redirectResponse = hydraClient.acceptDeviceRequest(
+                challenge,
+                AcceptOAuth2DeviceAuthorizationRequest(userCode = userCode),
+            )
+            DeviceAcceptResult.Accepted(RedirectTo(redirectResponse.redirectTo))
+        } catch (e: HydraBadRequestException) {
+            // Hydra answers 400 invalid_request when the user code is expired or malformed.
+            LOG.debug("Hydra rejected the user code for device challenge {}: {}", challenge, e.body)
+            DeviceAcceptResult.InvalidUserCode
+        } catch (e: NoChallengeException) {
+            // A user code that matches no session is a 404, which is indistinguishable from an
+            // unknown device challenge. Mistyped codes are by far the likelier cause, so let the
+            // user retry instead of dumping them on the access denied page.
+            LOG.debug("Hydra found no device session for challenge {}", challenge, e)
+            DeviceAcceptResult.InvalidUserCode
+        } catch (e: GoneException) {
+            LOG.info("Device challenge {} has already been handled", challenge, e)
+            DeviceAcceptResult.FlowFailed
+        }
 
     fun getConsentRequest(challenge: String): OAuth2ConsentRequest = hydraClient.getConsentRequest(challenge)
 
