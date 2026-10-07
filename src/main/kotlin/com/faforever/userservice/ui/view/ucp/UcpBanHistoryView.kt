@@ -13,14 +13,17 @@ import com.vaadin.flow.component.html.Div
 import com.vaadin.flow.component.html.H2
 import com.vaadin.flow.component.html.H3
 import com.vaadin.flow.component.html.Span
+import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.data.renderer.ComponentRenderer
+import com.vaadin.flow.data.renderer.LitRenderer
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
 import jakarta.annotation.security.PermitAll
 import java.time.Duration
 import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.max
 
@@ -33,11 +36,11 @@ class UcpBanHistoryView(
     BeforeEnterObserver {
 
     companion object {
-        private const val MAX_BANS_BEFORE_SCROLL = 8
-        private const val SCROLLABLE_GRID_HEIGHT = "28rem"
+        private const val MAX_GRID_HEIGHT = "28rem"
     }
 
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+    private var userTimeZone: ZoneId = ZoneId.systemDefault()
 
     private val activeBansTitle = H3()
     private val historyBansTitle = H3()
@@ -53,72 +56,102 @@ class UcpBanHistoryView(
             historyBansTitle,
             historyBansGrid,
         )
+
+        setAlignSelf(
+            FlexComponent.Alignment.START,
+            activeBansTitle,
+            activeBansGrid,
+            historyBansTitle,
+            historyBansGrid,
+        )
     }
 
     override fun beforeEnter(event: BeforeEnterEvent) {
         val bans = ucpBanHistoryService.getBanHistoryForUser(ucpSessionService.getCurrentUser().userId)
+
+        val details = event.ui.page.extendedClientDetails
+
+        userTimeZone = details.timeZoneId
+            ?.let(ZoneId::of)
+            ?: ZoneId.systemDefault()
+
         val activeBans = bans.filter { it.status == UcpBanStatus.ACTIVE }
         val historyBans = bans.filter { it.status != UcpBanStatus.ACTIVE }
 
         activeBansTitle.text = getTranslation("ucp.banHistory.activeTitle", activeBans.size)
         historyBansTitle.text = getTranslation("ucp.banHistory.historyTitle", historyBans.size)
-        setBans(activeBansGrid, activeBans)
-        setBans(historyBansGrid, historyBans)
+
+        activeBansGrid.setItems(activeBans)
+        historyBansGrid.setItems(historyBans)
     }
 
-    private fun createBansGrid(emptyStateText: String): Grid<UcpBanHistoryEntry> {
-        val expandIcons = mutableMapOf<Int, Span>()
-        return Grid(UcpBanHistoryEntry::class.java, false).apply {
+    private fun createBansGrid(emptyStateText: String): Grid<UcpBanHistoryEntry> =
+        Grid(UcpBanHistoryEntry::class.java, false).apply {
             addClassName("ban-history-grid")
             setSelectionMode(SelectionMode.NONE)
+
             setDetailsVisibleOnClick(true)
-            setWidthFull()
+            width = "100%"
+            maxWidth = "70rem"
+            setAllRowsVisible(true)
+            setMaxHeight(MAX_GRID_HEIGHT)
             setEmptyStateText(emptyStateText)
 
-            addComponentColumn { ban ->
-                Span().apply {
-                    addClassName("ban-expand-icon")
-                    expandIcons[ban.id] = this
-                    element.setAttribute("expanded", isDetailsVisible(ban))
-                }
-            }
+            addColumn(
+                LitRenderer.of(
+                    """
+                    <span class="ban-expand-button">
+                        <vaadin-icon
+                            .icon="${'$'}{model.detailsOpened ? 'vaadin:angle-down' : 'vaadin:angle-right'}">
+                        </vaadin-icon>
+                    </span>
+                    """.trimIndent(),
+                ),
+            )
                 .setHeader("")
-                .setWidth("2.5rem")
+                .setWidth("5rem")
                 .setFlexGrow(0)
 
             addColumn { getLevelLabel(it.level) }
                 .setHeader(getTranslation("ucp.banHistory.column.level"))
-                .setAutoWidth(true)
+                .setWidth("5rem")
                 .setFlexGrow(0)
+
             addComponentColumn { ban ->
-                Span(ban.reason).apply { addClassName("ban-reason") }
+                Span(truncateReason(ban.reason)).apply {
+                    addClassName("ban-reason")
+                }
             }
                 .setHeader(getTranslation("ucp.banHistory.column.reason"))
-                .setFlexGrow(1)
+                .setWidth("22rem")
+                .setFlexGrow(0)
+
             addColumn { getDurationLabel(it) }
                 .setHeader(getTranslation("ucp.banHistory.column.duration"))
-                .setAutoWidth(true)
+                .setWidth("14rem")
                 .setFlexGrow(0)
+
             addColumn { formatDateTime(it.createTime) }
                 .setHeader(getTranslation("ucp.banHistory.column.dateIssued"))
-                .setAutoWidth(true)
+                .setWidth("11rem")
                 .setFlexGrow(0)
+
             addComponentColumn { ban ->
                 Span(getStatusLabel(ban.status)).apply {
-                    addClassNames("ban-status-badge", statusClass(ban.status))
+                    addClassNames(
+                        "ban-status-badge",
+                        statusClass(ban.status),
+                    )
                 }
             }
                 .setHeader(getTranslation("ucp.banHistory.column.status"))
-                .setAutoWidth(true)
+                .setWidth("8rem")
                 .setFlexGrow(0)
 
             columns.forEach { it.isSortable = false }
+
             setItemDetailsRenderer(ComponentRenderer(::createBanDetails))
-            addItemClickListener { event ->
-                expandIcons[event.item.id]?.element?.setAttribute("expanded", isDetailsVisible(event.item))
-            }
         }
-    }
 
     private fun createBanDetails(ban: UcpBanHistoryEntry): Component =
         VerticalLayout().apply {
@@ -128,10 +161,11 @@ class UcpBanHistoryView(
 
             add(
                 detailRow(
-                    getTranslation("ucp.banHistory.details.issuedBy"),
-                    formatModerator(ban.authorUsername, ban.authorId),
+                    getTranslation("ucp.banHistory.details.fullReason"),
+                    ban.reason,
                 ),
             )
+
             add(
                 detailRow(
                     getTranslation("ucp.banHistory.details.ends"),
@@ -141,35 +175,23 @@ class UcpBanHistoryView(
             )
 
             ban.revokeReason?.takeIf(String::isNotBlank)?.let {
-                add(detailRow(getTranslation("ucp.banHistory.details.revokeReason"), it))
-            }
-            ban.revokeAuthorId?.let {
                 add(
                     detailRow(
-                        getTranslation("ucp.banHistory.details.revokedBy"),
-                        formatModerator(ban.revokeAuthorUsername, it),
+                        getTranslation("ucp.banHistory.details.revokeReason"),
+                        it,
                     ),
                 )
             }
+
             ban.revokeTime?.let {
-                add(detailRow(getTranslation("ucp.banHistory.details.revokedAt"), formatDateTime(it)))
+                add(
+                    detailRow(
+                        getTranslation("ucp.banHistory.details.revokedAt"),
+                        formatDateTime(it),
+                    ),
+                )
             }
         }
-
-    private fun setBans(
-        grid: Grid<UcpBanHistoryEntry>,
-        bans: List<UcpBanHistoryEntry>,
-    ) {
-        grid.setItems(bans)
-
-        if (bans.size > MAX_BANS_BEFORE_SCROLL) {
-            grid.setAllRowsVisible(false)
-            grid.setHeight(SCROLLABLE_GRID_HEIGHT)
-        } else {
-            grid.setHeight(null)
-            grid.setAllRowsVisible(true)
-        }
-    }
 
     private fun detailRow(label: String, value: String): Component =
         Div(
@@ -183,16 +205,23 @@ class UcpBanHistoryView(
         UcpBanStatus.REVOKED -> "ban-status-revoked"
     }
 
+    private fun truncateReason(reason: String, maxLength: Int = 60): String =
+        if (reason.length > maxLength) {
+            reason.take(maxLength).trimEnd() + "..."
+        } else {
+            reason
+        }
+
     private fun getDurationLabel(ban: UcpBanHistoryEntry): String {
         val expiresAt = ban.expiresAt ?: return getTranslation("ucp.banHistory.duration.permanent")
         val days = max(1, Duration.between(ban.createTime, expiresAt).toDays())
         return getTranslation("ucp.banHistory.duration.temporary", days)
     }
 
-    private fun formatDateTime(dateTime: OffsetDateTime): String = dateTime.format(dateFormatter)
-
-    private fun formatModerator(username: String?, userId: Int): String =
-        username?.let { "$it (ID: $userId)" } ?: "ID: $userId"
+    private fun formatDateTime(dateTime: OffsetDateTime): String =
+        dateTime
+            .atZoneSameInstant(userTimeZone)
+            .format(dateFormatter)
 
     private fun getLevelLabel(level: BanLevel): String = when (level) {
         BanLevel.GLOBAL -> getTranslation("ucp.banHistory.level.global")

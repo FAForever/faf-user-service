@@ -220,7 +220,6 @@ vaadin-login-form::part(form) {
 }
 
 .ban-history-grid::part(cell) {
-    white-space: normal;
     padding-block: var(--lumo-space-s);
 }
 
@@ -228,19 +227,27 @@ vaadin-login-form::part(form) {
     overflow-wrap: anywhere;
 }
 
-.ban-expand-icon {
-    display: block;
-    width: 0.4rem;
-    height: 0.4rem;
-    border-right: 2px solid var(--lumo-tertiary-text-color);
-    border-bottom: 2px solid var(--lumo-tertiary-text-color);
-    transform: rotate(-45deg);
-    transition: transform 120ms ease;
-    margin: 0.4rem auto;
+.ban-expand-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.2rem;
+    border: 1px solid rgba(234, 47, 16, 0.25);
+    border-radius: var(--lumo-border-radius-m);
+    background: rgba(234, 47, 16, 0.08);
+    color: var(--lumo-primary-color);
+    cursor: var(--lumo-clickable-cursor);
+    --vaadin-icon-size: 1.3rem;
+    --vaadin-icon-visual-size: 1.3rem;
+    transition:
+            background-color 150ms ease,
+            border-color 150ms ease;
 }
 
-.ban-expand-icon[expanded] {
-    transform: rotate(45deg);
+.ban-expand-button:hover {
+    background: rgba(234, 47, 16, 0.18);
+    border-color: var(--lumo-primary-color);
 }
 
 .ban-details {

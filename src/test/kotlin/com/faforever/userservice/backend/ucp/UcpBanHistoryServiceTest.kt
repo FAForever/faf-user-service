@@ -3,8 +3,6 @@ package com.faforever.userservice.backend.ucp
 import com.faforever.userservice.backend.domain.Ban
 import com.faforever.userservice.backend.domain.BanLevel
 import com.faforever.userservice.backend.domain.BanRepository
-import com.faforever.userservice.backend.domain.User
-import com.faforever.userservice.backend.domain.UserRepository
 import io.quarkus.test.InjectMock
 import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
@@ -12,7 +10,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -27,9 +24,6 @@ class UcpBanHistoryServiceTest {
 
     @InjectMock
     private lateinit var banRepository: BanRepository
-
-    @InjectMock
-    private lateinit var userRepository: UserRepository
 
     @Test
     fun returnsEmptyBanHistoryWhenUserHasNoBans() {
@@ -107,46 +101,6 @@ class UcpBanHistoryServiceTest {
         assertThat(result.map { it.reason }, contains("Newest", "Middle", "Oldest"))
         assertThat(result.map { it.level }, contains(BanLevel.GLOBAL, BanLevel.CHAT, BanLevel.VAULT))
     }
-
-    @Test
-    fun mapsModeratorUsernamesWhenPresent() {
-        val ban = buildBan(
-            revokeTime = NOW.minusDays(1),
-            revokeReason = "Appeal accepted",
-            revokeAuthorId = REVOKE_AUTHOR_ID,
-        )
-        whenever(banRepository.findByPlayerIdOrderByCreateTimeDesc(USER_ID)).thenReturn(listOf(ban))
-        whenever(userRepository.findById(AUTHOR_ID)).thenReturn(user(AUTHOR_ID, "BanModerator"))
-        whenever(userRepository.findById(REVOKE_AUTHOR_ID)).thenReturn(user(REVOKE_AUTHOR_ID, "AppealModerator"))
-
-        val entry = ucpBanHistoryService.getBanHistoryForUser(USER_ID).single()
-        assertThat(entry.authorUsername, equalTo("BanModerator"))
-        assertThat(entry.revokeAuthorUsername, equalTo("AppealModerator"))
-    }
-
-    @Test
-    fun keepsModeratorIdsWhenUsersMissing() {
-        whenever(banRepository.findByPlayerIdOrderByCreateTimeDesc(USER_ID)).thenReturn(
-            listOf(buildBan(revokeTime = NOW.minusDays(1), revokeAuthorId = REVOKE_AUTHOR_ID)),
-        )
-        whenever(userRepository.findById(AUTHOR_ID)).thenReturn(null)
-        whenever(userRepository.findById(REVOKE_AUTHOR_ID)).thenReturn(null)
-
-        val entry = ucpBanHistoryService.getBanHistoryForUser(USER_ID).single()
-        assertThat(entry.authorUsername, nullValue())
-        assertThat(entry.revokeAuthorUsername, nullValue())
-        assertThat(entry.authorId, equalTo(AUTHOR_ID))
-        assertThat(entry.revokeAuthorId, equalTo(REVOKE_AUTHOR_ID))
-    }
-
-    private fun user(id: Int, username: String) = User(
-        id = id,
-        username = username,
-        password = "password",
-        email = "$username@example.com",
-        ip = null,
-        acceptedTos = null,
-    )
 
     private fun buildBan(
         id: Int = 1,
