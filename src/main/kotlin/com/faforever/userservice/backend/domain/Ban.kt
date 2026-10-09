@@ -57,5 +57,9 @@ class BanRepository : PanacheRepository<Ban> {
         return find("playerId = ?1 and level = BanLevel.GLOBAL", playerId).list()
     }
 
+    fun findByPlayerIdOrderByCreateTimeDesc(playerId: Int): List<Ban> {
+        return find("playerId = ?1 order by createTime desc", playerId).list()
+    }
+
     fun countByPlayerId(playerId: Int): Long = count("playerId", playerId)
 }
