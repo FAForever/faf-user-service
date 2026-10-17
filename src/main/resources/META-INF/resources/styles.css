@@ -44,6 +44,12 @@ input {
     font-weight: normal;
 }
 
+.device-user-code input {
+    letter-spacing: 0.25em;
+    font-family: monospace;
+    font-size: 1.25rem;
+}
+
 .device-info {
     box-sizing: border-box;
     background-color: white;

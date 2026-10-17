@@ -152,7 +152,7 @@ quarkus:
       cors:
         origins: "/.*/"
       host-validation:
-        allowed-hosts: localhost,user.faforever.localhost
+        allowed-hosts: localhost,user.faforever.localhost,127.0.0.1
     mailer:
       mock: true
     log:
