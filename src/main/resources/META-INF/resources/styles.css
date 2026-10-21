@@ -5,7 +5,7 @@ html {
     --lumo-primary-color: #ea2f10;
     --lumo-primary-text-color: var(--lumo-primary-color);
     --lumo-clickable-cursor: pointer;
-    --lumo-contrast-20pct: #b8b8be
+    --lumo-contrast-20pct: #b8b8be;
 }
 
 .background {
@@ -217,5 +217,88 @@ vaadin-login-form::part(form) {
 
 .friends-foes-row {
     padding: var(--lumo-space-xs) 0;
+}
+
+.ban-history-grid::part(cell) {
+    padding-block: var(--lumo-space-s);
+}
+
+.ban-reason {
+    overflow-wrap: anywhere;
+}
+
+.ban-expand-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.2rem;
+    border: 1px solid rgba(234, 47, 16, 0.25);
+    border-radius: var(--lumo-border-radius-m);
+    background: rgba(234, 47, 16, 0.08);
+    color: var(--lumo-primary-color);
+    cursor: var(--lumo-clickable-cursor);
+    --vaadin-icon-size: 1.3rem;
+    --vaadin-icon-visual-size: 1.3rem;
+    transition:
+            background-color 150ms ease,
+            border-color 150ms ease;
+}
+
+.ban-expand-button:hover {
+    background: rgba(234, 47, 16, 0.18);
+    border-color: var(--lumo-primary-color);
+}
+
+.ban-details {
+    background: var(--lumo-contrast-5pct);
+    border-radius: var(--lumo-border-radius-m);
+    border-left: 4px solid var(--lumo-contrast-40pct);
+    max-width: 40rem;
+}
+
+.ban-details.ban-status-active {
+    border-left-color: var(--lumo-error-color);
+}
+
+.ban-details.ban-status-revoked {
+    border-left-color: var(--lumo-success-color);
+}
+
+.ban-details.ban-status-expired {
+    border-left-color: var(--lumo-contrast-40pct);
+}
+
+.ban-details-row {
+    margin-bottom: var(--lumo-space-xs);
+}
+
+.ban-details-label {
+    display: block;
+    font-weight: 600;
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+}
+
+.ban-details-value {
+    display: block;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.ban-status-badge {
+    font-weight: 600;
+}
+
+.ban-status-badge.ban-status-active {
+    color: var(--lumo-error-color);
+}
+
+.ban-status-badge.ban-status-revoked {
+    color: var(--lumo-success-color);
+}
+
+.ban-status-badge.ban-status-expired {
+    color: var(--lumo-secondary-text-color);
 }
 
