@@ -1,6 +1,7 @@
 package com.faforever.userservice.backend.hydra
 
 import io.quarkus.rest.client.reactive.ClientExceptionMapper
+import io.smallrye.common.annotation.Blocking
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.validation.constraints.NotBlank
 import jakarta.ws.rs.Consumes
@@ -31,8 +32,10 @@ interface HydraClient {
     companion object {
         @JvmStatic
         @ClientExceptionMapper
+        @Blocking
         fun toException(response: Response): RuntimeException? {
             return when (response.status) {
+                400 -> HydraBadRequestException(runCatching { response.readEntity(String::class.java) }.getOrNull())
                 404 -> NoChallengeException()
                 410 -> GoneException("The request has already been handled")
                 else -> null
@@ -105,3 +108,5 @@ interface HydraClient {
 }
 
 class GoneException(override val message: String?) : RuntimeException(message)
+
+class HydraBadRequestException(val body: String?) : RuntimeException("Hydra rejected the request: $body")

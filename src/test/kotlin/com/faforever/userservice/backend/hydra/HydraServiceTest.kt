@@ -11,15 +11,18 @@ import jakarta.inject.Inject
 import org.eclipse.microprofile.rest.client.inject.RestClient
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.instanceOf
+import org.hamcrest.Matchers.`is`
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import sh.ory.hydra.model.AcceptOAuth2DeviceAuthorizationRequest
 import sh.ory.hydra.model.OAuth2Client
 import sh.ory.hydra.model.OAuth2LoginRequest
 import sh.ory.hydra.model.OAuth2RedirectTo
+import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpResponse.BodyHandler
 import java.time.OffsetDateTime
@@ -203,5 +206,50 @@ class HydraServiceTest {
         hydraService.login("test", "", "", ipAddress)
 
         verify(loginService).login(any(), any(), IpAddress(anyString()), eq(false))
+    }
+
+    @Test
+    fun testAcceptDeviceRequest() {
+        whenever(hydraClient.acceptDeviceRequest(anyString(), any()))
+            .thenReturn(OAuth2RedirectTo("http://localhost/oauth2/login"))
+
+        val result = hydraService.acceptDeviceRequest("challenge", "ABCD2345")
+
+        assertThat(result, instanceOf(DeviceAcceptResult.Accepted::class.java))
+        assertThat(
+            (result as DeviceAcceptResult.Accepted).redirectTo.uri,
+            `is`(URI.create("http://localhost/oauth2/login")),
+        )
+        verify(hydraClient).acceptDeviceRequest(
+            eq("challenge"),
+            eq(AcceptOAuth2DeviceAuthorizationRequest(userCode = "ABCD2345")),
+        )
+    }
+
+    @Test
+    fun testAcceptDeviceRequestWithMalformedUserCode() {
+        whenever(hydraClient.acceptDeviceRequest(anyString(), any())).thenThrow(HydraBadRequestException("invalid"))
+
+        val result = hydraService.acceptDeviceRequest("challenge", "ABCD2345")
+
+        assertThat(result, `is`(DeviceAcceptResult.InvalidUserCode))
+    }
+
+    @Test
+    fun testAcceptDeviceRequestWithUnknownUserCode() {
+        whenever(hydraClient.acceptDeviceRequest(anyString(), any())).thenThrow(NoChallengeException())
+
+        val result = hydraService.acceptDeviceRequest("challenge", "ABCD2345")
+
+        assertThat(result, `is`(DeviceAcceptResult.InvalidUserCode))
+    }
+
+    @Test
+    fun testAcceptDeviceRequestOnHandledChallenge() {
+        whenever(hydraClient.acceptDeviceRequest(anyString(), any())).thenThrow(GoneException("gone"))
+
+        val result = hydraService.acceptDeviceRequest("challenge", "ABCD2345")
+
+        assertThat(result, `is`(DeviceAcceptResult.FlowFailed))
     }
 }
