@@ -144,6 +144,13 @@ quarkus:
   management:
     enabled: true
 
+"%test":
+  quarkus:
+    log:
+      console:
+        json:
+          enabled: false
+
 "%dev":
   quarkus:
     live-reload:
@@ -156,6 +163,9 @@ quarkus:
     mailer:
       mock: true
     log:
+      console:
+        json:
+          enabled: false
       category:
         "com.faforever":
           level: DEBUG

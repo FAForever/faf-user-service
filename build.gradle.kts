@@ -60,6 +60,7 @@ dependencies {
     implementation("com.vaadin:vaadin-quarkus")
     implementation("com.vaadin:vaadin-dev")
     implementation("com.nimbusds:nimbus-jose-jwt")
+    implementation("io.quarkus:quarkus-logging-json")
 
     testImplementation("io.quarkus:quarkus-junit5-mockito")
     testImplementation("io.rest-assured:rest-assured")
