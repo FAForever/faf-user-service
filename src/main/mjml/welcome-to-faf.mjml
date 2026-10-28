@@ -92,8 +92,7 @@
     <mj-section background-color="gray" padding="0">
       <mj-column>
         <mj-text color="#d3d3d3">
-          <p>Should you ever want to delete your account, please send an email with your request to
-            admin@faforever.com.
+            <p>Should you ever want to delete your account, you may do so in our <a href="https://user.faforever.com/ucp">User Control Panel</a>.
           </p>
         </mj-text>
       </mj-column>
